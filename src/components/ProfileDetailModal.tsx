@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { X, Heart, MessageCircle, Gift } from 'lucide-react';
+import { X, Heart, MessageCircle, Gift, Crown, Zap } from 'lucide-react';
 import { useCheckSubscription, useSubscribeToWoman, useCustomerPortal } from '../hooks/useSubscriptions';
 import { useCreateChat } from '../hooks/useChats';
 import { useAuth } from '../hooks/useAuth';
@@ -83,6 +82,16 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
       return;
     }
 
+    // Nur für Stripe-Abonnements das Customer Portal öffnen
+    if (!accessStatus?.hasStripeSubscription) {
+      toast({
+        title: "Nicht verfügbar",
+        description: "Die Abonnement-Verwaltung ist nur für Stripe-Abonnements verfügbar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       console.log('Opening customer portal for user:', user.email);
       await customerPortal.mutateAsync();
@@ -92,21 +101,38 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
       });
     } catch (error: any) {
       console.error('Customer portal error:', error);
-      
-      // Bessere Fehlerbehandlung für verschiedene Fälle
-      if (error.message?.includes('Keine aktiven Abonnements')) {
-        toast({
-          title: "Keine Abonnements vorhanden",
-          description: "Du hast noch keine aktiven Abonnements. Erstelle zuerst ein Abonnement.",
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Fehler",
-          description: error.message || "Kundenverwaltung konnte nicht geöffnet werden",
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "Fehler",
+        description: error.message || "Kundenverwaltung konnte nicht geöffnet werden",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUpgrade = async () => {
+    if (!user) {
+      onAuthRequired?.();
+      return;
+    }
+
+    if (!profile.womanId) return;
+    
+    try {
+      await subscribeToWoman.mutateAsync({
+        womanId: profile.womanId,
+        womanName: profile.name,
+        price: profile.price || 3.99
+      });
+      toast({
+        title: "Upgrade zu Premium!",
+        description: `Upgrade auf Premium für ${profile.name} im neuen Tab.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Fehler",
+        description: error.message || "Upgrade konnte nicht geöffnet werden",
+        variant: "destructive",
+      });
     }
   };
 
@@ -281,13 +307,21 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
               ) : accessStatus?.hasAccess ? (
                 <div className="space-y-4">
                   <div className="glass w-full py-4 rounded-xl text-center border border-white/10">
-                    {accessStatus.hasFreeAccess && !accessStatus.hasSubscription ? (
+                    {accessStatus.subscriptionType === 'free' ? (
                       <div className="flex items-center justify-center space-x-2 text-emerald-400 animate-fade-in">
                         <Gift className="w-5 h-5 sm:w-6 sm:h-6" />
                         <span className="text-sm sm:text-base font-semibold">✓ Kostenlos freigeschaltet - Sie können chatten!</span>
                       </div>
+                    ) : accessStatus.subscriptionType === 'stripe' ? (
+                      <div className="flex items-center justify-center space-x-2 text-emerald-400 animate-fade-in">
+                        <Crown className="w-5 h-5 sm:w-6 sm:h-6" />
+                        <span className="text-sm sm:text-base font-semibold">✓ Premium Stripe-Abonnement aktiv!</span>
+                      </div>
                     ) : (
-                      <span className="text-emerald-400 text-sm sm:text-base font-semibold animate-fade-in">✓ Aktives Abonnement - Sie können chatten!</span>
+                      <div className="flex items-center justify-center space-x-2 text-emerald-400 animate-fade-in">
+                        <Zap className="w-5 h-5 sm:w-6 sm:h-6" />
+                        <span className="text-sm sm:text-base font-semibold">✓ Direktes Abonnement aktiv!</span>
+                      </div>
                     )}
                   </div>
                   <div className="flex flex-col space-y-3">
@@ -301,16 +335,34 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
                         {createChat.isPending ? 'Chat wird erstellt...' : 'Chat starten'}
                       </span>
                     </button>
-                    {accessStatus.hasSubscription && (
+                    
+                    {/* Verschiedene Buttons je nach Subscription-Typ */}
+                    {accessStatus.hasStripeSubscription ? (
                       <button
                         onClick={handleManageSubscription}
                         disabled={customerPortal.isPending}
                         className="w-full glass-button py-3 rounded-xl text-white hover:bg-purple-600/30 transition-all duration-300 flex items-center justify-center space-x-2 border border-purple-400/30 hover:scale-105 active:scale-95 text-sm font-medium animate-micro-bounce"
                       >
+                        <Crown className="w-4 h-4" />
                         <span>
-                          {customerPortal.isPending ? 'Portal wird geöffnet...' : 'Abonnement verwalten'}
+                          {customerPortal.isPending ? 'Portal wird geöffnet...' : 'Stripe-Abonnement verwalten'}
                         </span>
                       </button>
+                    ) : accessStatus.subscriptionType === 'free' ? (
+                      <button
+                        onClick={handleUpgrade}
+                        disabled={subscribeToWoman.isPending}
+                        className="w-full glass-button py-3 rounded-xl text-white hover:bg-yellow-600/30 transition-all duration-300 flex items-center justify-center space-x-2 border border-yellow-400/30 hover:scale-105 active:scale-95 text-sm font-medium animate-micro-bounce"
+                      >
+                        <Crown className="w-4 h-4" />
+                        <span>
+                          {subscribeToWoman.isPending ? 'Upgrade wird geöffnet...' : 'Upgrade zu Premium'}
+                        </span>
+                      </button>
+                    ) : (
+                      <div className="text-center text-white/60 text-sm">
+                        Direktes Abonnement - Kontakt Administrator für Änderungen
+                      </div>
                     )}
                   </div>
                 </div>

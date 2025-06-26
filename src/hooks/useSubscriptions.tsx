@@ -68,7 +68,13 @@ export function useCheckSubscription(womanId: string) {
   return useQuery({
     queryKey: ['subscription', user?.id, womanId],
     queryFn: async () => {
-      if (!user || !womanId) return { hasAccess: false, hasSubscription: false, hasFreeAccess: false };
+      if (!user || !womanId) return { 
+        hasAccess: false, 
+        hasSubscription: false, 
+        hasFreeAccess: false,
+        hasStripeSubscription: false,
+        subscriptionType: null
+      };
       
       // Verwende die neue kombinierte Funktion
       const { data: hasAccess, error } = await supabase.rpc('has_subscription_or_free_access', {
@@ -91,11 +97,33 @@ export function useCheckSubscription(womanId: string) {
         woman_id: womanId,
         specific_user_id: user.id
       });
+
+      // Prüfe ob es ein Stripe-Abonnement ist
+      const { data: subscriptionData } = await supabase
+        .from('subscriptions')
+        .select('stripe_subscription_id, stripe_customer_id')
+        .eq('user_id', user.id)
+        .eq('woman_id', womanId)
+        .eq('active', true)
+        .single();
+
+      const hasStripeSubscription = !!(subscriptionData?.stripe_subscription_id);
+      
+      let subscriptionType = null;
+      if (hasStripeSubscription) {
+        subscriptionType = 'stripe';
+      } else if (hasSubscription) {
+        subscriptionType = 'direct';
+      } else if (hasFreeAccess) {
+        subscriptionType = 'free';
+      }
       
       return {
         hasAccess: hasAccess || false,
         hasSubscription: hasSubscription || false,
-        hasFreeAccess: hasFreeAccess || false
+        hasFreeAccess: hasFreeAccess || false,
+        hasStripeSubscription,
+        subscriptionType
       };
     },
     enabled: !!user && !!womanId,
