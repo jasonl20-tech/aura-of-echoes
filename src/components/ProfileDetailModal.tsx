@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { X, MapPin, Star, Heart, MessageCircle } from 'lucide-react';
-import { useCheckSubscription, useSubscribeToWoman } from '../hooks/useSubscriptions';
+import { X, MapPin, Star, Heart, MessageCircle, Settings } from 'lucide-react';
+import { useCheckSubscription, useSubscribeToWoman, useCustomerPortal } from '../hooks/useSubscriptions';
 import { useCreateChat } from '../hooks/useChats';
 import { useAuth } from '../hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
@@ -39,6 +39,7 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
   const { data: hasSubscription, isLoading: checkingSubscription } = useCheckSubscription(profile.womanId || '');
   const subscribeToWoman = useSubscribeToWoman();
   const createChat = useCreateChat();
+  const customerPortal = useCustomerPortal();
 
   if (!isOpen) return null;
 
@@ -53,13 +54,29 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
     try {
       await subscribeToWoman.mutateAsync(profile.womanId);
       toast({
-        title: "Abonnement erfolgreich!",
-        description: `Sie können jetzt mit ${profile.name} chatten.`,
+        title: "Stripe Checkout geöffnet!",
+        description: `Komplettiere die Zahlung für ${profile.name} im neuen Tab.`,
       });
     } catch (error: any) {
       toast({
         title: "Fehler",
-        description: error.message || "Abonnement fehlgeschlagen",
+        description: error.message || "Checkout konnte nicht geöffnet werden",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleManageSubscription = async () => {
+    try {
+      await customerPortal.mutateAsync();
+      toast({
+        title: "Kundenverwaltung geöffnet!",
+        description: "Verwalte deine Abonnements im neuen Tab.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Fehler",
+        description: error.message || "Kundenverwaltung konnte nicht geöffnet werden",
         variant: "destructive",
       });
     }
@@ -188,7 +205,7 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
                     Melde dich an, um mit {profile.name} zu chatten
                   </p>
                   <p className="text-2xl font-bold text-white">
-                    €3.99 <span className="text-sm text-white/60">/Monat</span>
+                    €{profile.price?.toFixed(2) || '3.99'} <span className="text-sm text-white/60">/Monat</span>
                   </p>
                 </div>
                 <button
@@ -201,23 +218,33 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
               </div>
             ) : checkingSubscription ? (
               <div className="glass-button w-full py-3 rounded-xl text-center text-white/70">
-                Wird geprüft...
+                Subscription wird geprüft...
               </div>
             ) : hasSubscription ? (
               <div className="space-y-3">
                 <div className="glass w-full py-3 rounded-xl text-center text-green-400">
-                  ✓ Abonniert - Sie können chatten!
+                  ✓ Aktives Abonnement - Sie können chatten!
                 </div>
-                <button
-                  onClick={handleStartChat}
-                  disabled={createChat.isPending}
-                  className="w-full glass-button py-3 rounded-xl text-white font-semibold hover:bg-blue-600/30 transition-all duration-300 flex items-center justify-center space-x-2"
-                >
-                  <MessageCircle className="w-5 h-5" />
-                  <span>
-                    {createChat.isPending ? 'Chat wird erstellt...' : 'Chat starten'}
-                  </span>
-                </button>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={handleStartChat}
+                    disabled={createChat.isPending}
+                    className="flex-1 glass-button py-3 rounded-xl text-white font-semibold hover:bg-blue-600/30 transition-all duration-300 flex items-center justify-center space-x-2"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    <span>
+                      {createChat.isPending ? 'Chat wird erstellt...' : 'Chat starten'}
+                    </span>
+                  </button>
+                  <button
+                    onClick={handleManageSubscription}
+                    disabled={customerPortal.isPending}
+                    className="glass-button px-4 py-3 rounded-xl text-white hover:bg-purple-600/30 transition-all duration-300 flex items-center justify-center"
+                    title="Abonnement verwalten"
+                  >
+                    <Settings className="w-5 h-5" />
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="space-y-3">
@@ -226,7 +253,10 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
                     Abonnieren Sie {profile.name} für
                   </p>
                   <p className="text-2xl font-bold text-white">
-                    €3.99 <span className="text-sm text-white/60">/Monat</span>
+                    €{profile.price?.toFixed(2) || '3.99'} <span className="text-sm text-white/60">/Monat</span>
+                  </p>
+                  <p className="text-white/50 text-xs mt-2">
+                    Echte Stripe-Zahlung • Jederzeit kündbar
                   </p>
                 </div>
                 <button
@@ -236,7 +266,7 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
                 >
                   <Heart className="w-5 h-5" />
                   <span>
-                    {subscribeToWoman.isPending ? 'Wird abonniert...' : 'Jetzt abonnieren'}
+                    {subscribeToWoman.isPending ? 'Checkout wird geöffnet...' : 'Jetzt abonnieren (Stripe)'}
                   </span>
                 </button>
               </div>
