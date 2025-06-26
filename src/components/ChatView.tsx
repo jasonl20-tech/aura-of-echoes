@@ -24,7 +24,6 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  const [isLocalTyping, setIsLocalTyping] = useState(false); // Neue State für lokale Typing-Anzeige
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<{ play: () => Promise<void> } | null>(null);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -265,9 +264,8 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
           console.log('❌ Could not play notification sound:', error);
         });
         
-        // Stop both typing indicators when AI message arrives
+        // Stop typing indicator when AI message arrives
         setIsTyping(false);
-        setIsLocalTyping(false);
       }
       
       console.log('🔄 Refetching messages due to real-time update');
@@ -319,7 +317,6 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
       supabase.removeChannel(typingChannel);
       setIsRealtimeConnected(false);
       setIsTyping(false);
-      setIsLocalTyping(false);
     };
   }, [chatId, refetchMessages]);
 
@@ -380,10 +377,6 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
 
     console.log('📤 Sending text message to chatId:', chatId, 'womanId:', womanId);
 
-    // Sofort lokale Typing-Indicator anzeigen
-    setIsLocalTyping(true);
-    console.log('⌨️ Showing local typing indicator immediately');
-
     try {
       await sendMessage.mutateAsync({
         chatId,
@@ -395,8 +388,6 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
       
     } catch (error) {
       console.error('❌ Failed to send message:', error);
-      // Bei Fehler lokale Typing-Indicator wieder ausblenden
-      setIsLocalTyping(false);
     }
   }, [chatId, newMessage, sendMessage, womanId]);
 
@@ -404,10 +395,6 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
     if (!chatId || sendMessage.isPending || !womanId) return;
 
     console.log('🎤 Sending audio message to chatId:', chatId, 'womanId:', womanId, 'audioBlob size:', audioBlob.size);
-
-    // Sofort lokale Typing-Indicator anzeigen
-    setIsLocalTyping(true);
-    console.log('⌨️ Showing local typing indicator for audio message');
 
     try {
       await sendMessage.mutateAsync({
@@ -418,8 +405,6 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
       
     } catch (error) {
       console.error('❌ Failed to send audio message:', error);
-      // Bei Fehler lokale Typing-Indicator wieder ausblenden
-      setIsLocalTyping(false);
     }
   }, [chatId, sendMessage, womanId]);
 
@@ -588,8 +573,8 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
               );
             })}
             
-            {/* Typing Indicator - zeige sowohl real-time als auch lokale Typing-Indicator */}
-            {(isTyping || isLocalTyping) && (
+            {/* Typing Indicator - only show API-controlled typing indicator */}
+            {isTyping && (
               <TypingIndicator 
                 womanName={womanData.name}
                 womanImageUrl={womanData.image_url}
