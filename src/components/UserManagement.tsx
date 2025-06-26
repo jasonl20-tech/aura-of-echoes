@@ -1,19 +1,23 @@
 
 import React, { useState } from 'react';
-import { Clock, Users, Gift, X, Calendar, CheckCircle } from 'lucide-react';
+import { Clock, Users, Gift, X, Calendar, CheckCircle, User } from 'lucide-react';
 import { useWomen } from '@/hooks/useWomen';
+import { useUsers } from '@/hooks/useUsers';
 import { useFreeAccessPeriods, useCreateFreeAccess, useDeactivateFreeAccess } from '@/hooks/useFreeAccess';
 import { toast } from '@/hooks/use-toast';
 
 const UserManagement: React.FC = () => {
   const { data: women } = useWomen();
+  const { data: users } = useUsers();
   const { data: freeAccessPeriods, refetch } = useFreeAccessPeriods();
   const createFreeAccess = useCreateFreeAccess();
   const deactivateFreeAccess = useDeactivateFreeAccess();
   
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedWomanId, setSelectedWomanId] = useState('');
-  const [duration, setDuration] = useState(24); // Stunden
+  const [selectedUserId, setSelectedUserId] = useState('');
+  const [accessType, setAccessType] = useState<'all' | 'specific'>('all');
+  const [duration, setDuration] = useState(24);
   const [customEndTime, setCustomEndTime] = useState('');
 
   const handleCreateFreeAccess = async () => {
@@ -21,6 +25,15 @@ const UserManagement: React.FC = () => {
       toast({
         title: "Fehler",
         description: "Bitte wählen Sie eine Frau aus.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (accessType === 'specific' && !selectedUserId) {
+      toast({
+        title: "Fehler",
+        description: "Bitte wählen Sie einen User aus.",
         variant: "destructive",
       });
       return;
@@ -39,17 +52,24 @@ const UserManagement: React.FC = () => {
 
       await createFreeAccess.mutateAsync({
         womanId: selectedWomanId,
-        endTime
+        endTime,
+        userId: accessType === 'specific' ? selectedUserId : undefined
       });
 
       const selectedWoman = women?.find(w => w.id === selectedWomanId);
+      const selectedUser = users?.find(u => u.id === selectedUserId);
+      
       toast({
         title: "Erfolgreich!",
-        description: `${selectedWoman?.name} wurde für alle User freigeschaltet.`,
+        description: accessType === 'all' 
+          ? `${selectedWoman?.name} wurde für alle User freigeschaltet.`
+          : `${selectedWoman?.name} wurde für ${selectedUser?.email} freigeschaltet.`,
       });
 
       setShowCreateForm(false);
       setSelectedWomanId('');
+      setSelectedUserId('');
+      setAccessType('all');
       setDuration(24);
       setCustomEndTime('');
       refetch();
@@ -62,13 +82,17 @@ const UserManagement: React.FC = () => {
     }
   };
 
-  const handleDeactivate = async (accessId: string, womanName: string) => {
-    if (window.confirm(`Möchten Sie die Freischaltung für ${womanName} wirklich deaktivieren?`)) {
+  const handleDeactivate = async (accessId: string, womanName: string, userEmail?: string) => {
+    const message = userEmail 
+      ? `Möchten Sie die Freischaltung für ${womanName} bei ${userEmail} wirklich deaktivieren?`
+      : `Möchten Sie die Freischaltung für ${womanName} (alle User) wirklich deaktivieren?`;
+      
+    if (window.confirm(message)) {
       try {
         await deactivateFreeAccess.mutateAsync(accessId);
         toast({
           title: "Erfolgreich!",
-          description: `Freischaltung für ${womanName} wurde deaktiviert.`,
+          description: `Freischaltung wurde deaktiviert.`,
         });
         refetch();
       } catch (error: any) {
@@ -99,7 +123,7 @@ const UserManagement: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-6 px-2 sm:px-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-xl sm:text-2xl font-bold text-white text-glow flex items-center gap-2">
           <Users className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -117,8 +141,8 @@ const UserManagement: React.FC = () => {
       {/* Create Free Access Form */}
       {showCreateForm && (
         <div className="glass-card rounded-xl sm:rounded-2xl p-4 sm:p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg sm:text-xl font-semibold text-white">Frau für alle User freischalten</h3>
+          <div className="flex justify-between items-center mb-4 sm:mb-6">
+            <h3 className="text-lg sm:text-xl font-semibold text-white">Frau freischalten</h3>
             <button
               onClick={() => setShowCreateForm(false)}
               className="text-white/60 hover:text-white p-1"
@@ -127,7 +151,56 @@ const UserManagement: React.FC = () => {
             </button>
           </div>
 
-          <div className="grid gap-4">
+          <div className="grid gap-4 sm:gap-6">
+            {/* Access Type Selection */}
+            <div>
+              <label className="text-white/70 text-sm mb-2 block">Freischaltungstyp</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button
+                  onClick={() => setAccessType('all')}
+                  className={`p-3 rounded-xl transition-all duration-300 flex items-center space-x-2 ${
+                    accessType === 'all'
+                      ? 'glass-button bg-purple-600/30 text-white border-purple-400/40'
+                      : 'glass text-white/70 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <Users className="w-4 h-4" />
+                  <span className="text-sm">Für alle User</span>
+                </button>
+                <button
+                  onClick={() => setAccessType('specific')}
+                  className={`p-3 rounded-xl transition-all duration-300 flex items-center space-x-2 ${
+                    accessType === 'specific'
+                      ? 'glass-button bg-purple-600/30 text-white border-purple-400/40'
+                      : 'glass text-white/70 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <User className="w-4 h-4" />
+                  <span className="text-sm">Für spezifischen User</span>
+                </button>
+              </div>
+            </div>
+
+            {/* User Selection (only if specific user is selected) */}
+            {accessType === 'specific' && (
+              <div>
+                <label className="text-white/70 text-sm">User auswählen</label>
+                <select
+                  value={selectedUserId}
+                  onChange={(e) => setSelectedUserId(e.target.value)}
+                  className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="" className="bg-gray-800">User auswählen...</option>
+                  {users?.map((user) => (
+                    <option key={user.id} value={user.id} className="bg-gray-800">
+                      {user.email}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Woman Selection */}
             <div>
               <label className="text-white/70 text-sm">Frau auswählen</label>
               <select
@@ -144,6 +217,7 @@ const UserManagement: React.FC = () => {
               </select>
             </div>
 
+            {/* Duration Settings */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-white/70 text-sm">Dauer (Stunden)</label>
@@ -168,10 +242,11 @@ const UserManagement: React.FC = () => {
               </div>
             </div>
 
+            {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
               <button
                 onClick={handleCreateFreeAccess}
-                disabled={createFreeAccess.isPending || !selectedWomanId}
+                disabled={createFreeAccess.isPending || !selectedWomanId || (accessType === 'specific' && !selectedUserId)}
                 className="flex-1 glass-button py-3 rounded-xl text-white font-semibold hover:bg-green-600/30 transition-all duration-300 disabled:opacity-50 flex items-center justify-center space-x-2"
               >
                 <Gift className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -200,47 +275,66 @@ const UserManagement: React.FC = () => {
               .filter(period => period.active)
               .map((period) => {
                 const woman = (period as any).women;
+                const userProfile = (period as any).profiles;
                 const active = isActive(period.start_time, period.end_time);
                 
                 return (
-                  <div key={period.id} className="glass-card rounded-xl p-4">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                      <div className="flex items-center space-x-3 flex-1">
+                  <div key={period.id} className="glass-card rounded-xl p-4 sm:p-6">
+                    <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4">
+                      <div className="flex items-center space-x-3 flex-1 min-w-0">
                         <img
                           src={woman?.image_url || 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=60&h=60&fit=crop'}
                           alt={woman?.name || 'Unknown'}
-                          className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover"
+                          className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover flex-shrink-0"
                         />
                         
                         <div className="flex-1 min-w-0">
                           <h4 className="text-base sm:text-lg font-semibold text-white truncate">
                             {woman?.name || 'Unbekannt'}
                           </h4>
+                          
                           <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs sm:text-sm text-white/70">
                             <div className="flex items-center space-x-1">
-                              <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
-                              <span>Bis: {formatDateTime(period.end_time)}</span>
+                              <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                              <span className="truncate">Bis: {formatDateTime(period.end_time)}</span>
                             </div>
+                            
                             <div className="flex items-center space-x-1">
                               {active ? (
                                 <>
-                                  <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-green-400" />
+                                  <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 text-green-400 flex-shrink-0" />
                                   <span className="text-green-400">Aktiv</span>
                                 </>
                               ) : (
                                 <>
-                                  <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-orange-400" />
+                                  <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-orange-400 flex-shrink-0" />
                                   <span className="text-orange-400">Abgelaufen</span>
                                 </>
                               )}
                             </div>
+
+                            {userProfile ? (
+                              <div className="flex items-center space-x-1">
+                                <User className="w-3 h-3 sm:w-4 sm:h-4 text-blue-400 flex-shrink-0" />
+                                <span className="text-blue-400 truncate">{userProfile.email}</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center space-x-1">
+                                <Users className="w-3 h-3 sm:w-4 sm:h-4 text-purple-400 flex-shrink-0" />
+                                <span className="text-purple-400">Alle User</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
                       
                       <button
-                        onClick={() => handleDeactivate(period.id, woman?.name || 'diese Frau')}
-                        className="w-full sm:w-auto glass-button px-4 py-2 rounded-lg text-white/70 hover:text-white hover:bg-red-600/30 transition-all duration-300 text-sm"
+                        onClick={() => handleDeactivate(
+                          period.id, 
+                          woman?.name || 'diese Frau',
+                          userProfile?.email
+                        )}
+                        className="w-full sm:w-auto lg:w-auto glass-button px-4 py-2 rounded-lg text-white/70 hover:text-white hover:bg-red-600/30 transition-all duration-300 text-sm flex-shrink-0"
                       >
                         Deaktivieren
                       </button>
@@ -253,7 +347,7 @@ const UserManagement: React.FC = () => {
           <div className="glass-card rounded-xl p-6 sm:p-8 text-center">
             <p className="text-white/70">Keine aktiven Freischaltungen.</p>
             <p className="text-white/50 text-sm mt-2">
-              Klicken Sie auf "Frau freischalten" um eine Frau für alle User verfügbar zu machen.
+              Klicken Sie auf "Frau freischalten" um eine Frau für User verfügbar zu machen.
             </p>
           </div>
         )}

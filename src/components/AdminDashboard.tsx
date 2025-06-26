@@ -89,17 +89,17 @@ const AdminDashboard: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6 px-2 sm:px-0">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="space-y-4 sm:space-y-6 px-2 sm:px-4 max-w-7xl mx-auto">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <h1 className="text-2xl sm:text-3xl font-bold text-white text-glow">
           Admin Dashboard
         </h1>
         
         {/* Tab Navigation */}
-        <div className="flex w-full sm:w-auto glass rounded-xl p-1">
+        <div className="flex w-full lg:w-auto glass rounded-xl p-1">
           <button
             onClick={() => setActiveTab('women')}
-            className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 flex items-center justify-center space-x-2 ${
+            className={`flex-1 lg:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 flex items-center justify-center space-x-2 ${
               activeTab === 'women'
                 ? 'bg-purple-600/30 text-white'
                 : 'text-white/70 hover:text-white hover:bg-white/5'
@@ -110,7 +110,7 @@ const AdminDashboard: React.FC = () => {
           </button>
           <button
             onClick={() => setActiveTab('users')}
-            className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 flex items-center justify-center space-x-2 ${
+            className={`flex-1 lg:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 flex items-center justify-center space-x-2 ${
               activeTab === 'users'
                 ? 'bg-purple-600/30 text-white'
                 : 'text-white/70 hover:text-white hover:bg-white/5'
@@ -139,8 +139,8 @@ const AdminDashboard: React.FC = () => {
 
           {/* Add New Woman Form */}
           {showAddForm && (
-            <div className="glass-card rounded-xl sm:rounded-2xl p-4 sm:p-6">
-              <div className="flex justify-between items-center mb-4">
+            <div className="glass-card rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8">
+              <div className="flex justify-between items-center mb-4 sm:mb-6">
                 <h2 className="text-lg sm:text-xl font-semibold text-white">Neue Frau erstellen</h2>
                 <button
                   onClick={() => setShowAddForm(false)}
@@ -150,8 +150,8 @@ const AdminDashboard: React.FC = () => {
                 </button>
               </div>
 
-              <div className="grid gap-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid gap-4 lg:gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   <div>
                     <label className="text-white/70 text-sm">Name</label>
                     <input
@@ -175,47 +175,51 @@ const AdminDashboard: React.FC = () => {
                   </div>
                 </div>
 
-                <div>
-                  <label className="text-white/70 text-sm">Beschreibung</label>
-                  <textarea
-                    value={newWoman.description}
-                    onChange={(e) => setNewWoman(prev => ({ ...prev, description: e.target.value }))}
-                    className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500 h-20"
-                    placeholder="Beschreibung eingeben..."
-                  />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-white/70 text-sm">Beschreibung</label>
+                    <textarea
+                      value={newWoman.description}
+                      onChange={(e) => setNewWoman(prev => ({ ...prev, description: e.target.value }))}
+                      className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500 h-20"
+                      placeholder="Beschreibung eingeben..."
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-white/70 text-sm">Persönlichkeit</label>
+                    <textarea
+                      value={newWoman.personality}
+                      onChange={(e) => setNewWoman(prev => ({ ...prev, personality: e.target.value }))}
+                      className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500 h-20"
+                      placeholder="Persönlichkeit beschreiben..."
+                    />
+                  </div>
                 </div>
 
-                <div>
-                  <label className="text-white/70 text-sm">Persönlichkeit</label>
-                  <textarea
-                    value={newWoman.personality}
-                    onChange={(e) => setNewWoman(prev => ({ ...prev, personality: e.target.value }))}
-                    className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500 h-20"
-                    placeholder="Persönlichkeit beschreiben..."
-                  />
-                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-white/70 text-sm">Bild-URL</label>
+                    <input
+                      type="url"
+                      value={newWoman.image_url}
+                      onChange={(e) => setNewWoman(prev => ({ ...prev, image_url: e.target.value }))}
+                      className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      placeholder="https://example.com/image.jpg"
+                    />
+                  </div>
 
-                <div>
-                  <label className="text-white/70 text-sm">Bild-URL</label>
-                  <input
-                    type="url"
-                    value={newWoman.image_url}
-                    onChange={(e) => setNewWoman(prev => ({ ...prev, image_url: e.target.value }))}
-                    className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="https://example.com/image.jpg"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-white/70 text-sm">Webhook-URL</label>
-                  <input
-                    type="url"
-                    value={newWoman.webhook_url}
-                    onChange={(e) => setNewWoman(prev => ({ ...prev, webhook_url: e.target.value }))}
-                    className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="https://api.example.com/webhook"
-                    required
-                  />
+                  <div>
+                    <label className="text-white/70 text-sm">Webhook-URL</label>
+                    <input
+                      type="url"
+                      value={newWoman.webhook_url}
+                      onChange={(e) => setNewWoman(prev => ({ ...prev, webhook_url: e.target.value }))}
+                      className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      placeholder="https://api.example.com/webhook"
+                      required
+                    />
+                  </div>
                 </div>
 
                 <div>
@@ -256,24 +260,24 @@ const AdminDashboard: React.FC = () => {
             </h2>
             
             {women && women.length > 0 ? (
-              <div className="grid gap-3 sm:gap-4">
+              <div className="grid gap-3 sm:gap-4 lg:gap-6">
                 {women.map((woman) => (
-                  <div key={woman.id} className="glass-card rounded-xl p-4">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                  <div key={woman.id} className="glass-card rounded-xl p-4 sm:p-6">
+                    <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
                       <img
                         src={woman.image_url || 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=60&h=60&fit=crop'}
                         alt={woman.name}
-                        className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover mx-auto sm:mx-0"
+                        className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover mx-auto md:mx-0 flex-shrink-0"
                       />
                       
-                      <div className="flex-1 text-center sm:text-left">
-                        <h3 className="text-base sm:text-lg font-semibold text-white">{woman.name}</h3>
+                      <div className="flex-1 text-center md:text-left min-w-0">
+                        <h3 className="text-base sm:text-lg font-semibold text-white truncate">{woman.name}</h3>
                         <p className="text-white/70 text-sm">{woman.age} Jahre</p>
-                        <p className="text-white/60 text-sm truncate">{woman.description}</p>
-                        <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-start space-y-1 sm:space-y-0 sm:space-x-2 mt-1">
+                        <p className="text-white/60 text-sm line-clamp-2 md:line-clamp-1">{woman.description}</p>
+                        <div className="flex flex-col md:flex-row items-center justify-center md:justify-start space-y-1 md:space-y-0 md:space-x-2 mt-1">
                           <span className="text-green-400 font-semibold text-sm">€3.99/Monat</span>
                           {woman.interests && woman.interests.length > 0 && (
-                            <span className="text-white/50 text-xs">
+                            <span className="text-white/50 text-xs truncate">
                               • {woman.interests.slice(0, 2).join(', ')}
                               {woman.interests.length > 2 && ` +${woman.interests.length - 2}`}
                             </span>
@@ -281,16 +285,16 @@ const AdminDashboard: React.FC = () => {
                         </div>
                       </div>
                       
-                      <div className="flex space-x-2 w-full sm:w-auto justify-center">
+                      <div className="flex space-x-2 w-full md:w-auto justify-center flex-shrink-0">
                         <button
                           onClick={() => setEditingWoman(woman.id)}
-                          className="flex-1 sm:flex-none glass-button p-2 rounded-lg text-white/70 hover:text-white hover:bg-blue-600/30 transition-all duration-300"
+                          className="flex-1 md:flex-none glass-button p-2 rounded-lg text-white/70 hover:text-white hover:bg-blue-600/30 transition-all duration-300"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDeleteWoman(woman.id, woman.name)}
-                          className="flex-1 sm:flex-none glass-button p-2 rounded-lg text-white/70 hover:text-white hover:bg-red-600/30 transition-all duration-300"
+                          className="flex-1 md:flex-none glass-button p-2 rounded-lg text-white/70 hover:text-white hover:bg-red-600/30 transition-all duration-300"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>

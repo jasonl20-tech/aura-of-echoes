@@ -6,6 +6,7 @@ import { useAuth } from './useAuth';
 export interface FreeAccessPeriod {
   id: string;
   woman_id: string;
+  user_id?: string;
   start_time: string;
   end_time: string;
   created_by: string;
@@ -29,6 +30,10 @@ export function useFreeAccessPeriods() {
             id,
             name,
             image_url
+          ),
+          profiles:user_id (
+            id,
+            email
           )
         `)
         .order('created_at', { ascending: false });
@@ -45,13 +50,22 @@ export function useCreateFreeAccess() {
   const { user } = useAuth();
   
   return useMutation({
-    mutationFn: async ({ womanId, endTime }: { womanId: string; endTime: string }) => {
+    mutationFn: async ({ 
+      womanId, 
+      endTime, 
+      userId 
+    }: { 
+      womanId: string; 
+      endTime: string; 
+      userId?: string;
+    }) => {
       if (!user) throw new Error('Not authenticated');
       
       const { data, error } = await supabase
         .from('free_access_periods')
         .insert({
           woman_id: womanId,
+          user_id: userId || null,
           end_time: endTime,
           created_by: user.id,
         })
@@ -91,14 +105,15 @@ export function useDeactivateFreeAccess() {
   });
 }
 
-export function useCheckFreeAccess(womanId: string) {
+export function useCheckFreeAccess(womanId: string, specificUserId?: string) {
   return useQuery({
-    queryKey: ['freeAccess', womanId],
+    queryKey: ['freeAccess', womanId, specificUserId],
     queryFn: async () => {
       if (!womanId) return false;
       
       const { data, error } = await supabase.rpc('has_free_access', {
-        woman_id: womanId
+        woman_id: womanId,
+        specific_user_id: specificUserId || null
       });
       
       if (error) throw error;
