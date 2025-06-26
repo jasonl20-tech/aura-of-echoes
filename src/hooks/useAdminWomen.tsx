@@ -35,9 +35,15 @@ export function useCreateWoman() {
     mutationFn: async (womanData: CreateWomanData) => {
       if (!user) throw new Error('Not authenticated');
       
+      // Convert ImageData[] to JSON for database
+      const dbData = {
+        ...womanData,
+        images: JSON.stringify(womanData.images)
+      };
+      
       const { data, error } = await supabase
         .from('women')
-        .insert(womanData)
+        .insert(dbData)
         .select()
         .single();
       
@@ -54,9 +60,14 @@ export function useUpdateWoman() {
     mutationFn: async ({ id, ...updateData }: UpdateWomanData) => {
       if (!user) throw new Error('Not authenticated');
       
+      // Convert ImageData[] to JSON for database if images are provided
+      const dbData = updateData.images 
+        ? { ...updateData, images: JSON.stringify(updateData.images) }
+        : updateData;
+      
       const { data, error } = await supabase
         .from('women')
-        .update(updateData)
+        .update(dbData)
         .eq('id', id)
         .select()
         .single();

@@ -113,8 +113,8 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-4">
-      <div className="profile-glass rounded-xl sm:rounded-2xl max-w-md w-full max-h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center">
+      <div className="profile-glass rounded-xl sm:rounded-2xl max-w-md w-full mx-4 max-h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden">
         {/* Header with Image Carousel - Fixed height */}
         <div className="relative flex-shrink-0">
           <ImageCarousel 
@@ -161,9 +161,9 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
           </div>
         </div>
 
-        {/* Scrollable Content */}
+        {/* Scrollable Content with better padding */}
         <div className="flex-1 overflow-y-auto overscroll-contain">
-          <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+          <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 pb-8">
             {/* Profile Info Grid with improved styling */}
             <div className="grid grid-cols-2 gap-3 sm:gap-4 text-sm">
               {profile.height && (

@@ -69,9 +69,20 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
   const profiles = filteredWomen.map(woman => {
     // Parse images from JSONB or fallback to single image_url
     let images = [];
-    if (woman.images && Array.isArray(woman.images)) {
-      images = woman.images.map((img: any) => img.url || img);
-    } else if (woman.image_url) {
+    if (woman.images) {
+      try {
+        const parsedImages = typeof woman.images === 'string' 
+          ? JSON.parse(woman.images) 
+          : woman.images;
+        if (Array.isArray(parsedImages)) {
+          images = parsedImages.map((img: any) => img.url || img);
+        }
+      } catch (e) {
+        console.warn('Error parsing images for woman:', woman.id, e);
+      }
+    }
+    
+    if (images.length === 0 && woman.image_url) {
       images = [woman.image_url];
     }
 
@@ -90,7 +101,8 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
       origin: woman.origin,
       nsfw: woman.nsfw,
       pricing_interval: woman.pricing_interval,
-      formattedPrice: formatPrice(woman.price, woman.pricing_interval)
+      formattedPrice: formatPrice(woman.price, woman.pricing_interval),
+      distance: 0 // Add missing distance property
     };
   });
 
