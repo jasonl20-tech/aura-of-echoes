@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, ArrowLeft, MoreVertical } from 'lucide-react';
 import { useMessages, useSendMessage } from '../hooks/useChats';
@@ -23,11 +22,11 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Fallback zu Mock-Daten falls keine echten Daten verfügbar
+  // Verwende echte Daten wenn verfügbar, sonst Fallback
   const womanData = woman || {
     id: womanId || 'unknown',
     name: womanName || 'Unknown',
-    image_url: `https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=300&h=300&fit=crop&faces=1&auto=format`,
+    image_url: null,
     age: 25,
     description: 'Ich liebe es, neue Leute kennenzulernen und interessante Gespräche zu führen.',
     interests: ['Reisen', 'Fotografie', 'Musik', 'Sport'],
@@ -40,6 +39,10 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   };
+
+  // Fallback-Bild URL
+  const fallbackImageUrl = 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=300&h=300&fit=crop&faces=1&auto=format';
+  const imageUrl = womanData.image_url || fallbackImageUrl;
 
   // Auto-scroll zu neuen Nachrichten
   const scrollToBottom = () => {
@@ -149,12 +152,12 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
           >
             <div className="relative">
               <img
-                src={womanData.image_url || `https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=300&h=300&fit=crop&faces=1&auto=format`}
+                src={imageUrl}
                 alt={womanData.name}
                 className="w-10 h-10 rounded-full object-cover border-2 border-purple-400/50"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
-                  target.src = 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=300&h=300&fit=crop&auto=format';
+                  target.src = fallbackImageUrl;
                 }}
               />
               <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-black"></div>
@@ -202,12 +205,12 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
                     <div className="flex items-end space-x-2 max-w-[80%]">
                       {message.sender_type === 'ai' && (
                         <img
-                          src={womanData.image_url || `https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=300&h=300&fit=crop&faces=1&auto=format`}
+                          src={imageUrl}
                           alt={womanData.name}
                           className="w-6 h-6 rounded-full object-cover"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
-                            target.src = 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=300&h=300&fit=crop&auto=format';
+                            target.src = fallbackImageUrl;
                           }}
                         />
                       )}
@@ -237,12 +240,12 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
               <div className="flex justify-start">
                 <div className="flex items-end space-x-2">
                   <img
-                    src={womanData.image_url || `https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=300&h=300&fit=crop&faces=1&auto=format`}
+                    src={imageUrl}
                     alt={womanData.name}
                     className="w-6 h-6 rounded-full object-cover"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      target.src = 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=300&h=300&fit=crop&auto=format';
+                      target.src = fallbackImageUrl;
                     }}
                   />
                   <div className="bg-white/10 px-4 py-3 rounded-2xl rounded-bl-md">

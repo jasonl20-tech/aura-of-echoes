@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Settings, MessageCircle, Users, Shuffle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
@@ -36,11 +35,10 @@ const Index = () => {
     setActiveTab(tab);
   };
 
-  const handleChatSelect = (chatId: string, womanName: string) => {
-    // Extract womanId from the chat - we need to get this from the chat data
+  const handleChatSelect = (chatId: string, womanId: string, womanName: string) => {
     setSelectedChatId(chatId);
+    setSelectedWomanId(womanId);
     setSelectedWomanName(womanName);
-    // We'll pass the womanId through the ChatView component
   };
 
   const handleBackToChats = () => {
@@ -61,10 +59,11 @@ const Index = () => {
         if (!user) {
           return <ProfileGallery onAuthRequired={() => setShowAuthModal(true)} />;
         }
-        if (selectedChatId && selectedWomanName) {
+        if (selectedChatId && selectedWomanId && selectedWomanName) {
           return (
             <ChatView 
               chatId={selectedChatId} 
+              womanId={selectedWomanId}
               womanName={selectedWomanName}
               onBack={handleBackToChats}
             />

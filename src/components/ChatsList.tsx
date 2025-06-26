@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { MessageCircle, Clock } from 'lucide-react';
 import { useChats } from '../hooks/useChats';
@@ -8,7 +7,7 @@ import { useFreeAccessPeriods } from '../hooks/useFreeAccess';
 import ProfileModal from './ProfileModal';
 
 interface ChatsListProps {
-  onChatSelect: (chatId: string, womanName: string) => void;
+  onChatSelect: (chatId: string, womanId: string, womanName: string) => void;
 }
 
 const ChatsList: React.FC<ChatsListProps> = ({ onChatSelect }) => {
@@ -157,7 +156,7 @@ const ChatsList: React.FC<ChatsListProps> = ({ onChatSelect }) => {
             return (
               <div
                 key={chat.id}
-                onClick={() => onChatSelect(chat.id, woman?.name || 'Unknown')}
+                onClick={() => onChatSelect(chat.id, chat.woman_id, woman?.name || 'Unknown')}
                 className="glass rounded-xl p-4 cursor-pointer hover:bg-white/20 transition-all duration-300"
               >
                 <div className="flex items-center space-x-4">
