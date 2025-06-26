@@ -32,21 +32,6 @@ const Index = () => {
         <div className="absolute bottom-20 left-20 w-24 h-24 bg-blue-400/20 rounded-full blur-xl animate-float" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      {/* Header */}
-      <header className="glass-card rounded-none border-x-0 border-t-0 p-4 z-10">
-        <div className="flex items-center justify-between max-w-md mx-auto">
-          <div className="flex items-center space-x-2">
-            <Heart className="w-8 h-8 text-pink-400 animate-glow" />
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
-              HeartConnect
-            </h1>
-          </div>
-          <div className="text-sm text-white/70">
-            Deine virtuelle Verbindung
-          </div>
-        </div>
-      </header>
-
       {/* Main Content */}
       <main className="flex-1 px-4 py-6 max-w-md mx-auto w-full">
         {renderContent()}
