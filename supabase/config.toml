@@ -1,1 +1,5 @@
+
 project_id = "axarouxelvazgeewnakv"
+
+[functions.receive-message]
+verify_jwt = false
