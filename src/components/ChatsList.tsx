@@ -49,9 +49,10 @@ const ChatsList: React.FC<ChatsListProps> = ({ onChatSelect }) => {
     return (
       <div className="flex flex-col items-center justify-center h-64 text-center">
         <MessageCircle className="w-16 h-16 text-white/40 mb-4" />
-        <h3 className="text-white font-semibold mb-2">Keine Chats vorhanden</h3>
+        <h3 className="text-white font-semibold mb-2">Keine verfügbaren Chats</h3>
         <p className="text-white/70">
-          Abonniere Profile, um mit ihnen zu chatten
+          Du hast derzeit keine aktiven Abonnements oder Freischaltungen. 
+          Abonniere Profile oder warte auf Freischaltungen, um zu chatten.
         </p>
       </div>
     );
@@ -79,11 +80,7 @@ const ChatsList: React.FC<ChatsListProps> = ({ onChatSelect }) => {
                 <div className="flex items-center space-x-2 text-white/60 text-sm">
                   <Clock className="w-4 h-4" />
                   <span>
-                    {new Date(chat.created_at).toLocaleDateString('de-DE', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric'
-                    })}
+                    Verfügbar zum Chatten
                   </span>
                 </div>
               </div>

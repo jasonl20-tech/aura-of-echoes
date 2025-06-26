@@ -31,7 +31,65 @@ export function useChats() {
     queryFn: async () => {
       if (!user) throw new Error('Not authenticated');
 
-      const { data, error } = await supabase
+      // Hole alle Frauen, zu denen der User Zugang hat (Abonnement oder Freischaltung)
+      const { data: accessibleWomen, error: accessError } = await supabase
+        .from('women')
+        .select(`
+          id,
+          name,
+          image_url
+        `);
+
+      if (accessError) throw accessError;
+
+      if (!accessibleWomen || accessibleWomen.length === 0) {
+        return [];
+      }
+
+      // Filtere Frauen basierend auf Zugang (Abonnement oder Freischaltung)
+      const womenWithAccess = [];
+      for (const woman of accessibleWomen) {
+        const { data: hasAccess } = await supabase.rpc('has_subscription_or_free_access', {
+          user_id: user.id,
+          woman_id: woman.id
+        });
+
+        if (hasAccess) {
+          womenWithAccess.push(woman);
+        }
+      }
+
+      if (womenWithAccess.length === 0) {
+        return [];
+      }
+
+      // Erstelle automatisch Chats für alle verfügbaren Frauen, falls sie noch nicht existieren
+      const womanIds = womenWithAccess.map(w => w.id);
+      
+      // Hole existierende Chats
+      const { data: existingChats } = await supabase
+        .from('chats')
+        .select('woman_id')
+        .eq('user_id', user.id)
+        .in('woman_id', womanIds);
+
+      const existingWomanIds = existingChats?.map(chat => chat.woman_id) || [];
+      const missingWomanIds = womanIds.filter(id => !existingWomanIds.includes(id));
+
+      // Erstelle fehlende Chats
+      if (missingWomanIds.length > 0) {
+        const newChats = missingWomanIds.map(womanId => ({
+          user_id: user.id,
+          woman_id: womanId
+        }));
+
+        await supabase
+          .from('chats')
+          .insert(newChats);
+      }
+
+      // Hole alle Chats mit Frauen-Informationen
+      const { data: chats, error } = await supabase
         .from('chats')
         .select(`
           *,
@@ -42,10 +100,11 @@ export function useChats() {
           )
         `)
         .eq('user_id', user.id)
+        .in('woman_id', womanIds)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as Chat[];
+      return chats as Chat[];
     },
     enabled: !!user,
   });
@@ -58,6 +117,16 @@ export function useCreateChat() {
   return useMutation({
     mutationFn: async (womanId: string) => {
       if (!user) throw new Error('Not authenticated');
+
+      // Prüfe ob User Zugang zu dieser Frau hat
+      const { data: hasAccess } = await supabase.rpc('has_subscription_or_free_access', {
+        user_id: user.id,
+        woman_id: womanId
+      });
+
+      if (!hasAccess) {
+        throw new Error('Kein Zugang zu dieser Frau');
+      }
 
       // Check if chat already exists
       const { data: existingChat } = await supabase
