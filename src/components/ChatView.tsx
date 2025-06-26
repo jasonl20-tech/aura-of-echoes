@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Send, ArrowLeft, MoreVertical } from 'lucide-react';
 import { useMessages, useSendMessage } from '../hooks/useChats';
 import { useAuth } from '../hooks/useAuth';
@@ -26,34 +27,47 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const lastMessageCountRef = useRef<number>(0);
 
-  // Verwende echte Daten wenn verfügbar, sonst Fallback
-  const womanData = woman || {
-    id: womanId || 'unknown',
-    name: womanName || 'Unknown',
-    image_url: null,
-    age: 25,
-    description: 'Ich liebe es, neue Leute kennenzulernen und interessante Gespräche zu führen.',
-    interests: ['Reisen', 'Fotografie', 'Musik', 'Sport'],
-    personality: 'Freundlich und aufgeschlossen',
-    webhook_url: '',
-    price: 3.99,
-    height: null,
-    origin: null,
-    nsfw: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  };
+  // Memoized woman data to prevent constant re-renders
+  const womanData = useMemo(() => {
+    return woman || {
+      id: womanId || 'unknown',
+      name: womanName || 'Unknown',
+      image_url: null,
+      age: 25,
+      description: 'Ich liebe es, neue Leute kennenzulernen und interessante Gespräche zu führen.',
+      interests: ['Reisen', 'Fotografie', 'Musik', 'Sport'],
+      personality: 'Freundlich und aufgeschlossen',
+      webhook_url: '',
+      price: 3.99,
+      height: null,
+      origin: null,
+      nsfw: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+  }, [woman, womanId, womanName]);
 
-  // Fallback-Bild URL
-  const fallbackImageUrl = 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=300&h=300&fit=crop&faces=1&auto=format';
-  const imageUrl = womanData.image_url || fallbackImageUrl;
+  // Memoized image URL to prevent flickering
+  const imageUrl = useMemo(() => {
+    const fallbackImageUrl = 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=300&h=300&fit=crop&faces=1&auto=format';
+    return womanData.image_url || fallbackImageUrl;
+  }, [womanData.image_url]);
+
+  // Memoized image error handler
+  const handleImageError = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
+    const target = e.target as HTMLImageElement;
+    target.src = 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=300&h=300&fit=crop&faces=1&auto=format';
+  }, []);
+
+  // Memoized scroll function
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
 
   // Initialize audio for notifications
   useEffect(() => {
-    // Create a simple notification sound using Web Audio API
     const createNotificationSound = async (): Promise<void> => {
       try {
-        // Properly type the AudioContext with fallback
         const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
         const audioContext = new AudioContextClass();
         const oscillator = audioContext.createOscillator();
@@ -79,12 +93,26 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
     audioRef.current = { play: createNotificationSound };
   }, []);
 
-  // Enhanced real-time message subscription with improved debugging
+  // Enhanced real-time message subscription with stable dependencies
   useEffect(() => {
     if (!chatId) return;
 
     console.log('🔄 Setting up enhanced real-time subscription for chat:', chatId);
     setIsRealtimeConnected(false);
+
+    const handleRealtimeMessage = (payload: any) => {
+      console.log('🚀 Real-time message received:', payload);
+      
+      if (payload.new.sender_type === 'ai') {
+        console.log('🔊 Playing notification sound for AI message');
+        audioRef.current?.play().catch(error => {
+          console.log('❌ Could not play notification sound:', error);
+        });
+      }
+      
+      console.log('🔄 Refetching messages due to real-time update');
+      refetchMessages();
+    };
 
     const channel = supabase
       .channel(`messages-${chatId}`)
@@ -96,21 +124,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
           table: 'messages',
           filter: `chat_id=eq.${chatId}`
         },
-        (payload) => {
-          console.log('🚀 Real-time message received:', payload);
-          
-          // Play notification sound for AI messages
-          if (payload.new.sender_type === 'ai') {
-            console.log('🔊 Playing notification sound for AI message');
-            audioRef.current?.play().catch(error => {
-              console.log('❌ Could not play notification sound:', error);
-            });
-          }
-          
-          // Refetch messages to update the UI
-          console.log('🔄 Refetching messages due to real-time update');
-          refetchMessages();
-        }
+        handleRealtimeMessage
       )
       .subscribe((status) => {
         console.log('📡 Real-time subscription status:', status);
@@ -133,13 +147,12 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
     };
   }, [chatId, refetchMessages]);
 
-  // Fallback polling mechanism when real-time is not working
+  // Fallback polling mechanism with fixed dependencies
   useEffect(() => {
     if (!chatId || isRealtimeConnected) return;
 
     console.log('🔄 Starting fallback polling mechanism');
     
-    // Update last message count
     lastMessageCountRef.current = messages?.length || 0;
     
     pollingIntervalRef.current = setInterval(async () => {
@@ -147,27 +160,10 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
       
       try {
         await refetchMessages();
-        
-        // Check if we got new messages
-        const currentMessageCount = messages?.length || 0;
-        if (currentMessageCount > lastMessageCountRef.current) {
-          console.log('📨 New messages detected via polling');
-          
-          // Check if the latest message is from AI and play sound
-          const latestMessage = messages?.[messages.length - 1];
-          if (latestMessage && latestMessage.sender_type === 'ai') {
-            console.log('🔊 Playing notification sound for new AI message (polling)');
-            audioRef.current?.play().catch(error => {
-              console.log('❌ Could not play notification sound:', error);
-            });
-          }
-          
-          lastMessageCountRef.current = currentMessageCount;
-        }
       } catch (error) {
         console.log('❌ Error during polling:', error);
       }
-    }, 3000); // Poll every 3 seconds
+    }, 3000);
 
     return () => {
       if (pollingIntervalRef.current) {
@@ -176,31 +172,39 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
         pollingIntervalRef.current = null;
       }
     };
-  }, [chatId, isRealtimeConnected, refetchMessages, messages]);
+  }, [chatId, isRealtimeConnected, refetchMessages]);
 
-  // Update last message count when messages change
+  // Check for new messages and play sound when messages change
   useEffect(() => {
-    if (messages) {
-      lastMessageCountRef.current = messages.length;
+    if (!messages) return;
+    
+    const currentMessageCount = messages.length;
+    if (currentMessageCount > lastMessageCountRef.current) {
+      console.log('📨 New messages detected');
+      
+      const latestMessage = messages[messages.length - 1];
+      if (latestMessage && latestMessage.sender_type === 'ai') {
+        console.log('🔊 Playing notification sound for new AI message');
+        audioRef.current?.play().catch(error => {
+          console.log('❌ Could not play notification sound:', error);
+        });
+      }
     }
+    
+    lastMessageCountRef.current = currentMessageCount;
   }, [messages]);
 
-  // Auto-scroll zu neuen Nachrichten
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
+  // Auto-scroll to new messages with stable dependency
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, scrollToBottom]);
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = useCallback(async () => {
     if (!chatId || !newMessage.trim() || sendMessage.isPending || !womanId) return;
 
     console.log('📤 Sending message to chatId:', chatId, 'womanId:', womanId);
 
     try {
-      // Sende Nachricht über die send-message Edge Function
       await sendMessage.mutateAsync({
         chatId,
         content: newMessage,
@@ -212,26 +216,32 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
     } catch (error) {
       console.error('❌ Failed to send message:', error);
     }
-  };
+  }, [chatId, newMessage, sendMessage, womanId]);
 
-  const formatMessageTime = (timestamp: string) => {
+  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSendMessage();
+    }
+  }, [handleSendMessage]);
+
+  const formatMessageTime = useCallback((timestamp: string) => {
     const date = new Date(timestamp);
     return date.toLocaleTimeString('de-DE', { 
       hour: '2-digit', 
       minute: '2-digit' 
     });
-  };
+  }, []);
 
-  const shouldShowDateHeader = (currentMessage: any, previousMessage: any) => {
+  const shouldShowDateHeader = useCallback((currentMessage: any, previousMessage: any) => {
     if (!previousMessage) return true;
     
     const currentDate = new Date(currentMessage.created_at).toDateString();
     const previousDate = new Date(previousMessage.created_at).toDateString();
     
     return currentDate !== previousDate;
-  };
+  }, []);
 
-  const formatDateHeader = (timestamp: string) => {
+  const formatDateHeader = useCallback((timestamp: string) => {
     const date = new Date(timestamp);
     const today = new Date();
     const yesterday = new Date(today);
@@ -248,7 +258,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
         month: 'long' 
       });
     }
-  };
+  }, []);
 
   if (!chatId || !user) {
     return (
@@ -289,10 +299,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
                 src={imageUrl}
                 alt={womanData.name}
                 className="w-10 h-10 rounded-full object-cover border-2 border-purple-400/50"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = fallbackImageUrl;
-                }}
+                onError={handleImageError}
               />
               <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-black"></div>
             </div>
@@ -301,7 +308,6 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
               <h3 className="font-semibold text-white text-sm">{womanData.name}</h3>
               <div className="flex items-center space-x-2">
                 <p className="text-xs text-green-400">Online</p>
-                {/* Real-time connection indicator */}
                 <div className={`w-2 h-2 rounded-full ${isRealtimeConnected ? 'bg-green-400' : 'bg-yellow-400'}`} 
                      title={isRealtimeConnected ? 'Real-time verbunden' : 'Fallback-Modus'}>
                 </div>
@@ -348,10 +354,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
                           src={imageUrl}
                           alt={womanData.name}
                           className="w-6 h-6 rounded-full object-cover"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = fallbackImageUrl;
-                          }}
+                          onError={handleImageError}
                         />
                       )}
                       
@@ -389,7 +392,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
               type="text"
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+              onKeyPress={handleKeyPress}
               placeholder="Nachricht schreiben..."
               className="w-full bg-white/10 border border-white/20 rounded-full px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
