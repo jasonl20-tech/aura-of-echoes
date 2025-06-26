@@ -88,21 +88,19 @@ export function useCreateFreeAccess() {
         created_by: user.id,
       });
 
-      // Prüfe zuerst, ob der User Admin ist
-      const { data: userRoles, error: roleError } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'admin');
+      // Verwende die is_admin Funktion aus der Datenbank, die sowohl Rollen als auch Email prüft
+      const { data: isAdmin, error: adminError } = await supabase.rpc('is_admin', {
+        user_id: user.id
+      });
 
-      if (roleError) {
-        console.error('Error checking user role:', roleError);
-        throw new Error('Fehler beim Überprüfen der Benutzerrolle');
+      if (adminError) {
+        console.error('Error checking admin status:', adminError);
+        throw new Error('Fehler beim Überprüfen der Admin-Berechtigung');
       }
 
-      console.log('User roles:', userRoles);
+      console.log('Is admin:', isAdmin);
 
-      if (!userRoles || userRoles.length === 0) {
+      if (!isAdmin) {
         throw new Error('Du hast keine Berechtigung, Freischaltungen zu erstellen. Nur Admins können dies tun.');
       }
       
