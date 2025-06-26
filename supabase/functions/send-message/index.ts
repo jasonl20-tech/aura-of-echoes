@@ -1,4 +1,5 @@
 
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -94,39 +95,60 @@ serve(async (req) => {
 
     console.log('Calling webhook for woman:', woman.name, 'URL:', woman.webhook_url)
 
-    // Prepare webhook payload
-    const webhookPayload: any = {
-      chatId: chatId,
-      character: {
-        name: woman.name,
-        personality: woman.personality
-      },
-      user_id: user.id
-    }
-
-    if (audioData) {
-      webhookPayload.audioData = audioData
-      webhookPayload.audioType = audioType || 'audio/webm;codecs=opus'
-      webhookPayload.message = '[Audio-Nachricht]'
-      webhookPayload.messageType = 'audio'
-      console.log('Prepared audio webhook payload with', audioData.length, 'bytes of audio data')
-    } else {
-      webhookPayload.message = content
-      webhookPayload.messageType = 'text'
-      console.log('Prepared text webhook payload')
-    }
-
     // Send message to woman's AI API
     try {
       console.log('Starting webhook request...')
       
-      const webhookResponse = await fetch(woman.webhook_url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(webhookPayload)
-      })
+      let webhookResponse;
+      
+      if (audioData) {
+        // For audio messages, send as binary data with multipart/form-data
+        console.log('Preparing binary audio webhook payload')
+        
+        // Convert base64 to binary
+        const binaryData = Uint8Array.from(atob(audioData), c => c.charCodeAt(0));
+        
+        // Create FormData for multipart upload
+        const formData = new FormData();
+        const audioBlob = new Blob([binaryData], { type: audioType || 'audio/webm;codecs=opus' });
+        formData.append('audio', audioBlob, 'audio.webm');
+        formData.append('chatId', chatId);
+        formData.append('character', JSON.stringify({
+          name: woman.name,
+          personality: woman.personality
+        }));
+        formData.append('user_id', user.id);
+        formData.append('messageType', 'audio');
+        
+        console.log('Sending binary audio data, size:', binaryData.length, 'bytes');
+        
+        webhookResponse = await fetch(woman.webhook_url, {
+          method: 'POST',
+          body: formData
+        });
+      } else {
+        // For text messages, send as JSON
+        const webhookPayload = {
+          chatId: chatId,
+          character: {
+            name: woman.name,
+            personality: woman.personality
+          },
+          user_id: user.id,
+          message: content,
+          messageType: 'text'
+        };
+        
+        console.log('Prepared text webhook payload');
+        
+        webhookResponse = await fetch(woman.webhook_url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(webhookPayload)
+        });
+      }
 
       console.log('Webhook response status:', webhookResponse.status)
       
@@ -161,3 +183,4 @@ serve(async (req) => {
     )
   }
 })
+
