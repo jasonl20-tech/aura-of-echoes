@@ -120,25 +120,16 @@ const SubscriptionManagement: React.FC = () => {
                 </div>
 
                 <div className="ml-4">
-                  {subscription.stripe_subscription_id ? (
-                    <button
-                      onClick={handleManageSubscription}
-                      disabled={customerPortal.isPending}
-                      className="flex items-center space-x-2 glass-button px-4 py-2 rounded-lg text-purple-300 hover:text-white hover:bg-purple-600/30 transition-all duration-300 disabled:opacity-50"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                      <span>
-                        {customerPortal.isPending ? 'Wird geöffnet...' : 'Verwalten'}
-                      </span>
-                    </button>
-                  ) : (
-                    <div className="text-center">
-                      <div className="text-white/50 text-xs mb-1">Direktes Abonnement</div>
-                      <div className="text-white/70 text-xs">
-                        Kontaktieren Sie den Administrator
-                      </div>
-                    </div>
-                  )}
+                  <button
+                    onClick={handleManageSubscription}
+                    disabled={customerPortal.isPending}
+                    className="flex items-center space-x-2 glass-button px-4 py-2 rounded-lg text-purple-300 hover:text-white hover:bg-purple-600/30 transition-all duration-300 disabled:opacity-50"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    <span>
+                      {customerPortal.isPending ? 'Wird geöffnet...' : 'Verwalten'}
+                    </span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -152,19 +143,17 @@ const SubscriptionManagement: React.FC = () => {
                   {activeSubscriptions.length} aktive{activeSubscriptions.length === 1 ? 's' : ''} Abonnement{activeSubscriptions.length === 1 ? '' : 's'}
                 </p>
                 <p className="text-white/70 text-sm">
-                  Stripe-Abonnements können über das Kundenportal verwaltet werden
+                  Alle Abonnements können über das Stripe Portal verwaltet werden
                 </p>
               </div>
               
-              {activeSubscriptions.some(sub => sub.stripe_subscription_id) && (
-                <button
-                  onClick={handleManageSubscription}
-                  disabled={customerPortal.isPending}
-                  className="glass-button px-4 py-2 rounded-lg text-purple-300 hover:text-white hover:bg-purple-600/30 transition-all duration-300 disabled:opacity-50"
-                >
-                  {customerPortal.isPending ? 'Wird geöffnet...' : 'Alle verwalten'}
-                </button>
-              )}
+              <button
+                onClick={handleManageSubscription}
+                disabled={customerPortal.isPending}
+                className="glass-button px-4 py-2 rounded-lg text-purple-300 hover:text-white hover:bg-purple-600/30 transition-all duration-300 disabled:opacity-50"
+              >
+                {customerPortal.isPending ? 'Wird geöffnet...' : 'Alle verwalten'}
+              </button>
             </div>
           </div>
         </div>

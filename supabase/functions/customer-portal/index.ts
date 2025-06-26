@@ -60,24 +60,8 @@ serve(async (req) => {
       logStep("Existing customer found", { customerId });
     }
 
-    // Prüfe ob der Kunde aktive Abonnements hat
-    const subscriptions = await stripe.subscriptions.list({
-      customer: customerId,
-      status: "active",
-      limit: 1,
-    });
-
-    if (subscriptions.data.length === 0) {
-      logStep("No active subscriptions found for customer");
-      return new Response(JSON.stringify({ 
-        error: "Keine aktiven Abonnements gefunden. Bitte erstellen Sie zuerst ein Abonnement.",
-        hasSubscriptions: false 
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 400,
-      });
-    }
-
+    // Erstelle immer eine Portal-Sitzung, auch ohne aktive Abonnements
+    // Stripe zeigt automatisch verfügbare Optionen an
     const origin = req.headers.get("origin") || "http://localhost:3000";
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: customerId,
