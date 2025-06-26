@@ -5,6 +5,7 @@ import { useCheckSubscription, useSubscribeToWoman, useCustomerPortal } from '..
 import { useCreateChat } from '../hooks/useChats';
 import { useAuth } from '../hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
+import ImageCarousel from './ImageCarousel';
 
 interface Profile {
   id: number;
@@ -20,6 +21,7 @@ interface Profile {
   height?: number;
   origin?: string;
   nsfw?: boolean;
+  formattedPrice?: string;
 }
 
 interface ProfileDetailModalProps {
@@ -42,6 +44,9 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
   const customerPortal = useCustomerPortal();
 
   if (!isOpen) return null;
+
+  // Create multiple images array (for now just duplicate the single image)
+  const images = [profile.image, profile.image, profile.image].filter(Boolean);
 
   const handleSubscribe = async () => {
     if (!user) {
@@ -108,32 +113,44 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
       <div className="profile-glass rounded-xl sm:rounded-2xl max-w-md w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
-        {/* Header */}
+        {/* Header with Image Carousel */}
         <div className="relative">
-          <img
-            src={profile.image}
+          <ImageCarousel 
+            images={images}
             alt={profile.name}
-            className="w-full h-48 sm:h-64 object-cover rounded-t-xl sm:rounded-t-2xl"
+            className="w-full h-48 sm:h-64 rounded-t-xl sm:rounded-t-2xl overflow-hidden"
           />
+          
           <button
             onClick={onClose}
-            className="absolute top-2 sm:top-4 right-2 sm:right-4 glass w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+            className="absolute top-2 sm:top-4 right-2 sm:right-4 glass w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-colors z-10"
           >
             <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
           
           <div className="absolute bottom-2 sm:bottom-4 left-2 sm:left-4 right-2 sm:right-4">
-            <h2 className="text-xl sm:text-2xl font-bold text-white text-sharp mb-1">
-              {profile.name}, {profile.age}
-            </h2>
-            <div className="flex items-center space-x-3 sm:space-x-4 text-white/80">
-              <div className="flex items-center space-x-1">
-                <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span className="text-xs sm:text-sm">{profile.distance} km</span>
+            <div className="flex justify-between items-end">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold text-white text-sharp mb-1">
+                  {profile.name}, {profile.age}
+                </h2>
+                <div className="flex items-center space-x-3 sm:space-x-4 text-white/80">
+                  <div className="flex items-center space-x-1">
+                    <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="text-xs sm:text-sm">{profile.distance} km</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 fill-current" />
+                    <span className="text-xs sm:text-sm">4.8</span>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center space-x-1">
-                <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 fill-current" />
-                <span className="text-xs sm:text-sm">4.8</span>
+              
+              {/* Price Badge */}
+              <div className="bg-gradient-to-r from-green-600 to-green-700 px-2 sm:px-3 py-1 rounded-lg backdrop-blur-sm">
+                <span className="text-xs sm:text-sm text-white font-semibold">
+                  {profile.formattedPrice || `€${profile.price?.toFixed(2) || '3.99'}`}
+                </span>
               </div>
             </div>
           </div>
@@ -141,35 +158,63 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
 
         {/* Content */}
         <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
-          {/* Additional Info */}
+          {/* Profile Info Grid */}
           <div className="grid grid-cols-2 gap-3 sm:gap-4 text-sm">
             {profile.height && (
-              <div>
-                <span className="text-white/60">Größe:</span>
-                <span className="text-white ml-2">{profile.height} cm</span>
+              <div className="glass rounded-lg p-2">
+                <span className="text-white/60 text-xs">Größe:</span>
+                <div className="text-white font-medium">{profile.height} cm</div>
               </div>
             )}
             {profile.origin && (
-              <div>
-                <span className="text-white/60">Herkunft:</span>
-                <span className="text-white ml-2">{profile.origin}</span>
+              <div className="glass rounded-lg p-2">
+                <span className="text-white/60 text-xs">Herkunft:</span>
+                <div className="text-white font-medium">{profile.origin}</div>
               </div>
             )}
             {profile.nsfw !== undefined && (
-              <div>
-                <span className="text-white/60">NSFW:</span>
-                <span className="text-white ml-2">{profile.nsfw ? 'Ja' : 'Nein'}</span>
+              <div className="glass rounded-lg p-2">
+                <span className="text-white/60 text-xs">Content:</span>
+                <div className={`font-medium ${profile.nsfw ? 'text-red-400' : 'text-green-400'}`}>
+                  {profile.nsfw ? '18+ NSFW' : 'Safe'}
+                </div>
               </div>
             )}
+            <div className="glass rounded-lg p-2">
+              <span className="text-white/60 text-xs">Rating:</span>
+              <div className="text-white font-medium flex items-center space-x-1">
+                <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                <span>4.8/5</span>
+              </div>
+            </div>
           </div>
+
+          {/* Tags/Interests */}
+          {profile.interests.length > 0 && (
+            <div>
+              <h3 className="text-white font-semibold mb-3 text-sm sm:text-base">Tags & Interessen</h3>
+              <div className="flex flex-wrap gap-2">
+                {profile.interests.map((interest, index) => (
+                  <span
+                    key={index}
+                    className="px-2 sm:px-3 py-1 glass rounded-full text-xs sm:text-sm text-purple-300 font-medium border border-purple-400/30"
+                  >
+                    #{interest}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Personality */}
           {profile.personality && (
             <div>
               <h3 className="text-white font-semibold mb-2 text-sm sm:text-base">Persönlichkeit</h3>
-              <p className="text-white/80 text-xs sm:text-sm leading-relaxed">
-                {profile.personality}
-              </p>
+              <div className="glass rounded-lg p-3">
+                <p className="text-white/80 text-xs sm:text-sm leading-relaxed">
+                  {profile.personality}
+                </p>
+              </div>
             </div>
           )}
 
@@ -177,25 +222,10 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
           {profile.description && (
             <div>
               <h3 className="text-white font-semibold mb-2 text-sm sm:text-base">Über mich</h3>
-              <p className="text-white/80 text-xs sm:text-sm leading-relaxed">
-                {profile.description}
-              </p>
-            </div>
-          )}
-
-          {/* Interests */}
-          {profile.interests.length > 0 && (
-            <div>
-              <h3 className="text-white font-semibold mb-3 text-sm sm:text-base">Interessen</h3>
-              <div className="flex flex-wrap gap-2">
-                {profile.interests.map((interest, index) => (
-                  <span
-                    key={index}
-                    className="px-2 sm:px-3 py-1 glass rounded-full text-xs sm:text-sm text-white/80"
-                  >
-                    {interest}
-                  </span>
-                ))}
+              <div className="glass rounded-lg p-3">
+                <p className="text-white/80 text-xs sm:text-sm leading-relaxed">
+                  {profile.description}
+                </p>
               </div>
             </div>
           )}
@@ -204,12 +234,12 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
           <div className="pt-4 border-t border-white/10">
             {!user ? (
               <div className="space-y-3">
-                <div className="text-center">
+                <div className="text-center glass rounded-lg p-4">
                   <p className="text-white/70 text-xs sm:text-sm mb-2">
                     Melde dich an, um mit {profile.name} zu chatten
                   </p>
                   <p className="text-xl sm:text-2xl font-bold text-white">
-                    €{profile.price?.toFixed(2) || '3.99'} <span className="text-xs sm:text-sm text-white/60">/Monat</span>
+                    {profile.formattedPrice || `€${profile.price?.toFixed(2) || '3.99'} /Monat`}
                   </p>
                 </div>
                 <button
@@ -261,12 +291,12 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
               </div>
             ) : (
               <div className="space-y-3">
-                <div className="text-center">
+                <div className="text-center glass rounded-lg p-4">
                   <p className="text-white/70 text-xs sm:text-sm mb-2">
                     Abonnieren Sie {profile.name} für
                   </p>
                   <p className="text-xl sm:text-2xl font-bold text-white">
-                    €{profile.price?.toFixed(2) || '3.99'} <span className="text-xs sm:text-sm text-white/60">/Monat</span>
+                    {profile.formattedPrice || `€${profile.price?.toFixed(2) || '3.99'} /Monat`}
                   </p>
                   <p className="text-white/50 text-[10px] sm:text-xs mt-2">
                     Echte Stripe-Zahlung • Jederzeit kündbar

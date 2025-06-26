@@ -5,7 +5,6 @@ import ProfileDetailModal from './ProfileDetailModal';
 import WomenSearch from './WomenSearch';
 import { useWomen } from '../hooks/useWomen';
 import { useWomenFilters } from '../hooks/useWomenFilters';
-import { Eye, EyeOff } from 'lucide-react';
 
 interface ProfileGalleryProps {
   isRandom?: boolean;
@@ -94,22 +93,12 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
     setSelectedProfile(profile);
   };
 
-  // Count NSFW profiles
-  const nsfwCount = displayProfiles.filter(p => p.nsfw).length;
-  const safeCount = displayProfiles.length - nsfwCount;
-
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-white text-glow mb-2">
-          {isRandom ? 'Zufällige Entdeckungen' : 'Entdecke AI-Companions'}
+        <h1 className="text-3xl font-bold text-white text-glow mb-6">
+          Search Woman
         </h1>
-        <p className="text-white/70">
-          {isRandom 
-            ? 'Lasse dich überraschen von neuen Persönlichkeiten'
-            : 'Finde deinen perfekten AI-Companion zum Chatten'
-          }
-        </p>
       </div>
 
       <WomenSearch
@@ -118,30 +107,6 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
         onResetFilters={resetFilters}
         availableOrigins={availableOrigins}
       />
-
-      {/* NSFW Filter Toggle */}
-      <div className="glass-card rounded-xl p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="flex items-center space-x-2">
-              {filters.showNsfw ? <Eye className="w-4 h-4 text-purple-400" /> : <EyeOff className="w-4 h-4 text-purple-400" />}
-              <span className="text-white font-medium">NSFW Content anzeigen</span>
-            </div>
-            <div className="text-xs text-white/50">
-              ({safeCount} Safe, {nsfwCount} NSFW)
-            </div>
-          </div>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={filters.showNsfw}
-              onChange={(e) => updateFilter('showNsfw', e.target.checked)}
-              className="sr-only peer"
-            />
-            <div className="w-11 h-6 bg-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
-          </label>
-        </div>
-      </div>
 
       {displayProfiles.length === 0 ? (
         <div className="text-center text-white/70 py-8">
@@ -154,24 +119,13 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4 max-w-4xl mx-auto">
           {displayProfiles.map((profile) => (
-            <div key={profile.id} className="relative">
-              <ProfileCard
-                profile={profile}
-                onClick={() => handleProfileClick(profile)}
-              />
-              {/* NSFW Badge */}
-              {profile.nsfw && (
-                <div className="absolute top-2 right-2 bg-red-500/90 text-white text-xs px-2 py-1 rounded-full font-semibold border border-red-400">
-                  NSFW
-                </div>
-              )}
-              {/* Custom Price Badge */}
-              <div className="absolute bottom-2 left-2 bg-black/80 text-green-400 text-xs px-2 py-1 rounded-full font-semibold">
-                {profile.formattedPrice}
-              </div>
-            </div>
+            <ProfileCard
+              key={profile.id}
+              profile={profile}
+              onClick={() => handleProfileClick(profile)}
+            />
           ))}
         </div>
       )}

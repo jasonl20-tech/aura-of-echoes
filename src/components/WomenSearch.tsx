@@ -19,8 +19,8 @@ const WomenSearch: React.FC<WomenSearchProps> = ({
   const [showFilters, setShowFilters] = React.useState(false);
 
   return (
-    <div className="space-y-4">
-      {/* Search Bar */}
+    <div className="space-y-4 max-w-lg mx-auto">
+      {/* Search Bar - Centered */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60 w-5 h-5" />
         <input
@@ -28,12 +28,12 @@ const WomenSearch: React.FC<WomenSearchProps> = ({
           placeholder="Nach Namen, Beschreibung oder Interessen suchen..."
           value={filters.searchTerm}
           onChange={(e) => onFilterChange('searchTerm', e.target.value)}
-          className="w-full pl-10 pr-4 py-3 glass rounded-xl text-white placeholder-white/60 bg-white/10 border border-white/20 focus:border-purple-400 focus:outline-none"
+          className="w-full pl-10 pr-4 py-3 glass rounded-xl text-white placeholder-white/60 bg-white/10 border border-white/20 focus:border-purple-400 focus:outline-none text-center"
         />
       </div>
 
-      {/* Filter Toggle */}
-      <div className="flex justify-between items-center">
+      {/* Filter Toggle - Centered */}
+      <div className="flex justify-center items-center space-x-4">
         <button
           onClick={() => setShowFilters(!showFilters)}
           className="flex items-center space-x-2 glass-button px-4 py-2 rounded-lg text-white hover:bg-white/20 transition-colors"
@@ -113,7 +113,7 @@ const WomenSearch: React.FC<WomenSearchProps> = ({
             </div>
           </div>
 
-          {/* NSFW Filter */}
+          {/* NSFW Filter - Only in filter panel */}
           <div>
             <label className="block text-white font-medium mb-2">NSFW Content</label>
             <select

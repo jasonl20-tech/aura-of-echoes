@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MapPin, Star } from 'lucide-react';
+import { MapPin, Star, Heart } from 'lucide-react';
 
 interface Profile {
   id: number;
@@ -11,6 +11,11 @@ interface Profile {
   image: string;
   description: string;
   personality: string;
+  price: number;
+  formattedPrice: string;
+  height?: number;
+  origin?: string;
+  nsfw?: boolean;
   isSubscribed?: boolean;
 }
 
@@ -22,7 +27,7 @@ interface ProfileCardProps {
 const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onClick }) => {
   return (
     <div
-      className="profile-glass rounded-2xl overflow-hidden cursor-pointer hover-lift group"
+      className="profile-glass rounded-2xl overflow-hidden cursor-pointer hover-lift group w-full"
       onClick={onClick}
     >
       {/* Image with overlay */}
@@ -47,14 +52,22 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onClick }) => {
           <span className="text-xs text-white font-medium">4.8</span>
         </div>
 
+        {/* Price Badge */}
+        <div className="absolute bottom-3 right-3 bg-gradient-to-r from-green-600 to-green-700 px-2 py-1 rounded-lg backdrop-blur-sm">
+          <span className="text-xs text-white font-semibold">{profile.formattedPrice}</span>
+        </div>
+
         {/* Profile info overlay */}
-        <div className="absolute bottom-3 left-3 right-3">
+        <div className="absolute bottom-3 left-3">
           <h3 className="text-white font-bold text-lg text-sharp">
             {profile.name}, {profile.age}
           </h3>
-          <div className="flex items-center space-x-1 text-white/80 mt-1">
+          <div className="flex items-center space-x-2 text-white/80 mt-1">
             <MapPin className="w-3 h-3" />
             <span className="text-sm">{profile.distance} km</span>
+            {profile.nsfw && (
+              <span className="text-xs bg-red-500/80 px-1 py-0.5 rounded">18+</span>
+            )}
           </div>
         </div>
       </div>
@@ -76,6 +89,12 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onClick }) => {
               +{profile.interests.length - 3}
             </span>
           )}
+        </div>
+
+        {/* Additional Info */}
+        <div className="flex justify-between items-center text-xs text-white/60">
+          {profile.height && <span>{profile.height}cm</span>}
+          {profile.origin && <span>{profile.origin}</span>}
         </div>
 
         {/* Description preview */}
