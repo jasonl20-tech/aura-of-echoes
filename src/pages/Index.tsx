@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Settings, MessageCircle, Users, Shuffle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
@@ -93,23 +94,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col relative">
-      {/* Header - verstecken wenn im Chat */}
-      {!isInChat && (
-        <header className="p-3 sm:p-4 flex justify-between items-center">
-          <div className="text-white/70 text-xs sm:text-sm truncate flex-1 mr-4">
-            {user ? `Willkommen, ${user.email}` : 'Entdecke AI-Companions'}
-          </div>
-          {user && (
-            <button
-              onClick={() => setShowAuthModal(true)}
-              className="text-white/70 hover:text-white transition-colors text-xs sm:text-sm whitespace-nowrap"
-            >
-              Profil
-            </button>
-          )}
-        </header>
-      )}
-
       {/* Subtle background elements - nur wenn nicht im Chat */}
       {!isInChat && (
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -118,7 +102,7 @@ const Index = () => {
         </div>
       )}
 
-      {/* Main Content */}
+      {/* Main Content - now takes full height */}
       <main className={`flex-1 ${isInChat ? '' : 'px-3 sm:px-4 py-4 sm:py-6 max-w-md mx-auto w-full pb-20 sm:pb-24'}`}>
         {renderContent()}
       </main>

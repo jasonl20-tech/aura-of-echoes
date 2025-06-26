@@ -3,6 +3,7 @@ import React from 'react';
 import { User, Shield, Bell, Globe, Trash2, LogOut, Settings } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsAdmin } from '@/hooks/useAdminWomen';
+import { useNotifications } from '@/hooks/useNotifications';
 
 interface SettingsViewProps {
   onAuthRequired?: () => void;
@@ -12,6 +13,7 @@ interface SettingsViewProps {
 const SettingsView: React.FC<SettingsViewProps> = ({ onAuthRequired, onNavigateToAdmin }) => {
   const { user, signOut } = useAuth();
   const { data: isAdmin, isLoading: adminLoading } = useIsAdmin();
+  const { settings, updateSettings, permission, requestPermission } = useNotifications();
 
   if (!user) {
     return (
@@ -37,6 +39,19 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onAuthRequired, onNavigateT
 
   const handleSignOut = async () => {
     await signOut();
+  };
+
+  const handleNotificationToggle = async (setting: keyof typeof settings) => {
+    if (setting === 'desktopNotifications' && permission !== 'granted') {
+      const result = await requestPermission();
+      if (result !== 'granted') {
+        return; // Don't enable if permission denied
+      }
+    }
+    
+    updateSettings({
+      [setting]: !settings[setting]
+    });
   };
 
   return (
@@ -112,7 +127,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onAuthRequired, onNavigateT
           </div>
         </div>
 
-        {/* Notifications Section */}
+        {/* Notifications Section - Now functional */}
         <div className="glass-card rounded-2xl p-6">
           <div className="flex items-center space-x-3 mb-4">
             <Bell className="w-6 h-6 text-yellow-400" />
@@ -120,16 +135,41 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onAuthRequired, onNavigateT
           </div>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-white/80">Neue Nachrichten</span>
-              <div className="w-12 h-6 bg-purple-600 rounded-full relative">
-                <div className="w-5 h-5 bg-white rounded-full absolute top-0.5 right-0.5 transition-all"></div>
+              <div className="flex flex-col">
+                <span className="text-white/80">Desktop-Benachrichtigungen</span>
+                <span className="text-white/50 text-xs">
+                  {permission === 'denied' && 'Berechtigung verweigert - bitte in Browser-Einstellungen aktivieren'}
+                  {permission === 'default' && 'Berechtigung erforderlich'}
+                  {permission === 'granted' && 'Berechtigung erteilt'}
+                </span>
               </div>
+              <button
+                onClick={() => handleNotificationToggle('desktopNotifications')}
+                className={`w-12 h-6 rounded-full relative transition-all ${
+                  settings.desktopNotifications ? 'bg-purple-600' : 'bg-gray-600'
+                }`}
+                disabled={permission === 'denied'}
+              >
+                <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-all ${
+                  settings.desktopNotifications ? 'right-0.5' : 'left-0.5'
+                }`}></div>
+              </button>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-white/80">Neue Features</span>
-              <div className="w-12 h-6 bg-purple-600 rounded-full relative">
-                <div className="w-5 h-5 bg-white rounded-full absolute top-0.5 right-0.5 transition-all"></div>
+              <div className="flex flex-col">
+                <span className="text-white/80">Push-Benachrichtigungen für neue Nachrichten</span>
+                <span className="text-white/50 text-xs">Benachrichtigungen wenn Sie nicht in der App sind</span>
               </div>
+              <button
+                onClick={() => handleNotificationToggle('pushNotificationsForMessages')}
+                className={`w-12 h-6 rounded-full relative transition-all ${
+                  settings.pushNotificationsForMessages ? 'bg-purple-600' : 'bg-gray-600'
+                }`}
+              >
+                <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-all ${
+                  settings.pushNotificationsForMessages ? 'right-0.5' : 'left-0.5'
+                }`}></div>
+              </button>
             </div>
           </div>
         </div>

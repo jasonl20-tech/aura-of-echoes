@@ -3,6 +3,7 @@ import { Send, ArrowLeft, MoreVertical, Play, Pause } from 'lucide-react';
 import { useMessages, useSendMessage } from '../hooks/useChats';
 import { useAuth } from '../hooks/useAuth';
 import { useWoman } from '../hooks/useWomen';
+import { useNotifications } from '../hooks/useNotifications';
 import { supabase } from '@/integrations/supabase/client';
 import ProfileModal from './ProfileModal';
 import AudioRecorder from './AudioRecorder';
@@ -19,6 +20,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
   const { user } = useAuth();
   const { data: messages, isLoading: messagesLoading, refetch: refetchMessages } = useMessages(chatId || '');
   const { data: woman, isLoading: womanLoading } = useWoman(womanId || '');
+  const { showNotification } = useNotifications();
   const sendMessage = useSendMessage();
   const [newMessage, setNewMessage] = useState('');
   const [showProfileModal, setShowProfileModal] = useState(false);
@@ -28,6 +30,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
   const audioRef = useRef<{ play: () => Promise<void> } | null>(null);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const lastMessageCountRef = useRef<number>(0);
+  const hasScrolledToBottomOnEntry = useRef<boolean>(false);
 
   // Memoized woman data to prevent constant re-renders
   const womanData = useMemo(() => {
@@ -77,6 +80,22 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
+
+  // Auto-scroll to bottom when entering chat for the first time
+  useEffect(() => {
+    if (chatId && messages && messages.length > 0 && !hasScrolledToBottomOnEntry.current) {
+      console.log('🎯 Auto-scrolling to bottom on chat entry');
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+        hasScrolledToBottomOnEntry.current = true;
+      }, 100);
+    }
+  }, [chatId, messages]);
+
+  // Reset scroll flag when chat changes
+  useEffect(() => {
+    hasScrolledToBottomOnEntry.current = false;
+  }, [chatId]);
 
   // Initialize audio for notifications
   useEffect(() => {
@@ -248,7 +267,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
     );
   }, []);
 
-  // Enhanced real-time message subscription with typing indicators
+  // Enhanced real-time message subscription with typing indicators and notifications
   useEffect(() => {
     if (!chatId) return;
 
@@ -263,6 +282,16 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
         audioRef.current?.play().catch(error => {
           console.log('❌ Could not play notification sound:', error);
         });
+        
+        // Show push notification for AI messages
+        showNotification(
+          `Neue Nachricht von ${womanData.name}`,
+          {
+            body: payload.new.message_type === 'audio' ? '🎤 Audio-Nachricht' : payload.new.content,
+            tag: `chat-${chatId}`,
+            requireInteraction: false,
+          }
+        );
         
         // Stop typing indicator when AI message arrives
         setIsTyping(false);
@@ -318,7 +347,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
       setIsRealtimeConnected(false);
       setIsTyping(false);
     };
-  }, [chatId, refetchMessages]);
+  }, [chatId, refetchMessages, showNotification, womanData.name]);
 
   // Fallback polling mechanism with fixed dependencies
   useEffect(() => {
@@ -369,7 +398,9 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
 
   // Auto-scroll to new messages with stable dependency
   useEffect(() => {
-    scrollToBottom();
+    if (hasScrolledToBottomOnEntry.current) {
+      scrollToBottom();
+    }
   }, [messages, scrollToBottom]);
 
   const handleSendMessage = useCallback(async () => {
