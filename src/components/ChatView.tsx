@@ -20,8 +20,11 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
   const sendMessage = useSendMessage();
   const [newMessage, setNewMessage] = useState('');
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<{ play: () => Promise<void> } | null>(null);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const lastMessageCountRef = useRef<number>(0);
 
   // Verwende echte Daten wenn verfügbar, sonst Fallback
   const womanData = woman || {
@@ -76,14 +79,15 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
     audioRef.current = { play: createNotificationSound };
   }, []);
 
-  // Real-time message subscription
+  // Enhanced real-time message subscription with improved debugging
   useEffect(() => {
     if (!chatId) return;
 
-    console.log('Setting up real-time subscription for chat:', chatId);
+    console.log('🔄 Setting up enhanced real-time subscription for chat:', chatId);
+    setIsRealtimeConnected(false);
 
     const channel = supabase
-      .channel('messages-changes')
+      .channel(`messages-${chatId}`)
       .on(
         'postgres_changes',
         {
@@ -93,27 +97,93 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
           filter: `chat_id=eq.${chatId}`
         },
         (payload) => {
-          console.log('New message received:', payload);
+          console.log('🚀 Real-time message received:', payload);
           
           // Play notification sound for AI messages
           if (payload.new.sender_type === 'ai') {
-            console.log('Playing notification sound for AI message');
+            console.log('🔊 Playing notification sound for AI message');
             audioRef.current?.play().catch(error => {
-              console.log('Could not play notification sound:', error);
+              console.log('❌ Could not play notification sound:', error);
             });
           }
           
           // Refetch messages to update the UI
+          console.log('🔄 Refetching messages due to real-time update');
           refetchMessages();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('📡 Real-time subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          setIsRealtimeConnected(true);
+          console.log('✅ Real-time connection established successfully');
+        } else if (status === 'CHANNEL_ERROR') {
+          setIsRealtimeConnected(false);
+          console.log('❌ Real-time connection error');
+        } else if (status === 'TIMED_OUT') {
+          setIsRealtimeConnected(false);
+          console.log('⏰ Real-time connection timed out');
+        }
+      });
 
     return () => {
-      console.log('Cleaning up real-time subscription');
+      console.log('🧹 Cleaning up real-time subscription for chat:', chatId);
       supabase.removeChannel(channel);
+      setIsRealtimeConnected(false);
     };
   }, [chatId, refetchMessages]);
+
+  // Fallback polling mechanism when real-time is not working
+  useEffect(() => {
+    if (!chatId || isRealtimeConnected) return;
+
+    console.log('🔄 Starting fallback polling mechanism');
+    
+    // Update last message count
+    lastMessageCountRef.current = messages?.length || 0;
+    
+    pollingIntervalRef.current = setInterval(async () => {
+      console.log('🔍 Polling for new messages (fallback)');
+      
+      try {
+        await refetchMessages();
+        
+        // Check if we got new messages
+        const currentMessageCount = messages?.length || 0;
+        if (currentMessageCount > lastMessageCountRef.current) {
+          console.log('📨 New messages detected via polling');
+          
+          // Check if the latest message is from AI and play sound
+          const latestMessage = messages?.[messages.length - 1];
+          if (latestMessage && latestMessage.sender_type === 'ai') {
+            console.log('🔊 Playing notification sound for new AI message (polling)');
+            audioRef.current?.play().catch(error => {
+              console.log('❌ Could not play notification sound:', error);
+            });
+          }
+          
+          lastMessageCountRef.current = currentMessageCount;
+        }
+      } catch (error) {
+        console.log('❌ Error during polling:', error);
+      }
+    }, 3000); // Poll every 3 seconds
+
+    return () => {
+      if (pollingIntervalRef.current) {
+        console.log('🧹 Cleaning up polling interval');
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    };
+  }, [chatId, isRealtimeConnected, refetchMessages, messages]);
+
+  // Update last message count when messages change
+  useEffect(() => {
+    if (messages) {
+      lastMessageCountRef.current = messages.length;
+    }
+  }, [messages]);
 
   // Auto-scroll zu neuen Nachrichten
   const scrollToBottom = () => {
@@ -127,7 +197,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
   const handleSendMessage = async () => {
     if (!chatId || !newMessage.trim() || sendMessage.isPending || !womanId) return;
 
-    console.log('Sending message to chatId:', chatId, 'womanId:', womanId);
+    console.log('📤 Sending message to chatId:', chatId, 'womanId:', womanId);
 
     try {
       // Sende Nachricht über die send-message Edge Function
@@ -140,7 +210,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
       setNewMessage('');
       
     } catch (error) {
-      console.error('Failed to send message:', error);
+      console.error('❌ Failed to send message:', error);
     }
   };
 
@@ -229,7 +299,13 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
             
             <div>
               <h3 className="font-semibold text-white text-sm">{womanData.name}</h3>
-              <p className="text-xs text-green-400">Online</p>
+              <div className="flex items-center space-x-2">
+                <p className="text-xs text-green-400">Online</p>
+                {/* Real-time connection indicator */}
+                <div className={`w-2 h-2 rounded-full ${isRealtimeConnected ? 'bg-green-400' : 'bg-yellow-400'}`} 
+                     title={isRealtimeConnected ? 'Real-time verbunden' : 'Fallback-Modus'}>
+                </div>
+              </div>
             </div>
           </div>
         </div>
