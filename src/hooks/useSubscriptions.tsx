@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -67,33 +68,31 @@ export function useCheckSubscription(womanId: string) {
   return useQuery({
     queryKey: ['subscription', user?.id, womanId],
     queryFn: async () => {
-      if (!user || !womanId) return false;
+      if (!user || !womanId) return { hasAccess: false, hasSubscription: false, hasFreeAccess: false };
       
-      // First check local database
-      const { data: localSub, error } = await supabase
-        .from('subscriptions')
-        .select('id, active, expires_at')
-        .eq('user_id', user.id)
-        .eq('woman_id', womanId)
-        .eq('active', true)
-        .maybeSingle();
+      // Verwende die neue kombinierte Funktion
+      const { data: hasAccess, error } = await supabase.rpc('has_subscription_or_free_access', {
+        user_id: user.id,
+        woman_id: womanId
+      });
       
       if (error) throw error;
       
-      // If we have a local subscription, also verify with Stripe
-      if (localSub) {
-        try {
-          const { data: stripeCheck } = await supabase.functions.invoke('check-subscription', {
-            body: { womanId },
-          });
-          return stripeCheck?.hasSubscription || false;
-        } catch (stripeError) {
-          console.warn('Stripe check failed, using local data:', stripeError);
-          return true; // Fallback to local data if Stripe check fails
-        }
-      }
+      // Separate Checks für UI-Anzeige
+      const { data: hasSubscription } = await supabase.rpc('has_subscription', {
+        user_id: user.id,
+        woman_id: womanId
+      });
       
-      return false;
+      const { data: hasFreeAccess } = await supabase.rpc('has_free_access', {
+        woman_id: womanId
+      });
+      
+      return {
+        hasAccess: hasAccess || false,
+        hasSubscription: hasSubscription || false,
+        hasFreeAccess: hasFreeAccess || false
+      };
     },
     enabled: !!user && !!womanId,
   });

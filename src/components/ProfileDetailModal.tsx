@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { X, MapPin, Star, Heart, MessageCircle, Settings } from 'lucide-react';
+import { X, MapPin, Star, Heart, MessageCircle, Settings, Gift } from 'lucide-react';
 import { useCheckSubscription, useSubscribeToWoman, useCustomerPortal } from '../hooks/useSubscriptions';
 import { useCreateChat } from '../hooks/useChats';
 import { useAuth } from '../hooks/useAuth';
@@ -35,7 +36,7 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
   onAuthRequired 
 }) => {
   const { user } = useAuth();
-  const { data: hasSubscription, isLoading: checkingSubscription } = useCheckSubscription(profile.womanId || '');
+  const { data: accessStatus, isLoading: checkingSubscription } = useCheckSubscription(profile.womanId || '');
   const subscribeToWoman = useSubscribeToWoman();
   const createChat = useCreateChat();
   const customerPortal = useCustomerPortal();
@@ -105,43 +106,43 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="profile-glass rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
+      <div className="profile-glass rounded-xl sm:rounded-2xl max-w-md w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="relative">
           <img
             src={profile.image}
             alt={profile.name}
-            className="w-full h-64 object-cover rounded-t-2xl"
+            className="w-full h-48 sm:h-64 object-cover rounded-t-xl sm:rounded-t-2xl"
           />
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 glass w-10 h-10 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+            className="absolute top-2 sm:top-4 right-2 sm:right-4 glass w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
           
-          <div className="absolute bottom-4 left-4 right-4">
-            <h2 className="text-2xl font-bold text-white text-sharp mb-1">
+          <div className="absolute bottom-2 sm:bottom-4 left-2 sm:left-4 right-2 sm:right-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-white text-sharp mb-1">
               {profile.name}, {profile.age}
             </h2>
-            <div className="flex items-center space-x-4 text-white/80">
+            <div className="flex items-center space-x-3 sm:space-x-4 text-white/80">
               <div className="flex items-center space-x-1">
-                <MapPin className="w-4 h-4" />
-                <span className="text-sm">{profile.distance} km</span>
+                <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="text-xs sm:text-sm">{profile.distance} km</span>
               </div>
               <div className="flex items-center space-x-1">
-                <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                <span className="text-sm">4.8</span>
+                <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 fill-current" />
+                <span className="text-xs sm:text-sm">4.8</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-6">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* Additional Info */}
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 text-sm">
             {profile.height && (
               <div>
                 <span className="text-white/60">Größe:</span>
@@ -165,8 +166,8 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
           {/* Personality */}
           {profile.personality && (
             <div>
-              <h3 className="text-white font-semibold mb-2">Persönlichkeit</h3>
-              <p className="text-white/80 text-sm leading-relaxed">
+              <h3 className="text-white font-semibold mb-2 text-sm sm:text-base">Persönlichkeit</h3>
+              <p className="text-white/80 text-xs sm:text-sm leading-relaxed">
                 {profile.personality}
               </p>
             </div>
@@ -175,8 +176,8 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
           {/* Description */}
           {profile.description && (
             <div>
-              <h3 className="text-white font-semibold mb-2">Über mich</h3>
-              <p className="text-white/80 text-sm leading-relaxed">
+              <h3 className="text-white font-semibold mb-2 text-sm sm:text-base">Über mich</h3>
+              <p className="text-white/80 text-xs sm:text-sm leading-relaxed">
                 {profile.description}
               </p>
             </div>
@@ -185,12 +186,12 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
           {/* Interests */}
           {profile.interests.length > 0 && (
             <div>
-              <h3 className="text-white font-semibold mb-3">Interessen</h3>
+              <h3 className="text-white font-semibold mb-3 text-sm sm:text-base">Interessen</h3>
               <div className="flex flex-wrap gap-2">
                 {profile.interests.map((interest, index) => (
                   <span
                     key={index}
-                    className="px-3 py-1 glass rounded-full text-sm text-white/80"
+                    className="px-2 sm:px-3 py-1 glass rounded-full text-xs sm:text-sm text-white/80"
                   >
                     {interest}
                   </span>
@@ -204,70 +205,79 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
             {!user ? (
               <div className="space-y-3">
                 <div className="text-center">
-                  <p className="text-white/70 text-sm mb-2">
+                  <p className="text-white/70 text-xs sm:text-sm mb-2">
                     Melde dich an, um mit {profile.name} zu chatten
                   </p>
-                  <p className="text-2xl font-bold text-white">
-                    €{profile.price?.toFixed(2) || '3.99'} <span className="text-sm text-white/60">/Monat</span>
+                  <p className="text-xl sm:text-2xl font-bold text-white">
+                    €{profile.price?.toFixed(2) || '3.99'} <span className="text-xs sm:text-sm text-white/60">/Monat</span>
                   </p>
                 </div>
                 <button
                   onClick={() => onAuthRequired?.()}
-                  className="w-full glass-button py-3 rounded-xl text-white font-semibold hover:bg-purple-600/30 transition-all duration-300 flex items-center justify-center space-x-2"
+                  className="w-full glass-button py-3 rounded-xl text-white font-semibold hover:bg-purple-600/30 transition-all duration-300 flex items-center justify-center space-x-2 text-sm sm:text-base"
                 >
-                  <Heart className="w-5 h-5" />
+                  <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
                   <span>Anmelden & Abonnieren</span>
                 </button>
               </div>
             ) : checkingSubscription ? (
-              <div className="glass-button w-full py-3 rounded-xl text-center text-white/70">
-                Subscription wird geprüft...
+              <div className="glass-button w-full py-3 rounded-xl text-center text-white/70 text-sm sm:text-base">
+                Zugang wird geprüft...
               </div>
-            ) : hasSubscription ? (
+            ) : accessStatus?.hasAccess ? (
               <div className="space-y-3">
-                <div className="glass w-full py-3 rounded-xl text-center text-green-400">
-                  ✓ Aktives Abonnement - Sie können chatten!
+                <div className="glass w-full py-3 rounded-xl text-center">
+                  {accessStatus.hasFreeAccess && !accessStatus.hasSubscription ? (
+                    <div className="flex items-center justify-center space-x-2 text-green-400">
+                      <Gift className="w-4 h-4 sm:w-5 sm:h-5" />
+                      <span className="text-sm sm:text-base">✓ Kostenlos freigeschaltet - Sie können chatten!</span>
+                    </div>
+                  ) : (
+                    <span className="text-green-400 text-sm sm:text-base">✓ Aktives Abonnement - Sie können chatten!</span>
+                  )}
                 </div>
-                <div className="flex space-x-2">
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                   <button
                     onClick={handleStartChat}
                     disabled={createChat.isPending}
-                    className="flex-1 glass-button py-3 rounded-xl text-white font-semibold hover:bg-blue-600/30 transition-all duration-300 flex items-center justify-center space-x-2"
+                    className="flex-1 glass-button py-3 rounded-xl text-white font-semibold hover:bg-blue-600/30 transition-all duration-300 flex items-center justify-center space-x-2 text-sm sm:text-base"
                   >
-                    <MessageCircle className="w-5 h-5" />
+                    <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                     <span>
                       {createChat.isPending ? 'Chat wird erstellt...' : 'Chat starten'}
                     </span>
                   </button>
-                  <button
-                    onClick={handleManageSubscription}
-                    disabled={customerPortal.isPending}
-                    className="glass-button px-4 py-3 rounded-xl text-white hover:bg-purple-600/30 transition-all duration-300 flex items-center justify-center"
-                    title="Abonnement verwalten"
-                  >
-                    <Settings className="w-5 h-5" />
-                  </button>
+                  {accessStatus.hasSubscription && (
+                    <button
+                      onClick={handleManageSubscription}
+                      disabled={customerPortal.isPending}
+                      className="glass-button px-4 py-3 rounded-xl text-white hover:bg-purple-600/30 transition-all duration-300 flex items-center justify-center"
+                      title="Abonnement verwalten"
+                    >
+                      <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </button>
+                  )}
                 </div>
               </div>
             ) : (
               <div className="space-y-3">
                 <div className="text-center">
-                  <p className="text-white/70 text-sm mb-2">
+                  <p className="text-white/70 text-xs sm:text-sm mb-2">
                     Abonnieren Sie {profile.name} für
                   </p>
-                  <p className="text-2xl font-bold text-white">
-                    €{profile.price?.toFixed(2) || '3.99'} <span className="text-sm text-white/60">/Monat</span>
+                  <p className="text-xl sm:text-2xl font-bold text-white">
+                    €{profile.price?.toFixed(2) || '3.99'} <span className="text-xs sm:text-sm text-white/60">/Monat</span>
                   </p>
-                  <p className="text-white/50 text-xs mt-2">
+                  <p className="text-white/50 text-[10px] sm:text-xs mt-2">
                     Echte Stripe-Zahlung • Jederzeit kündbar
                   </p>
                 </div>
                 <button
                   onClick={handleSubscribe}
                   disabled={subscribeToWoman.isPending}
-                  className="w-full glass-button py-3 rounded-xl text-white font-semibold hover:bg-purple-600/30 transition-all duration-300 disabled:opacity-50 flex items-center justify-center space-x-2"
+                  className="w-full glass-button py-3 rounded-xl text-white font-semibold hover:bg-purple-600/30 transition-all duration-300 disabled:opacity-50 flex items-center justify-center space-x-2 text-sm sm:text-base"
                 >
-                  <Heart className="w-5 h-5" />
+                  <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
                   <span>
                     {subscribeToWoman.isPending ? 'Checkout wird geöffnet...' : 'Jetzt abonnieren (Stripe)'}
                   </span>

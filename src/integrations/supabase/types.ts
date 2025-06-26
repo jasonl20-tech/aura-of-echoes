@@ -38,6 +38,44 @@ export type Database = {
           },
         ]
       }
+      free_access_periods: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by: string
+          end_time: string
+          id: string
+          start_time: string
+          woman_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by: string
+          end_time: string
+          id?: string
+          start_time?: string
+          woman_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by?: string
+          end_time?: string
+          id?: string
+          start_time?: string
+          woman_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "free_access_periods_woman_id_fkey"
+            columns: ["woman_id"]
+            isOneToOne: false
+            referencedRelation: "women"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           chat_id: string
@@ -194,7 +232,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      has_free_access: {
+        Args: { woman_id: string }
+        Returns: boolean
+      }
       has_subscription: {
+        Args: { user_id: string; woman_id: string }
+        Returns: boolean
+      }
+      has_subscription_or_free_access: {
         Args: { user_id: string; woman_id: string }
         Returns: boolean
       }
