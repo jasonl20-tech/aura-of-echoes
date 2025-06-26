@@ -38,7 +38,7 @@ export function useCreateWoman() {
       // Convert ImageData[] to JSON for database
       const dbData = {
         ...womanData,
-        images: JSON.stringify(womanData.images)
+        images: JSON.stringify(womanData.images || [])
       };
       
       const { data, error } = await supabase
@@ -60,10 +60,11 @@ export function useUpdateWoman() {
     mutationFn: async ({ id, ...updateData }: UpdateWomanData) => {
       if (!user) throw new Error('Not authenticated');
       
-      // Convert ImageData[] to JSON for database if images are provided
-      const dbData = updateData.images 
-        ? { ...updateData, images: JSON.stringify(updateData.images) }
-        : updateData;
+      // Prepare data for database, converting ImageData[] to JSON string if images are provided
+      const dbData: any = { ...updateData };
+      if (updateData.images) {
+        dbData.images = JSON.stringify(updateData.images);
+      }
       
       const { data, error } = await supabase
         .from('women')
