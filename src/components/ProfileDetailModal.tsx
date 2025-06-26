@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { X, Heart, MessageCircle, Settings, Gift } from 'lucide-react';
+import { X, Heart, MessageCircle, Gift } from 'lucide-react';
 import { useCheckSubscription, useSubscribeToWoman, useCustomerPortal } from '../hooks/useSubscriptions';
 import { useCreateChat } from '../hooks/useChats';
 import { useAuth } from '../hooks/useAuth';
@@ -113,8 +113,8 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center">
-      <div className="profile-glass rounded-xl sm:rounded-2xl max-w-md w-full mx-4 max-h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center animate-fade-in">
+      <div className="profile-glass rounded-xl sm:rounded-2xl max-w-md w-full mx-4 max-h-[95vh] sm:max-h-[90vh] flex flex-col overflow-hidden animate-scale-in">
         {/* Header with Image Carousel - Fixed height */}
         <div className="relative flex-shrink-0">
           <ImageCarousel 
@@ -125,14 +125,14 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
           
           <button
             onClick={onClose}
-            className="absolute top-3 sm:top-4 right-3 sm:right-4 glass w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-colors z-10 backdrop-blur-sm"
+            className="absolute top-3 sm:top-4 right-3 sm:right-4 glass w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-all duration-300 z-10 backdrop-blur-sm hover:scale-110 active:scale-95"
           >
             <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
 
           {/* NSFW badge - only show if nsfw is true */}
           {profile.nsfw && (
-            <div className="absolute top-3 sm:top-4 left-3 sm:left-4 bg-red-500/95 px-2 py-1 rounded backdrop-blur-sm border border-red-400/30">
+            <div className="absolute top-3 sm:top-4 left-3 sm:left-4 bg-red-500/95 px-2 py-1 rounded backdrop-blur-sm border border-red-400/30 animate-fade-in">
               <span className="text-xs text-white font-bold">NSFW</span>
             </div>
           )}
@@ -152,7 +152,7 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
               </div>
               
               {/* Price Badge with better styling */}
-              <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 px-3 py-1.5 rounded-lg backdrop-blur-sm border border-emerald-400/30 shadow-lg">
+              <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 px-3 py-1.5 rounded-lg backdrop-blur-sm border border-emerald-400/30 shadow-lg animate-pulse">
                 <span className="text-sm sm:text-base text-white font-bold drop-shadow-sm">
                   {profile.formattedPrice || `€${profile.price?.toFixed(2) || '3.99'}`}
                 </span>
@@ -167,26 +167,26 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
             {/* Profile Info Grid with improved styling */}
             <div className="grid grid-cols-2 gap-3 sm:gap-4 text-sm">
               {profile.height && (
-                <div className="glass rounded-xl p-3 border border-white/10">
+                <div className="glass rounded-xl p-3 border border-white/10 hover:border-white/20 transition-colors duration-300">
                   <span className="text-white/60 text-xs font-medium block mb-1">Größe</span>
                   <div className="text-white font-semibold">{profile.height} cm</div>
                 </div>
               )}
               {profile.origin && (
-                <div className="glass rounded-xl p-3 border border-white/10">
+                <div className="glass rounded-xl p-3 border border-white/10 hover:border-white/20 transition-colors duration-300">
                   <span className="text-white/60 text-xs font-medium block mb-1">Herkunft</span>
                   <div className="text-white font-semibold">{profile.origin}</div>
                 </div>
               )}
               {profile.nsfw !== undefined && (
-                <div className="glass rounded-xl p-3 border border-white/10">
+                <div className="glass rounded-xl p-3 border border-white/10 hover:border-white/20 transition-colors duration-300">
                   <span className="text-white/60 text-xs font-medium block mb-1">Content</span>
                   <div className={`font-semibold ${profile.nsfw ? 'text-red-400' : 'text-emerald-400'}`}>
                     {profile.nsfw ? '18+ NSFW' : 'Safe Content'}
                   </div>
                 </div>
               )}
-              <div className="glass rounded-xl p-3 border border-white/10">
+              <div className="glass rounded-xl p-3 border border-white/10 hover:border-white/20 transition-colors duration-300">
                 <span className="text-white/60 text-xs font-medium block mb-1">Status</span>
                 <div className="text-white font-semibold flex items-center space-x-1">
                   <Heart className="w-3 h-3 text-purple-400" />
@@ -203,7 +203,7 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
                   {profile.interests.map((interest, index) => (
                     <span
                       key={index}
-                      className="px-3 py-1.5 glass rounded-full text-xs sm:text-sm text-purple-300 font-medium border border-purple-400/40 hover:border-purple-400/60 transition-colors backdrop-blur-sm"
+                      className="px-3 py-1.5 glass rounded-full text-xs sm:text-sm text-purple-300 font-medium border border-purple-400/40 hover:border-purple-400/60 hover:bg-purple-400/10 transition-all duration-300 backdrop-blur-sm cursor-default hover:scale-105"
                     >
                       #{interest}
                     </span>
@@ -216,7 +216,7 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
             {profile.personality && (
               <div>
                 <h3 className="text-white font-bold mb-3 text-base sm:text-lg">Persönlichkeit</h3>
-                <div className="glass rounded-xl p-4 border border-white/10">
+                <div className="glass rounded-xl p-4 border border-white/10 hover:border-white/15 transition-colors duration-300">
                   <p className="text-white/85 text-sm sm:text-base leading-relaxed">
                     {profile.personality}
                   </p>
@@ -228,7 +228,7 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
             {profile.description && (
               <div>
                 <h3 className="text-white font-bold mb-3 text-base sm:text-lg">Über mich</h3>
-                <div className="glass rounded-xl p-4 border border-white/10">
+                <div className="glass rounded-xl p-4 border border-white/10 hover:border-white/15 transition-colors duration-300">
                   <p className="text-white/85 text-sm sm:text-base leading-relaxed">
                     {profile.description}
                   </p>
@@ -250,33 +250,33 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
                   </div>
                   <button
                     onClick={() => onAuthRequired?.()}
-                    className="w-full glass-button py-4 rounded-xl text-white font-bold hover:bg-purple-600/30 transition-all duration-300 flex items-center justify-center space-x-2 text-sm sm:text-base border border-purple-400/30"
+                    className="w-full glass-button py-4 rounded-xl text-white font-bold hover:bg-purple-600/30 transition-all duration-300 flex items-center justify-center space-x-2 text-sm sm:text-base border border-purple-400/30 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-purple-500/20"
                   >
                     <Heart className="w-5 h-5 sm:w-6 sm:h-6" />
                     <span>Anmelden & Abonnieren</span>
                   </button>
                 </div>
               ) : checkingSubscription ? (
-                <div className="glass-button w-full py-4 rounded-xl text-center text-white/70 text-sm sm:text-base">
+                <div className="glass-button w-full py-4 rounded-xl text-center text-white/70 text-sm sm:text-base animate-pulse">
                   Zugang wird geprüft...
                 </div>
               ) : accessStatus?.hasAccess ? (
                 <div className="space-y-4">
                   <div className="glass w-full py-4 rounded-xl text-center border border-white/10">
                     {accessStatus.hasFreeAccess && !accessStatus.hasSubscription ? (
-                      <div className="flex items-center justify-center space-x-2 text-emerald-400">
+                      <div className="flex items-center justify-center space-x-2 text-emerald-400 animate-fade-in">
                         <Gift className="w-5 h-5 sm:w-6 sm:h-6" />
                         <span className="text-sm sm:text-base font-semibold">✓ Kostenlos freigeschaltet - Sie können chatten!</span>
                       </div>
                     ) : (
-                      <span className="text-emerald-400 text-sm sm:text-base font-semibold">✓ Aktives Abonnement - Sie können chatten!</span>
+                      <span className="text-emerald-400 text-sm sm:text-base font-semibold animate-fade-in">✓ Aktives Abonnement - Sie können chatten!</span>
                     )}
                   </div>
-                  <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3">
+                  <div className="flex flex-col space-y-3">
                     <button
                       onClick={handleStartChat}
                       disabled={createChat.isPending}
-                      className="flex-1 glass-button py-4 rounded-xl text-white font-bold hover:bg-blue-600/30 transition-all duration-300 flex items-center justify-center space-x-2 text-sm sm:text-base border border-blue-400/30"
+                      className="w-full glass-button py-4 rounded-xl text-white font-bold hover:bg-blue-600/30 transition-all duration-300 flex items-center justify-center space-x-2 text-sm sm:text-base border border-blue-400/30 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-blue-500/20"
                     >
                       <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
                       <span>
@@ -287,10 +287,9 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
                       <button
                         onClick={handleManageSubscription}
                         disabled={customerPortal.isPending}
-                        className="glass-button px-4 py-4 rounded-xl text-white hover:bg-purple-600/30 transition-all duration-300 flex items-center justify-center border border-purple-400/30"
-                        title="Abonnement verwalten"
+                        className="w-full glass-button py-3 rounded-xl text-white hover:bg-purple-600/30 transition-all duration-300 flex items-center justify-center space-x-2 border border-purple-400/30 hover:scale-105 active:scale-95 text-sm font-medium"
                       >
-                        <Settings className="w-5 h-5 sm:w-6 sm:h-6" />
+                        <span>Abonnement verwalten</span>
                       </button>
                     )}
                   </div>
@@ -311,7 +310,7 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
                   <button
                     onClick={handleSubscribe}
                     disabled={subscribeToWoman.isPending}
-                    className="w-full glass-button py-4 rounded-xl text-white font-bold hover:bg-purple-600/30 transition-all duration-300 disabled:opacity-50 flex items-center justify-center space-x-2 text-sm sm:text-base border border-purple-400/30"
+                    className="w-full glass-button py-4 rounded-xl text-white font-bold hover:bg-purple-600/30 transition-all duration-300 disabled:opacity-50 flex items-center justify-center space-x-2 text-sm sm:text-base border border-purple-400/30 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-purple-500/20"
                   >
                     <Heart className="w-5 h-5 sm:w-6 sm:h-6" />
                     <span>
