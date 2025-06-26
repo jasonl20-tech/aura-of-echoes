@@ -81,15 +81,15 @@ const SettingsView: React.FC = () => {
       {/* User Info Card */}
       <div className="glass-card rounded-2xl p-6">
         <div className="flex items-center space-x-4">
-          <div className="w-16 h-16 bg-gradient-to-br from-pink-400 to-purple-400 rounded-full flex items-center justify-center text-white font-bold text-xl">
+          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-violet-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
             U
           </div>
           <div className="flex-1">
             <h3 className="text-lg font-semibold text-white">Benutzer</h3>
             <p className="text-white/60">Premium Mitglied seit März 2024</p>
             <div className="flex items-center space-x-2 mt-2">
-              <Crown className="w-4 h-4 text-yellow-400" />
-              <span className="text-sm text-yellow-400">Premium aktiv</span>
+              <Crown className="w-4 h-4 text-purple-400" />
+              <span className="text-sm text-purple-400">Premium aktiv</span>
             </div>
           </div>
         </div>
@@ -104,20 +104,20 @@ const SettingsView: React.FC = () => {
               <button
                 key={itemIndex}
                 onClick={item.action}
-                className={`w-full p-4 flex items-center space-x-4 hover:bg-white/5 transition-all duration-200 ${
-                  itemIndex !== group.items.length - 1 ? 'border-b border-white/10' : ''
-                } ${item.highlight ? 'bg-gradient-to-r from-yellow-400/10 to-orange-400/10' : ''}`}
+                className={`w-full p-4 flex items-center space-x-4 hover:bg-purple-500/10 transition-all duration-200 ${
+                  itemIndex !== group.items.length - 1 ? 'border-b border-purple-500/20' : ''
+                } ${item.highlight ? 'bg-gradient-to-r from-purple-500/20 to-violet-500/10' : ''}`}
               >
                 <div className={`p-2 rounded-lg ${
-                  item.highlight ? 'bg-yellow-400/20' : 'glass'
+                  item.highlight ? 'bg-purple-500/30' : 'glass'
                 }`}>
                   <item.icon className={`w-5 h-5 ${
-                    item.highlight ? 'text-yellow-400' : 'text-white/70'
+                    item.highlight ? 'text-purple-300' : 'text-white/70'
                   }`} />
                 </div>
                 <div className="flex-1 text-left">
                   <h4 className={`font-medium ${
-                    item.highlight ? 'text-yellow-400' : 'text-white'
+                    item.highlight ? 'text-purple-300' : 'text-white'
                   }`}>
                     {item.label}
                   </h4>
