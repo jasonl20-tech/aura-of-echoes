@@ -124,7 +124,7 @@ const ChatsList: React.FC<ChatsListProps> = ({ onChatSelect }) => {
       <div className="space-y-3">
         {chats.map((chat) => {
           const accessInfo = getAccessInfo(chat.woman_id);
-          const woman = chat.women || chat.woman;
+          const woman = chat.woman;
           
           return (
             <div
