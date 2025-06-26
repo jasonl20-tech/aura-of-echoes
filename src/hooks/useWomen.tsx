@@ -11,6 +11,7 @@ export interface Woman {
   image_url: string | null;
   webhook_url: string;
   price: number;
+  pricing_interval: string;
   interests: string[] | null;
   height: number | null;
   origin: string | null;

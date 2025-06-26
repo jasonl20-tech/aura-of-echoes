@@ -13,6 +13,10 @@ export interface WomenFilters {
     min: number;
     max: number;
   };
+  minHeight: number;
+  maxHeight: number;
+  origin: string;
+  nsfw: boolean | null;
 }
 
 const DEFAULT_FILTERS: WomenFilters = {
@@ -25,7 +29,11 @@ const DEFAULT_FILTERS: WomenFilters = {
   priceRange: {
     min: 0,
     max: 100
-  }
+  },
+  minHeight: 150,
+  maxHeight: 190,
+  origin: '',
+  nsfw: null
 };
 
 export function useWomenFilters(women?: Woman[]) {
@@ -45,6 +53,13 @@ export function useWomenFilters(women?: Woman[]) {
         return false;
       }
 
+      // Height filter
+      if (woman.height) {
+        if (woman.height < filters.minHeight || woman.height > filters.maxHeight) {
+          return false;
+        }
+      }
+
       // Interests filter
       if (filters.interests.length > 0 && woman.interests) {
         const hasMatchingInterest = filters.interests.some(filterInterest =>
@@ -62,7 +77,19 @@ export function useWomenFilters(women?: Woman[]) {
         }
       }
 
+      // Single origin filter
+      if (filters.origin && woman.origin) {
+        if (woman.origin !== filters.origin) {
+          return false;
+        }
+      }
+
       // NSFW filter
+      if (filters.nsfw !== null && woman.nsfw !== filters.nsfw) {
+        return false;
+      }
+
+      // Show NSFW filter
       if (!filters.showNsfw && woman.nsfw) {
         return false;
       }

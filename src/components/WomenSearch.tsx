@@ -26,8 +26,8 @@ const WomenSearch: React.FC<WomenSearchProps> = ({
         <input
           type="text"
           placeholder="Nach Namen, Beschreibung oder Interessen suchen..."
-          value={filters.search}
-          onChange={(e) => onFilterChange('search', e.target.value)}
+          value={filters.searchTerm}
+          onChange={(e) => onFilterChange('searchTerm', e.target.value)}
           className="w-full pl-10 pr-4 py-3 glass rounded-xl text-white placeholder-white/60 bg-white/10 border border-white/20 focus:border-purple-400 focus:outline-none"
         />
       </div>
