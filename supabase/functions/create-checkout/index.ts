@@ -44,14 +44,23 @@ serve(async (req) => {
     if (!womanId) throw new Error("Woman ID is required");
     logStep("Woman ID received", { womanId });
 
-    // Get woman details
+    // Get woman details from the correct table with correct field names
     const { data: woman, error: womanError } = await supabaseClient
       .from('women')
       .select('name, price')
       .eq('id', womanId)
       .single();
     
-    if (womanError || !woman) throw new Error("Woman not found");
+    if (womanError) {
+      logStep("Database error when fetching woman", { error: womanError });
+      throw new Error(`Database error: ${womanError.message}`);
+    }
+    
+    if (!woman) {
+      logStep("Woman not found in database", { womanId });
+      throw new Error("Woman not found");
+    }
+    
     logStep("Woman found", { name: woman.name, price: woman.price });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
@@ -66,7 +75,10 @@ serve(async (req) => {
       logStep("No existing customer found");
     }
 
-    // Create checkout session
+    // Create checkout session with correct price (convert to cents)
+    const priceInCents = Math.round(Number(woman.price) * 100);
+    logStep("Creating checkout session", { priceInCents, originalPrice: woman.price });
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
@@ -78,7 +90,7 @@ serve(async (req) => {
               name: `Chat-Abonnement mit ${woman.name}`,
               description: `Monatliches Abonnement für Chats mit ${woman.name}`
             },
-            unit_amount: Math.round(woman.price * 100), // Convert to cents
+            unit_amount: priceInCents,
             recurring: { interval: "month" },
           },
           quantity: 1,
