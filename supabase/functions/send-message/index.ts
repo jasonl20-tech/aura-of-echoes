@@ -35,18 +35,25 @@ serve(async (req) => {
       throw new Error('Invalid authentication')
     }
 
-    // Check if user has subscription to this woman
-    const { data: subscription } = await supabaseClient
-      .from('subscriptions')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('woman_id', womanId)
-      .eq('active', true)
-      .single()
+    console.log('Checking access for user:', user.id, 'woman:', womanId)
 
-    if (!subscription) {
-      throw new Error('No active subscription found')
+    // Verwende die kombinierte Funktion für Subscription oder Free Access
+    const { data: hasAccess, error: accessError } = await supabaseClient.rpc('has_subscription_or_free_access', {
+      user_id: user.id,
+      woman_id: womanId
+    })
+
+    if (accessError) {
+      console.error('Error checking access:', accessError)
+      throw new Error('Failed to check access permissions')
     }
+
+    if (!hasAccess) {
+      console.log('No active subscription or free access found for user:', user.id, 'woman:', womanId)
+      throw new Error('No active subscription or free access found')
+    }
+
+    console.log('Access confirmed for user:', user.id, 'woman:', womanId)
 
     // Insert user message
     const { error: messageError } = await supabaseClient
@@ -58,8 +65,11 @@ serve(async (req) => {
       })
 
     if (messageError) {
+      console.error('Error inserting message:', messageError)
       throw messageError
     }
+
+    console.log('Message inserted successfully')
 
     // Get woman's webhook URL
     const { data: woman, error: womanError } = await supabaseClient
@@ -69,8 +79,11 @@ serve(async (req) => {
       .single()
 
     if (womanError || !woman) {
+      console.error('Error getting woman data:', womanError)
       throw new Error('Woman not found')
     }
+
+    console.log('Calling webhook for woman:', woman.name, 'URL:', woman.webhook_url)
 
     // Send message to woman's AI API (no waiting for response)
     try {
