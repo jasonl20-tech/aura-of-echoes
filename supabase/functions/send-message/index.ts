@@ -15,6 +15,8 @@ serve(async (req) => {
   try {
     const { chatId, content, womanId, audioData, audioType } = await req.json()
     
+    console.log('Received request:', { chatId, womanId, hasContent: !!content, hasAudio: !!audioData })
+    
     // Initialize Supabase client
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -37,7 +39,7 @@ serve(async (req) => {
 
     console.log('Checking access for user:', user.id, 'woman:', womanId)
 
-    // Verwende die kombinierte Funktion für Subscription oder Free Access
+    // Check subscription or free access
     const { data: hasAccess, error: accessError } = await supabaseClient.rpc('has_subscription_or_free_access', {
       user_id: user.id,
       woman_id: womanId
@@ -55,11 +57,13 @@ serve(async (req) => {
 
     console.log('Access confirmed for user:', user.id, 'woman:', womanId)
 
-    // Bestimme message type und content
+    // Determine message type and content
     const messageType = audioData ? 'audio' : 'text'
-    const messageContent = content || '[Audio-Nachricht]'
+    const messageContent = audioData ? '[Audio-Nachricht]' : content
 
-    // Insert user message
+    console.log('Inserting message:', { type: messageType, content: messageContent })
+
+    // Insert user message with correct message_type
     const { error: messageError } = await supabaseClient
       .from('messages')
       .insert({
@@ -105,17 +109,14 @@ serve(async (req) => {
       webhookPayload.audioType = audioType || 'audio/webm;codecs=opus'
       webhookPayload.message = '[Audio-Nachricht]'
       webhookPayload.messageType = 'audio'
+      console.log('Prepared audio webhook payload with', audioData.length, 'bytes of audio data')
     } else {
       webhookPayload.message = content
       webhookPayload.messageType = 'text'
+      console.log('Prepared text webhook payload')
     }
 
-    console.log('Webhook payload:', JSON.stringify({
-      ...webhookPayload,
-      audioData: audioData ? '[AUDIO_DATA_PRESENT]' : undefined
-    }, null, 2))
-
-    // Send message to woman's AI API (no waiting for response)
+    // Send message to woman's AI API
     try {
       console.log('Starting webhook request...')
       
@@ -128,10 +129,9 @@ serve(async (req) => {
       })
 
       console.log('Webhook response status:', webhookResponse.status)
-      console.log('Webhook response headers:', Object.fromEntries(webhookResponse.headers.entries()))
       
       const responseText = await webhookResponse.text()
-      console.log('Webhook response body:', responseText)
+      console.log('Webhook response body length:', responseText.length)
 
       if (!webhookResponse.ok) {
         console.error('Webhook returned error status:', webhookResponse.status, responseText)
@@ -140,11 +140,6 @@ serve(async (req) => {
       }
     } catch (webhookError) {
       console.error('Webhook call failed with error:', webhookError)
-      console.error('Error details:', {
-        name: webhookError.name,
-        message: webhookError.message,
-        stack: webhookError.stack
-      })
       // Don't throw error - user message was saved successfully
     }
 

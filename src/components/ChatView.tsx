@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { Send, ArrowLeft, MoreVertical } from 'lucide-react';
+import { Send, ArrowLeft, MoreVertical, Play, Pause } from 'lucide-react';
 import { useMessages, useSendMessage } from '../hooks/useChats';
 import { useAuth } from '../hooks/useAuth';
 import { useWoman } from '../hooks/useWomen';
@@ -103,6 +103,48 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
     };
 
     audioRef.current = { play: createNotificationSound };
+  }, []);
+
+  // New component for rendering audio messages
+  const AudioMessage = useCallback(({ message }: { message: any }) => {
+    const [isPlaying, setIsPlaying] = useState(false);
+    
+    const handlePlayAudio = () => {
+      // Placeholder for audio playback - would need actual audio data
+      setIsPlaying(!isPlaying);
+      // In a real implementation, you would play the audio file here
+    };
+
+    return (
+      <div className="flex items-center space-x-2 bg-purple-600/20 rounded-lg p-2">
+        <button
+          onClick={handlePlayAudio}
+          className="p-1 hover:bg-white/10 rounded-full transition-colors"
+        >
+          {isPlaying ? (
+            <Pause className="w-4 h-4 text-white" />
+          ) : (
+            <Play className="w-4 h-4 text-white" />
+          )}
+        </button>
+        <div className="flex-1">
+          <div className="flex items-center space-x-1">
+            <div className="flex space-x-1">
+              {[...Array(12)].map((_, i) => (
+                <div
+                  key={i}
+                  className={`w-1 bg-purple-400 rounded-full ${
+                    isPlaying ? 'animate-pulse' : ''
+                  }`}
+                  style={{ height: `${Math.random() * 16 + 8}px` }}
+                />
+              ))}
+            </div>
+          </div>
+          <p className="text-xs text-white/70 mt-1">Audio-Nachricht</p>
+        </div>
+      </div>
+    );
   }, []);
 
   // Enhanced real-time message subscription with stable dependencies
@@ -363,6 +405,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
             {messages?.map((message, index) => {
               const previousMessage = index > 0 ? messages[index - 1] : null;
               const showDate = shouldShowDateHeader(message, previousMessage);
+              const isAudioMessage = message.message_type === 'audio';
               
               return (
                 <div key={message.id} className="message-container">
@@ -394,7 +437,11 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
                             : 'bg-white/10 text-white rounded-bl-md'
                         }`}
                       >
-                        <p className="text-sm leading-relaxed">{message.content}</p>
+                        {isAudioMessage ? (
+                          <AudioMessage message={message} />
+                        ) : (
+                          <p className="text-sm leading-relaxed">{message.content}</p>
+                        )}
                         <p className={`text-xs mt-1 ${
                           message.sender_type === 'user' ? 'text-white/70' : 'text-white/50'
                         }`}>
