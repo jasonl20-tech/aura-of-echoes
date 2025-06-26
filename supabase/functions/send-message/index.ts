@@ -85,27 +85,49 @@ serve(async (req) => {
 
     console.log('Calling webhook for woman:', woman.name, 'URL:', woman.webhook_url)
 
+    // Prepare webhook payload
+    const webhookPayload = {
+      chatId: chatId,
+      message: content,
+      character: {
+        name: woman.name,
+        personality: woman.personality
+      },
+      user_id: user.id
+    }
+
+    console.log('Webhook payload:', JSON.stringify(webhookPayload, null, 2))
+
     // Send message to woman's AI API (no waiting for response)
     try {
-      await fetch(woman.webhook_url, {
+      console.log('Starting webhook request...')
+      
+      const webhookResponse = await fetch(woman.webhook_url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          chatId: chatId,
-          message: content,
-          character: {
-            name: woman.name,
-            personality: woman.personality
-          },
-          user_id: user.id
-        })
+        body: JSON.stringify(webhookPayload)
       })
 
-      console.log('Webhook called successfully for woman:', woman.name)
+      console.log('Webhook response status:', webhookResponse.status)
+      console.log('Webhook response headers:', Object.fromEntries(webhookResponse.headers.entries()))
+      
+      const responseText = await webhookResponse.text()
+      console.log('Webhook response body:', responseText)
+
+      if (!webhookResponse.ok) {
+        console.error('Webhook returned error status:', webhookResponse.status, responseText)
+      } else {
+        console.log('Webhook called successfully for woman:', woman.name)
+      }
     } catch (webhookError) {
-      console.error('Webhook call failed:', webhookError)
+      console.error('Webhook call failed with error:', webhookError)
+      console.error('Error details:', {
+        name: webhookError.name,
+        message: webhookError.message,
+        stack: webhookError.stack
+      })
       // Don't throw error - user message was saved successfully
     }
 
