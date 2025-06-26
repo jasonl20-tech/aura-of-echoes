@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -40,19 +39,23 @@ export function useSubscribeToWoman() {
   const { user } = useAuth();
   
   return useMutation({
-    mutationFn: async (womanId: string) => {
+    mutationFn: async ({ womanId, womanName, price }: { womanId: string; womanName?: string; price?: number }) => {
       if (!user) throw new Error('Not authenticated');
       
-      // Create Stripe checkout session
+      // Create Stripe checkout session with additional data
       const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { womanId },
+        body: { 
+          womanId,
+          womanName: womanName || 'AI Companion',
+          price: price || 3.99
+        },
       });
       
       if (error) throw error;
       return data;
     },
     onSuccess: (data) => {
-      // Open Stripe checkout in new tab
+      // Open Stripe checkout in a new tab
       window.open(data.url, '_blank');
     },
   });

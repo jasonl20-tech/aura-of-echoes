@@ -40,28 +40,15 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const { womanId } = await req.json();
+    const { womanId, womanName, price } = await req.json();
     if (!womanId) throw new Error("Woman ID is required");
-    logStep("Woman ID received", { womanId });
+    logStep("Request data received", { womanId, womanName, price });
 
-    // Get woman details from the correct table with correct field names
-    const { data: woman, error: womanError } = await supabaseClient
-      .from('women')
-      .select('name, price')
-      .eq('id', womanId)
-      .single();
+    // Use the provided data from the frontend instead of querying database
+    const finalPrice = price || 3.99; // Default price of €3.99
+    const finalName = womanName || "AI Companion";
     
-    if (womanError) {
-      logStep("Database error when fetching woman", { error: womanError });
-      throw new Error(`Database error: ${womanError.message}`);
-    }
-    
-    if (!woman) {
-      logStep("Woman not found in database", { womanId });
-      throw new Error("Woman not found");
-    }
-    
-    logStep("Woman found", { name: woman.name, price: woman.price });
+    logStep("Using provided data", { name: finalName, price: finalPrice });
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
     
@@ -76,8 +63,8 @@ serve(async (req) => {
     }
 
     // Create checkout session with correct price (convert to cents)
-    const priceInCents = Math.round(Number(woman.price) * 100);
-    logStep("Creating checkout session", { priceInCents, originalPrice: woman.price });
+    const priceInCents = Math.round(Number(finalPrice) * 100);
+    logStep("Creating checkout session", { priceInCents, originalPrice: finalPrice });
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -87,8 +74,8 @@ serve(async (req) => {
           price_data: {
             currency: "eur",
             product_data: { 
-              name: `Chat-Abonnement mit ${woman.name}`,
-              description: `Monatliches Abonnement für Chats mit ${woman.name}`
+              name: `Chat-Abonnement mit ${finalName}`,
+              description: `Monatliches Abonnement für Chats mit ${finalName}`
             },
             unit_amount: priceInCents,
             recurring: { interval: "month" },

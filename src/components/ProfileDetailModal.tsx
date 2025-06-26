@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { X, MapPin, Star, Heart, MessageCircle, Settings } from 'lucide-react';
 import { useCheckSubscription, useSubscribeToWoman, useCustomerPortal } from '../hooks/useSubscriptions';
@@ -52,7 +51,11 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
     if (!profile.womanId) return;
     
     try {
-      await subscribeToWoman.mutateAsync(profile.womanId);
+      await subscribeToWoman.mutateAsync({
+        womanId: profile.womanId,
+        womanName: profile.name,
+        price: profile.price || 3.99
+      });
       toast({
         title: "Stripe Checkout geöffnet!",
         description: `Komplettiere die Zahlung für ${profile.name} im neuen Tab.`,
