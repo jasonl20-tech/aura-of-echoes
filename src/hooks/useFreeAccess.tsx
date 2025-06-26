@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -38,7 +37,10 @@ export function useFreeAccessPeriods() {
         `)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching free access periods:', error);
+        throw error;
+      }
       return data;
     },
     enabled: !!user,
@@ -61,6 +63,13 @@ export function useCreateFreeAccess() {
     }) => {
       if (!user) throw new Error('Not authenticated');
       
+      console.log('Creating free access with data:', {
+        woman_id: womanId,
+        user_id: userId || null,
+        end_time: endTime,
+        created_by: user.id,
+      });
+      
       const { data, error } = await supabase
         .from('free_access_periods')
         .insert({
@@ -72,11 +81,24 @@ export function useCreateFreeAccess() {
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating free access:', error);
+        console.error('Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw error;
+      }
+      
+      console.log('Free access created successfully:', data);
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['freeAccessPeriods'] });
+      queryClient.invalidateQueries({ queryKey: ['subscription'] });
+      queryClient.invalidateQueries({ queryKey: ['freeAccess'] });
     },
   });
 }
