@@ -4,6 +4,7 @@ import { Settings, MessageCircle, Users, Shuffle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import ProfileGallery from '../components/ProfileGallery';
 import ChatView from '../components/ChatView';
+import ChatsList from '../components/ChatsList';
 import SettingsView from '../components/SettingsView';
 import AdminDashboard from '../components/AdminDashboard';
 import AuthModal from '../components/AuthModal';
@@ -11,6 +12,8 @@ import AuthModal from '../components/AuthModal';
 const Index = () => {
   const [activeTab, setActiveTab] = useState('profiles');
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
+  const [selectedWomanName, setSelectedWomanName] = useState<string | null>(null);
   const { user, loading } = useAuth();
 
   const handleTabChange = (tab: string) => {
@@ -19,7 +22,24 @@ const Index = () => {
       setShowAuthModal(true);
       return;
     }
+    
+    // Reset chat selection when switching tabs
+    if (tab !== 'chats') {
+      setSelectedChatId(null);
+      setSelectedWomanName(null);
+    }
+    
     setActiveTab(tab);
+  };
+
+  const handleChatSelect = (chatId: string, womanName: string) => {
+    setSelectedChatId(chatId);
+    setSelectedWomanName(womanName);
+  };
+
+  const handleBackToChats = () => {
+    setSelectedChatId(null);
+    setSelectedWomanName(null);
   };
 
   const handleNavigateToAdmin = () => {
@@ -31,7 +51,19 @@ const Index = () => {
       case 'profiles':
         return <ProfileGallery onAuthRequired={() => setShowAuthModal(true)} />;
       case 'chats':
-        return user ? <ChatView /> : <ProfileGallery onAuthRequired={() => setShowAuthModal(true)} />;
+        if (!user) {
+          return <ProfileGallery onAuthRequired={() => setShowAuthModal(true)} />;
+        }
+        if (selectedChatId && selectedWomanName) {
+          return (
+            <ChatView 
+              chatId={selectedChatId} 
+              womanName={selectedWomanName}
+              onBack={handleBackToChats}
+            />
+          );
+        }
+        return <ChatsList onChatSelect={handleChatSelect} />;
       case 'settings':
         return <SettingsView onAuthRequired={() => setShowAuthModal(true)} onNavigateToAdmin={handleNavigateToAdmin} />;
       case 'random':
