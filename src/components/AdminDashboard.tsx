@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, Edit, Trash2, Save, X, Users, Settings, Key, Copy, FileText, Eye, EyeOff } from 'lucide-react';
 import { useWomen } from '@/hooks/useWomen';
@@ -7,6 +6,12 @@ import { useWomenApiKeys } from '@/hooks/useWomenApiKeys';
 import { toast } from '@/hooks/use-toast';
 import UserManagement from './UserManagement';
 import ApiDocumentation from './ApiDocumentation';
+import MultiImageUpload from './MultiImageUpload';
+
+interface ImageData {
+  url: string;
+  alt?: string;
+}
 
 interface NewWomanForm {
   name: string;
@@ -14,6 +19,7 @@ interface NewWomanForm {
   description: string;
   personality: string;
   image_url: string;
+  images: ImageData[];
   webhook_url: string;
   interests: string[];
   price: number;
@@ -48,6 +54,7 @@ const AdminDashboard: React.FC = () => {
     description: '',
     personality: '',
     image_url: '',
+    images: [],
     webhook_url: '',
     interests: [],
     price: 3.99,
@@ -84,6 +91,7 @@ const AdminDashboard: React.FC = () => {
         description: '',
         personality: '',
         image_url: '',
+        images: [],
         webhook_url: '',
         interests: [],
         price: 3.99,
@@ -104,6 +112,21 @@ const AdminDashboard: React.FC = () => {
   };
 
   const handleEditWoman = (woman: any) => {
+    // Parse existing images
+    let existingImages: ImageData[] = [];
+    if (woman.images) {
+      try {
+        const parsedImages = typeof woman.images === 'string' 
+          ? JSON.parse(woman.images) 
+          : woman.images;
+        if (Array.isArray(parsedImages)) {
+          existingImages = parsedImages;
+        }
+      } catch (e) {
+        console.warn('Error parsing images for woman:', woman.id, e);
+      }
+    }
+
     setEditForm({
       id: woman.id,
       name: woman.name,
@@ -111,6 +134,7 @@ const AdminDashboard: React.FC = () => {
       description: woman.description || '',
       personality: woman.personality || '',
       image_url: woman.image_url || '',
+      images: existingImages,
       webhook_url: woman.webhook_url,
       interests: woman.interests || [],
       price: woman.price || 3.99,
@@ -208,6 +232,22 @@ const AdminDashboard: React.FC = () => {
 
   const renderWomanForm = (woman: NewWomanForm | EditWomanForm, isNew: boolean = true) => (
     <div className="grid gap-4 lg:gap-6">
+      {/* Images Section */}
+      <div>
+        <label className="text-white/70 text-sm mb-2 block">Bilder</label>
+        <MultiImageUpload
+          images={woman.images}
+          onChange={(images) => {
+            if (isNew) {
+              setNewWoman(prev => ({ ...prev, images }));
+            } else {
+              setEditForm(prev => prev ? ({ ...prev, images }) : null);
+            }
+          }}
+          maxImages={5}
+        />
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div>
           <label className="text-white/70 text-sm">Name</label>
