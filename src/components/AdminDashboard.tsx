@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Save, X, Users, Settings, Key, Copy } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, Users, Settings, Key, Copy, FileText } from 'lucide-react';
 import { useWomen } from '@/hooks/useWomen';
 import { useCreateWoman, useUpdateWoman, useDeleteWoman } from '@/hooks/useAdminWomen';
 import { useWomenApiKeys } from '@/hooks/useWomenApiKeys';
 import { toast } from '@/hooks/use-toast';
 import UserManagement from './UserManagement';
+import ApiDocumentation from './ApiDocumentation';
 
 interface NewWomanForm {
   name: string;
@@ -19,7 +20,7 @@ interface NewWomanForm {
 const AdminDashboard: React.FC = () => {
   const { data: women, refetch } = useWomen();
   const { data: apiKeys } = useWomenApiKeys();
-  const [activeTab, setActiveTab] = useState<'women' | 'users'>('women');
+  const [activeTab, setActiveTab] = useState<'women' | 'users' | 'api-docs'>('women');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingWoman, setEditingWoman] = useState<string | null>(null);
   const [showApiKeys, setShowApiKeys] = useState<Set<string>>(new Set());
@@ -32,10 +33,6 @@ const AdminDashboard: React.FC = () => {
     webhook_url: '',
     interests: []
   });
-
-  const createWoman = useCreateWoman();
-  const updateWoman = useUpdateWoman();
-  const deleteWoman = useDeleteWoman();
 
   const handleCreateWoman = async () => {
     try {
@@ -120,6 +117,10 @@ const AdminDashboard: React.FC = () => {
     return apiKeys?.find(key => key.woman_id === womanId);
   };
 
+  const createWoman = useCreateWoman();
+  const updateWoman = useUpdateWoman();
+  const deleteWoman = useDeleteWoman();
+
   return (
     <div className="space-y-4 sm:space-y-6 px-2 sm:px-4 max-w-7xl mx-auto">
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
@@ -151,11 +152,24 @@ const AdminDashboard: React.FC = () => {
             <Users className="w-4 h-4" />
             <span>User</span>
           </button>
+          <button
+            onClick={() => setActiveTab('api-docs')}
+            className={`flex-1 lg:flex-none px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 flex items-center justify-center space-x-2 ${
+              activeTab === 'api-docs'
+                ? 'bg-purple-600/30 text-white'
+                : 'text-white/70 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <FileText className="w-4 h-4" />
+            <span>API Docs</span>
+          </button>
         </div>
       </div>
 
       {activeTab === 'users' ? (
         <UserManagement />
+      ) : activeTab === 'api-docs' ? (
+        <ApiDocumentation />
       ) : (
         <>
           {/* Add New Woman Button */}
