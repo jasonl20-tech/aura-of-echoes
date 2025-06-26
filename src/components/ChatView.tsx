@@ -21,7 +21,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
   const [newMessage, setNewMessage] = useState('');
   const [showProfileModal, setShowProfileModal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioRef = useRef<{ play: () => Promise<void> } | null>(null);
 
   // Verwende echte Daten wenn verfügbar, sonst Fallback
   const womanData = woman || {
@@ -48,23 +48,29 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
   // Initialize audio for notifications
   useEffect(() => {
     // Create a simple notification sound using Web Audio API
-    const createNotificationSound = () => {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      
-      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-      oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
-      
-      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime + 0.01);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-      
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.3);
+    const createNotificationSound = async (): Promise<void> => {
+      try {
+        // Properly type the AudioContext with fallback
+        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+        const audioContext = new AudioContextClass();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+        oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+        
+        gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+      } catch (error) {
+        console.log('Could not create notification sound:', error);
+      }
     };
 
     audioRef.current = { play: createNotificationSound };
@@ -92,11 +98,9 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
           // Play notification sound for AI messages
           if (payload.new.sender_type === 'ai') {
             console.log('Playing notification sound for AI message');
-            try {
-              audioRef.current?.play();
-            } catch (error) {
+            audioRef.current?.play().catch(error => {
               console.log('Could not play notification sound:', error);
-            }
+            });
           }
           
           // Refetch messages to update the UI
