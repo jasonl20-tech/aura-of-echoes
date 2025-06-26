@@ -3,43 +3,41 @@ import { useState, useMemo } from 'react';
 import { Woman } from './useWomen';
 
 export interface WomenFilters {
-  search: string;
+  searchTerm: string;
   minAge: number;
   maxAge: number;
-  origin: string;
-  minHeight: number;
-  maxHeight: number;
-  nsfw: boolean | null;
+  interests: string[];
+  origins: string[];
+  showNsfw: boolean;
+  priceRange: {
+    min: number;
+    max: number;
+  };
 }
 
-const initialFilters: WomenFilters = {
-  search: '',
+const DEFAULT_FILTERS: WomenFilters = {
+  searchTerm: '',
   minAge: 18,
-  maxAge: 65,
-  origin: '',
-  minHeight: 150,
-  maxHeight: 190,
-  nsfw: null,
+  maxAge: 99,
+  interests: [],
+  origins: [],
+  showNsfw: true,
+  priceRange: {
+    min: 0,
+    max: 100
+  }
 };
 
-export function useWomenFilters(women: Woman[] = []) {
-  const [filters, setFilters] = useState<WomenFilters>(initialFilters);
+export function useWomenFilters(women?: Woman[]) {
+  const [filters, setFilters] = useState<WomenFilters>(DEFAULT_FILTERS);
 
   const filteredWomen = useMemo(() => {
+    if (!women) return [];
+
     return women.filter(woman => {
-      // Search filter
-      if (filters.search) {
-        const searchLower = filters.search.toLowerCase();
-        const matchesName = woman.name.toLowerCase().includes(searchLower);
-        const matchesDescription = woman.description?.toLowerCase().includes(searchLower) || false;
-        const matchesPersonality = woman.personality?.toLowerCase().includes(searchLower) || false;
-        const matchesInterests = woman.interests?.some(interest => 
-          interest.toLowerCase().includes(searchLower)
-        ) || false;
-        
-        if (!matchesName && !matchesDescription && !matchesPersonality && !matchesInterests) {
-          return false;
-        }
+      // Search term filter
+      if (filters.searchTerm && !woman.name.toLowerCase().includes(filters.searchTerm.toLowerCase())) {
+        return false;
       }
 
       // Age filter
@@ -47,20 +45,31 @@ export function useWomenFilters(women: Woman[] = []) {
         return false;
       }
 
-      // Origin filter
-      if (filters.origin && woman.origin !== filters.origin) {
-        return false;
+      // Interests filter
+      if (filters.interests.length > 0 && woman.interests) {
+        const hasMatchingInterest = filters.interests.some(filterInterest =>
+          woman.interests?.some(womanInterest =>
+            womanInterest.toLowerCase().includes(filterInterest.toLowerCase())
+          )
+        );
+        if (!hasMatchingInterest) return false;
       }
 
-      // Height filter
-      if (woman.height) {
-        if (woman.height < filters.minHeight || woman.height > filters.maxHeight) {
+      // Origins filter
+      if (filters.origins.length > 0 && woman.origin) {
+        if (!filters.origins.includes(woman.origin)) {
           return false;
         }
       }
 
       // NSFW filter
-      if (filters.nsfw !== null && woman.nsfw !== filters.nsfw) {
+      if (!filters.showNsfw && woman.nsfw) {
+        return false;
+      }
+
+      // Price filter - convert all prices to monthly for comparison
+      const monthlyPrice = convertToMonthly(woman.price, woman.pricing_interval);
+      if (monthlyPrice < filters.priceRange.min || monthlyPrice > filters.priceRange.max) {
         return false;
       }
 
@@ -68,18 +77,37 @@ export function useWomenFilters(women: Woman[] = []) {
     });
   }, [women, filters]);
 
-  const updateFilter = (key: keyof WomenFilters, value: any) => {
+  const updateFilter = <K extends keyof WomenFilters>(
+    key: K,
+    value: WomenFilters[K]
+  ) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
   const resetFilters = () => {
-    setFilters(initialFilters);
+    setFilters(DEFAULT_FILTERS);
   };
 
   return {
     filters,
     filteredWomen,
     updateFilter,
-    resetFilters,
+    resetFilters
   };
+}
+
+// Helper function to convert prices to monthly for comparison
+function convertToMonthly(price: number, interval: string): number {
+  switch (interval) {
+    case 'daily':
+      return price * 30;
+    case 'weekly':
+      return price * 4;
+    case 'monthly':
+      return price;
+    case 'yearly':
+      return price / 12;
+    default:
+      return price;
+  }
 }

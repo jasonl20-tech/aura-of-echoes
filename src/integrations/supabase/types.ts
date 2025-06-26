@@ -199,12 +199,16 @@ export type Database = {
           age: number
           created_at: string | null
           description: string | null
+          height: number | null
           id: string
           image_url: string | null
           interests: string[] | null
           name: string
+          nsfw: boolean | null
+          origin: string | null
           personality: string | null
           price: number
+          pricing_interval: string
           updated_at: string | null
           webhook_url: string
         }
@@ -212,12 +216,16 @@ export type Database = {
           age: number
           created_at?: string | null
           description?: string | null
+          height?: number | null
           id?: string
           image_url?: string | null
           interests?: string[] | null
           name: string
+          nsfw?: boolean | null
+          origin?: string | null
           personality?: string | null
           price?: number
+          pricing_interval?: string
           updated_at?: string | null
           webhook_url: string
         }
@@ -225,12 +233,16 @@ export type Database = {
           age?: number
           created_at?: string | null
           description?: string | null
+          height?: number | null
           id?: string
           image_url?: string | null
           interests?: string[] | null
           name?: string
+          nsfw?: boolean | null
+          origin?: string | null
           personality?: string | null
           price?: number
+          pricing_interval?: string
           updated_at?: string | null
           webhook_url?: string
         }

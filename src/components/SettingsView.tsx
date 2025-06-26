@@ -1,9 +1,12 @@
 
-import React from 'react';
-import { User, Shield, Bell, Globe, Trash2, LogOut, Settings } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { useIsAdmin } from '@/hooks/useAdminWomen';
-import { useNotifications } from '@/hooks/useNotifications';
+import React, { useState } from 'react';
+import { Settings, Shield, Globe, Trash2, User, LogOut, Crown, Bell, Volume2 } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
+import { useNotifications } from '../hooks/useNotifications';
+import { useSettings } from '../hooks/useSettings';
+import { useIsAdmin } from '../hooks/useAdminWomen';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 interface SettingsViewProps {
   onAuthRequired?: () => void;
@@ -11,210 +14,292 @@ interface SettingsViewProps {
 }
 
 const SettingsView: React.FC<SettingsViewProps> = ({ onAuthRequired, onNavigateToAdmin }) => {
-  const { user, signOut } = useAuth();
-  const { data: isAdmin, isLoading: adminLoading } = useIsAdmin();
-  const { settings, updateSettings, permission, requestPermission } = useNotifications();
+  const { user, loading: authLoading } = useAuth();
+  const { data: isAdmin } = useIsAdmin();
+  const { 
+    settings: notificationSettings, 
+    updateSettings: updateNotificationSettings,
+    requestPermission 
+  } = useNotifications();
+  const { 
+    settings: userSettings, 
+    saveSettings, 
+    deleteAllChatData, 
+    deleteAccount,
+    loading: settingsLoading 
+  } = useSettings();
+  const [signingOut, setSigningOut] = useState(false);
 
-  if (!user) {
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      toast({
+        title: "Erfolgreich abgemeldet",
+        description: "Sie wurden erfolgreich abgemeldet.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Fehler",
+        description: "Fehler beim Abmelden: " + error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setSigningOut(false);
+    }
+  };
+
+  const handleNotificationPermission = async () => {
+    const permission = await requestPermission();
+    if (permission === 'granted') {
+      toast({
+        title: "Benachrichtigungen aktiviert",
+        description: "Sie erhalten jetzt Browser-Benachrichtigungen.",
+      });
+    } else {
+      toast({
+        title: "Benachrichtigungen verweigert",
+        description: "Benachrichtigungen wurden nicht aktiviert.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (authLoading) {
     return (
-      <div className="flex flex-col items-center justify-center h-full space-y-6 text-center">
-        <div className="glass-card rounded-3xl p-8 max-w-sm">
-          <User className="w-16 h-16 text-purple-400 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-white mb-3">
-            Anmeldung erforderlich
-          </h2>
-          <p className="text-white/70 mb-6">
-            Melde dich an, um deine Einstellungen zu verwalten und dein Profil anzupassen.
-          </p>
-          <button
-            onClick={() => onAuthRequired?.()}
-            className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-semibold py-3 rounded-xl transition-all duration-300"
-          >
-            Jetzt anmelden
-          </button>
+      <div className="flex items-center justify-center h-64">
+        <div className="text-white text-center">
+          <div className="animate-spin w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p>Einstellungen werden geladen...</p>
         </div>
       </div>
     );
   }
 
-  const handleSignOut = async () => {
-    await signOut();
-  };
-
-  const handleNotificationToggle = async (setting: keyof typeof settings) => {
-    if (setting === 'desktopNotifications' && permission !== 'granted') {
-      const result = await requestPermission();
-      if (result !== 'granted') {
-        return; // Don't enable if permission denied
-      }
-    }
-    
-    updateSettings({
-      [setting]: !settings[setting]
-    });
-  };
-
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-white text-glow mb-2">
-          Einstellungen
-        </h1>
-        <p className="text-white/70">
-          Verwalte dein Profil und deine Präferenzen
-        </p>
+        <h1 className="text-3xl font-bold text-white text-glow mb-2">Einstellungen</h1>
+        <p className="text-white/70">Verwalten Sie Ihre Präferenzen und Ihr Konto</p>
       </div>
 
-      <div className="space-y-4">
-        {/* Admin Dashboard Section */}
-        {!adminLoading && isAdmin && (
-          <div className="glass-card rounded-2xl p-6">
-            <div className="flex items-center space-x-3 mb-4">
-              <Settings className="w-6 h-6 text-orange-400" />
-              <h2 className="text-xl font-semibold text-white">Administration</h2>
+      {/* Account Section */}
+      <div className="glass-card rounded-2xl p-6">
+        <div className="flex items-center space-x-3 mb-4">
+          <User className="w-5 h-5 text-purple-400" />
+          <h2 className="text-xl font-semibold text-white">Konto</h2>
+        </div>
+        
+        {user ? (
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 glass rounded-xl">
+              <div>
+                <p className="text-white font-medium">Angemeldet als</p>
+                <p className="text-white/70 text-sm">{user.email}</p>
+              </div>
+              <button
+                onClick={handleSignOut}
+                disabled={signingOut}
+                className="mt-2 sm:mt-0 w-full sm:w-auto glass-button px-4 py-2 rounded-lg text-white/70 hover:text-white hover:bg-red-600/30 transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-50"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>{signingOut ? 'Wird abgemeldet...' : 'Abmelden'}</span>
+              </button>
             </div>
-            <p className="text-white/70 text-sm mb-4">
-              Als Administrator können Sie neue Frauen erstellen und verwalten.
-            </p>
+
+            {/* Admin Panel Access */}
+            {isAdmin && (
+              <div className="p-4 glass rounded-xl border border-purple-500/20">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center space-x-3">
+                    <Crown className="w-5 h-5 text-yellow-400" />
+                    <div>
+                      <p className="text-white font-medium">Administrator</p>
+                      <p className="text-white/70 text-sm">Zugang zum Admin-Dashboard</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={onNavigateToAdmin}
+                    className="mt-2 sm:mt-0 w-full sm:w-auto glass-button px-4 py-2 rounded-lg text-yellow-400 hover:bg-yellow-600/20 transition-all duration-300"
+                  >
+                    Admin-Dashboard öffnen
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="text-center p-4 glass rounded-xl">
+            <p className="text-white/70 mb-4">Sie sind nicht angemeldet</p>
             <button
-              onClick={() => onNavigateToAdmin?.()}
-              className="w-full glass-button py-3 rounded-xl text-white font-semibold hover:bg-orange-600/30 transition-all duration-300"
+              onClick={onAuthRequired}
+              className="glass-button px-6 py-2 rounded-xl text-white font-semibold hover:bg-purple-600/30 transition-all duration-300"
             >
-              Admin Dashboard öffnen
+              Jetzt anmelden
             </button>
           </div>
         )}
+      </div>
 
-        {/* Profile Section */}
-        <div className="glass-card rounded-2xl p-6">
-          <div className="flex items-center space-x-3 mb-4">
-            <User className="w-6 h-6 text-purple-400" />
-            <h2 className="text-xl font-semibold text-white">Profil</h2>
-          </div>
-          <div className="space-y-3">
+      {/* Notification Settings */}
+      <div className="glass-card rounded-2xl p-6">
+        <div className="flex items-center space-x-3 mb-4">
+          <Bell className="w-5 h-5 text-purple-400" />
+          <h2 className="text-xl font-semibold text-white">Benachrichtigungen</h2>
+        </div>
+        
+        <div className="space-y-4">
+          <div className="flex items-center justify-between p-4 glass rounded-xl">
             <div>
-              <label className="text-white/70 text-sm">E-Mail</label>
-              <p className="text-white font-medium">{user.email}</p>
+              <p className="text-white font-medium">Desktop-Benachrichtigungen</p>
+              <p className="text-white/70 text-sm">Browser-Benachrichtigungen für neue Nachrichten</p>
             </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={notificationSettings.desktopNotifications}
+                onChange={(e) => {
+                  updateNotificationSettings({ desktopNotifications: e.target.checked });
+                  if (e.target.checked) {
+                    handleNotificationPermission();
+                  }
+                }}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+            </label>
+          </div>
+
+          <div className="flex items-center justify-between p-4 glass rounded-xl">
             <div>
-              <label className="text-white/70 text-sm">Mitglied seit</label>
-              <p className="text-white font-medium">
-                {new Date(user.created_at).toLocaleDateString('de-DE')}
-              </p>
+              <p className="text-white font-medium">Push-Benachrichtigungen für Nachrichten</p>
+              <p className="text-white/70 text-sm">Benachrichtigungen wenn Sie nicht in der App sind</p>
             </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={notificationSettings.pushNotificationsForMessages}
+                onChange={(e) => updateNotificationSettings({ pushNotificationsForMessages: e.target.checked })}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+            </label>
           </div>
         </div>
+      </div>
 
-        {/* Privacy Section */}
-        <div className="glass-card rounded-2xl p-6">
-          <div className="flex items-center space-x-3 mb-4">
-            <Shield className="w-6 h-6 text-green-400" />
-            <h2 className="text-xl font-semibold text-white">Datenschutz</h2>
+      {/* Privacy Settings */}
+      <div className="glass-card rounded-2xl p-6">
+        <div className="flex items-center space-x-3 mb-4">
+          <Shield className="w-5 h-5 text-purple-400" />
+          <h2 className="text-xl font-semibold text-white">Datenschutz</h2>
+        </div>
+        
+        <div className="space-y-4">
+          <div className="flex items-center justify-between p-4 glass rounded-xl">
+            <div>
+              <p className="text-white font-medium">Chat-Verlauf speichern</p>
+              <p className="text-white/70 text-sm">Ihre Nachrichten lokal für bessere Erfahrung speichern</p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={userSettings.saveChatHistory}
+                onChange={(e) => saveSettings({ saveChatHistory: e.target.checked })}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+            </label>
           </div>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-white/80">Chat-Verlauf speichern</span>
-              <div className="w-12 h-6 bg-purple-600 rounded-full relative">
-                <div className="w-5 h-5 bg-white rounded-full absolute top-0.5 right-0.5 transition-all"></div>
-              </div>
+
+          <div className="flex items-center justify-between p-4 glass rounded-xl">
+            <div>
+              <p className="text-white font-medium">Daten für Verbesserungen nutzen</p>
+              <p className="text-white/70 text-sm">Anonyme Nutzungsdaten zur Produktverbesserung teilen</p>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-white/80">Daten für Verbesserungen nutzen</span>
-              <div className="w-12 h-6 bg-gray-600 rounded-full relative">
-                <div className="w-5 h-5 bg-white rounded-full absolute top-0.5 left-0.5 transition-all"></div>
-              </div>
-            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={userSettings.useDataForImprovements}
+                onChange={(e) => saveSettings({ useDataForImprovements: e.target.checked })}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-white/20 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+            </label>
           </div>
         </div>
+      </div>
 
-        {/* Notifications Section - Now functional */}
-        <div className="glass-card rounded-2xl p-6">
-          <div className="flex items-center space-x-3 mb-4">
-            <Bell className="w-6 h-6 text-yellow-400" />
-            <h2 className="text-xl font-semibold text-white">Benachrichtigungen</h2>
-          </div>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex flex-col">
-                <span className="text-white/80">Desktop-Benachrichtigungen</span>
-                <span className="text-white/50 text-xs">
-                  {permission === 'denied' && 'Berechtigung verweigert - bitte in Browser-Einstellungen aktivieren'}
-                  {permission === 'default' && 'Berechtigung erforderlich'}
-                  {permission === 'granted' && 'Berechtigung erteilt'}
-                </span>
-              </div>
-              <button
-                onClick={() => handleNotificationToggle('desktopNotifications')}
-                className={`w-12 h-6 rounded-full relative transition-all ${
-                  settings.desktopNotifications ? 'bg-purple-600' : 'bg-gray-600'
-                }`}
-                disabled={permission === 'denied'}
-              >
-                <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-all ${
-                  settings.desktopNotifications ? 'right-0.5' : 'left-0.5'
-                }`}></div>
-              </button>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex flex-col">
-                <span className="text-white/80">Push-Benachrichtigungen für neue Nachrichten</span>
-                <span className="text-white/50 text-xs">Benachrichtigungen wenn Sie nicht in der App sind</span>
-              </div>
-              <button
-                onClick={() => handleNotificationToggle('pushNotificationsForMessages')}
-                className={`w-12 h-6 rounded-full relative transition-all ${
-                  settings.pushNotificationsForMessages ? 'bg-purple-600' : 'bg-gray-600'
-                }`}
-              >
-                <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-all ${
-                  settings.pushNotificationsForMessages ? 'right-0.5' : 'left-0.5'
-                }`}></div>
-              </button>
-            </div>
-          </div>
+      {/* Language Settings */}
+      <div className="glass-card rounded-2xl p-6">
+        <div className="flex items-center space-x-3 mb-4">
+          <Globe className="w-5 h-5 text-purple-400" />
+          <h2 className="text-xl font-semibold text-white">Sprache</h2>
         </div>
-
-        {/* Language Section */}
-        <div className="glass-card rounded-2xl p-6">
-          <div className="flex items-center space-x-3 mb-4">
-            <Globe className="w-6 h-6 text-blue-400" />
-            <h2 className="text-xl font-semibold text-white">Sprache</h2>
-          </div>
-          <div className="space-y-3">
-            <select className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500">
+        
+        <div className="p-4 glass rounded-xl">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-white font-medium">Interface-Sprache</p>
+              <p className="text-white/70 text-sm">Wählen Sie Ihre bevorzugte Sprache</p>
+            </div>
+            <select
+              value={userSettings.language}
+              onChange={(e) => saveSettings({ language: e.target.value as 'de' | 'en' })}
+              className="glass rounded-lg px-3 py-2 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
               <option value="de" className="bg-gray-800">Deutsch</option>
               <option value="en" className="bg-gray-800">English</option>
-              <option value="fr" className="bg-gray-800">Français</option>
-              <option value="es" className="bg-gray-800">Español</option>
             </select>
           </div>
         </div>
+      </div>
 
-        {/* Danger Zone */}
+      {/* Danger Zone */}
+      {user && (
         <div className="glass-card rounded-2xl p-6 border border-red-500/20">
           <div className="flex items-center space-x-3 mb-4">
-            <Trash2 className="w-6 h-6 text-red-400" />
+            <Trash2 className="w-5 h-5 text-red-400" />
             <h2 className="text-xl font-semibold text-white">Gefährlicher Bereich</h2>
           </div>
-          <div className="space-y-3">
-            <button className="w-full glass-button py-3 rounded-xl text-red-400 font-semibold hover:bg-red-600/20 transition-all duration-300">
-              Alle Chat-Daten löschen
-            </button>
-            <button className="w-full glass-button py-3 rounded-xl text-red-400 font-semibold hover:bg-red-600/20 transition-all duration-300">
-              Konto löschen
-            </button>
+          
+          <div className="space-y-4">
+            <div className="p-4 glass rounded-xl border border-red-500/20">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-white font-medium">Alle Chat-Daten löschen</p>
+                  <p className="text-white/70 text-sm">Löscht unwiderruflich alle Ihre Nachrichten und Chats</p>
+                </div>
+                <button
+                  onClick={deleteAllChatData}
+                  disabled={settingsLoading}
+                  className="mt-2 sm:mt-0 w-full sm:w-auto glass-button px-4 py-2 rounded-lg text-red-400 hover:bg-red-600/20 transition-all duration-300 disabled:opacity-50"
+                >
+                  {settingsLoading ? 'Wird gelöscht...' : 'Chat-Daten löschen'}
+                </button>
+              </div>
+            </div>
+
+            <div className="p-4 glass rounded-xl border border-red-500/30">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-white font-medium">Konto löschen</p>
+                  <p className="text-white/70 text-sm">Löscht unwiderruflich Ihr gesamtes Konto und alle Daten</p>
+                </div>
+                <button
+                  onClick={deleteAccount}
+                  disabled={settingsLoading}
+                  className="mt-2 sm:mt-0 w-full sm:w-auto glass-button px-4 py-2 rounded-lg text-red-400 hover:bg-red-600/30 transition-all duration-300 disabled:opacity-50 font-semibold"
+                >
+                  {settingsLoading ? 'Wird gelöscht...' : 'Konto löschen'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-
-        {/* Logout */}
-        <button
-          onClick={handleSignOut}
-          className="w-full glass-button py-4 rounded-xl text-white font-semibold hover:bg-red-600/30 transition-all duration-300 flex items-center justify-center space-x-2"
-        >
-          <LogOut className="w-5 h-5" />
-          <span>Abmelden</span>
-        </button>
-      </div>
+      )}
     </div>
   );
 };

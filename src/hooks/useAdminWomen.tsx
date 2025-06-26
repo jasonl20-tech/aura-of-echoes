@@ -11,6 +11,11 @@ interface CreateWomanData {
   image_url: string;
   webhook_url: string;
   interests: string[];
+  price: number;
+  pricing_interval: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  height: number | null;
+  origin: string;
+  nsfw: boolean;
 }
 
 interface UpdateWomanData extends Partial<CreateWomanData> {
@@ -26,10 +31,7 @@ export function useCreateWoman() {
       
       const { data, error } = await supabase
         .from('women')
-        .insert({
-          ...womanData,
-          price: 3.99 // Always set to 3.99
-        })
+        .insert(womanData)
         .select()
         .single();
       

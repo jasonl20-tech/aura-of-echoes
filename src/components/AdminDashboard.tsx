@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Save, X, Users, Settings, Key, Copy, FileText } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, Users, Settings, Key, Copy, FileText, Eye, EyeOff } from 'lucide-react';
 import { useWomen } from '@/hooks/useWomen';
 import { useCreateWoman, useUpdateWoman, useDeleteWoman } from '@/hooks/useAdminWomen';
 import { useWomenApiKeys } from '@/hooks/useWomenApiKeys';
@@ -16,11 +16,23 @@ interface NewWomanForm {
   image_url: string;
   webhook_url: string;
   interests: string[];
+  price: number;
+  pricing_interval: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  height: number | null;
+  origin: string;
+  nsfw: boolean;
 }
 
 interface EditWomanForm extends NewWomanForm {
   id: string;
 }
+
+const PRICING_INTERVALS = [
+  { value: 'daily', label: 'Täglich' },
+  { value: 'weekly', label: 'Wöchentlich' },
+  { value: 'monthly', label: 'Monatlich' },
+  { value: 'yearly', label: 'Jährlich' }
+] as const;
 
 const AdminDashboard: React.FC = () => {
   const { data: women, refetch } = useWomen();
@@ -37,12 +49,27 @@ const AdminDashboard: React.FC = () => {
     personality: '',
     image_url: '',
     webhook_url: '',
-    interests: []
+    interests: [],
+    price: 3.99,
+    pricing_interval: 'monthly',
+    height: null,
+    origin: '',
+    nsfw: false
   });
 
   const createWoman = useCreateWoman();
   const updateWoman = useUpdateWoman();
   const deleteWoman = useDeleteWoman();
+
+  const formatPrice = (price: number, interval: string) => {
+    const intervalMap = {
+      daily: 'Tag',
+      weekly: 'Woche', 
+      monthly: 'Monat',
+      yearly: 'Jahr'
+    };
+    return `€${price.toFixed(2)}/${intervalMap[interval as keyof typeof intervalMap]}`;
+  };
 
   const handleCreateWoman = async () => {
     try {
@@ -58,7 +85,12 @@ const AdminDashboard: React.FC = () => {
         personality: '',
         image_url: '',
         webhook_url: '',
-        interests: []
+        interests: [],
+        price: 3.99,
+        pricing_interval: 'monthly',
+        height: null,
+        origin: '',
+        nsfw: false
       });
       setShowAddForm(false);
       refetch();
@@ -80,7 +112,12 @@ const AdminDashboard: React.FC = () => {
       personality: woman.personality || '',
       image_url: woman.image_url || '',
       webhook_url: woman.webhook_url,
-      interests: woman.interests || []
+      interests: woman.interests || [],
+      price: woman.price || 3.99,
+      pricing_interval: woman.pricing_interval || 'monthly',
+      height: woman.height || null,
+      origin: woman.origin || '',
+      nsfw: woman.nsfw || false
     });
     setEditingWoman(woman.id);
   };
@@ -169,6 +206,233 @@ const AdminDashboard: React.FC = () => {
     return apiKeys?.find(key => key.woman_id === womanId);
   };
 
+  const renderWomanForm = (woman: NewWomanForm | EditWomanForm, isNew: boolean = true) => (
+    <div className="grid gap-4 lg:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div>
+          <label className="text-white/70 text-sm">Name</label>
+          <input
+            type="text"
+            value={woman.name}
+            onChange={(e) => {
+              if (isNew) {
+                setNewWoman(prev => ({ ...prev, name: e.target.value }));
+              } else {
+                setEditForm(prev => prev ? ({ ...prev, name: e.target.value }) : null);
+              }
+            }}
+            className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+            placeholder="Name eingeben..."
+          />
+        </div>
+
+        <div>
+          <label className="text-white/70 text-sm">Alter</label>
+          <input
+            type="number"
+            value={woman.age}
+            onChange={(e) => {
+              const age = parseInt(e.target.value) || 18;
+              if (isNew) {
+                setNewWoman(prev => ({ ...prev, age }));
+              } else {
+                setEditForm(prev => prev ? ({ ...prev, age }) : null);
+              }
+            }}
+            className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+            min="18"
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div>
+          <label className="text-white/70 text-sm">Größe (cm)</label>
+          <input
+            type="number"
+            value={woman.height || ''}
+            onChange={(e) => {
+              const height = e.target.value ? parseInt(e.target.value) : null;
+              if (isNew) {
+                setNewWoman(prev => ({ ...prev, height }));
+              } else {
+                setEditForm(prev => prev ? ({ ...prev, height }) : null);
+              }
+            }}
+            className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+            placeholder="z.B. 165"
+          />
+        </div>
+
+        <div>
+          <label className="text-white/70 text-sm">Herkunft</label>
+          <input
+            type="text"
+            value={woman.origin}
+            onChange={(e) => {
+              if (isNew) {
+                setNewWoman(prev => ({ ...prev, origin: e.target.value }));
+              } else {
+                setEditForm(prev => prev ? ({ ...prev, origin: e.target.value }) : null);
+              }
+            }}
+            className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+            placeholder="z.B. Deutschland, Italien..."
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div>
+          <label className="text-white/70 text-sm">Preis</label>
+          <input
+            type="number"
+            step="0.01"
+            value={woman.price}
+            onChange={(e) => {
+              const price = parseFloat(e.target.value) || 0;
+              if (isNew) {
+                setNewWoman(prev => ({ ...prev, price }));
+              } else {
+                setEditForm(prev => prev ? ({ ...prev, price }) : null);
+              }
+            }}
+            className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+            placeholder="3.99"
+          />
+        </div>
+
+        <div>
+          <label className="text-white/70 text-sm">Preisintervall</label>
+          <select
+            value={woman.pricing_interval}
+            onChange={(e) => {
+              const interval = e.target.value as 'daily' | 'weekly' | 'monthly' | 'yearly';
+              if (isNew) {
+                setNewWoman(prev => ({ ...prev, pricing_interval: interval }));
+              } else {
+                setEditForm(prev => prev ? ({ ...prev, pricing_interval: interval }) : null);
+              }
+            }}
+            className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            {PRICING_INTERVALS.map(interval => (
+              <option key={interval.value} value={interval.value} className="bg-gray-800">
+                {interval.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div className="flex items-center space-x-3">
+        <label className="text-white/70 text-sm flex items-center space-x-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={woman.nsfw}
+            onChange={(e) => {
+              if (isNew) {
+                setNewWoman(prev => ({ ...prev, nsfw: e.target.checked }));
+              } else {
+                setEditForm(prev => prev ? ({ ...prev, nsfw: e.target.checked }) : null);
+              }
+            }}
+            className="rounded border-gray-600 bg-transparent focus:ring-purple-500"
+          />
+          <span className="flex items-center space-x-1">
+            {woman.nsfw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            <span>NSFW Content</span>
+          </span>
+        </label>
+        <div className="text-xs text-white/50">
+          {formatPrice(woman.price, woman.pricing_interval)}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div>
+          <label className="text-white/70 text-sm">Beschreibung</label>
+          <textarea
+            value={woman.description}
+            onChange={(e) => {
+              if (isNew) {
+                setNewWoman(prev => ({ ...prev, description: e.target.value }));
+              } else {
+                setEditForm(prev => prev ? ({ ...prev, description: e.target.value }) : null);
+              }
+            }}
+            className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500 h-20"
+            placeholder="Beschreibung eingeben..."
+          />
+        </div>
+
+        <div>
+          <label className="text-white/70 text-sm">Persönlichkeit</label>
+          <textarea
+            value={woman.personality}
+            onChange={(e) => {
+              if (isNew) {
+                setNewWoman(prev => ({ ...prev, personality: e.target.value }));
+              } else {
+                setEditForm(prev => prev ? ({ ...prev, personality: e.target.value }) : null);
+              }
+            }}
+            className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500 h-20"
+            placeholder="Persönlichkeit beschreiben..."
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div>
+          <label className="text-white/70 text-sm">Bild-URL</label>
+          <input
+            type="url"
+            value={woman.image_url}
+            onChange={(e) => {
+              if (isNew) {
+                setNewWoman(prev => ({ ...prev, image_url: e.target.value }));
+              } else {
+                setEditForm(prev => prev ? ({ ...prev, image_url: e.target.value }) : null);
+              }
+            }}
+            className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+            placeholder="https://example.com/image.jpg"
+          />
+        </div>
+
+        <div>
+          <label className="text-white/70 text-sm">Webhook-URL</label>
+          <input
+            type="url"
+            value={woman.webhook_url}
+            onChange={(e) => {
+              if (isNew) {
+                setNewWoman(prev => ({ ...prev, webhook_url: e.target.value }));
+              } else {
+                setEditForm(prev => prev ? ({ ...prev, webhook_url: e.target.value }) : null);
+              }
+            }}
+            className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+            placeholder="https://api.example.com/webhook"
+            required
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="text-white/70 text-sm">Interessen (kommagetrennt)</label>
+        <input
+          type="text"
+          value={woman.interests.join(', ')}
+          onChange={(e) => handleInterestsChange(e.target.value, isNew)}
+          className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+          placeholder="Sport, Musik, Reisen, Kochen"
+        />
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-4 sm:space-y-6 px-2 sm:px-4 max-w-7xl mx-auto">
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
@@ -244,105 +508,23 @@ const AdminDashboard: React.FC = () => {
                 </button>
               </div>
 
-              <div className="grid gap-4 lg:gap-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-white/70 text-sm">Name</label>
-                    <input
-                      type="text"
-                      value={newWoman.name}
-                      onChange={(e) => setNewWoman(prev => ({ ...prev, name: e.target.value }))}
-                      className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      placeholder="Name eingeben..."
-                    />
-                  </div>
+              {renderWomanForm(newWoman, true)}
 
-                  <div>
-                    <label className="text-white/70 text-sm">Alter</label>
-                    <input
-                      type="number"
-                      value={newWoman.age}
-                      onChange={(e) => setNewWoman(prev => ({ ...prev, age: parseInt(e.target.value) || 18 }))}
-                      className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      min="18"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-white/70 text-sm">Beschreibung</label>
-                    <textarea
-                      value={newWoman.description}
-                      onChange={(e) => setNewWoman(prev => ({ ...prev, description: e.target.value }))}
-                      className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500 h-20"
-                      placeholder="Beschreibung eingeben..."
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-white/70 text-sm">Persönlichkeit</label>
-                    <textarea
-                      value={newWoman.personality}
-                      onChange={(e) => setNewWoman(prev => ({ ...prev, personality: e.target.value }))}
-                      className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500 h-20"
-                      placeholder="Persönlichkeit beschreiben..."
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-white/70 text-sm">Bild-URL</label>
-                    <input
-                      type="url"
-                      value={newWoman.image_url}
-                      onChange={(e) => setNewWoman(prev => ({ ...prev, image_url: e.target.value }))}
-                      className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      placeholder="https://example.com/image.jpg"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-white/70 text-sm">Webhook-URL</label>
-                    <input
-                      type="url"
-                      value={newWoman.webhook_url}
-                      onChange={(e) => setNewWoman(prev => ({ ...prev, webhook_url: e.target.value }))}
-                      className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      placeholder="https://api.example.com/webhook"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-white/70 text-sm">Interessen (kommagetrennt)</label>
-                  <input
-                    type="text"
-                    value={newWoman.interests.join(', ')}
-                    onChange={(e) => handleInterestsChange(e.target.value)}
-                    className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="Sport, Musik, Reisen, Kochen"
-                  />
-                </div>
-
-                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
-                  <button
-                    onClick={handleCreateWoman}
-                    disabled={createWoman.isPending || !newWoman.name || !newWoman.webhook_url}
-                    className="flex-1 glass-button py-3 rounded-xl text-white font-semibold hover:bg-green-600/30 transition-all duration-300 disabled:opacity-50 flex items-center justify-center space-x-2"
-                  >
-                    <Save className="w-4 h-4 sm:w-5 sm:h-5" />
-                    <span>{createWoman.isPending ? 'Wird erstellt...' : 'Erstellen'}</span>
-                  </button>
-                  <button
-                    onClick={() => setShowAddForm(false)}
-                    className="w-full sm:w-auto px-6 glass-button py-3 rounded-xl text-white/70 font-semibold hover:bg-red-600/30 transition-all duration-300"
-                  >
-                    Abbrechen
-                  </button>
-                </div>
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
+                <button
+                  onClick={handleCreateWoman}
+                  disabled={createWoman.isPending || !newWoman.name || !newWoman.webhook_url}
+                  className="flex-1 glass-button py-3 rounded-xl text-white font-semibold hover:bg-green-600/30 transition-all duration-300 disabled:opacity-50 flex items-center justify-center space-x-2"
+                >
+                  <Save className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span>{createWoman.isPending ? 'Wird erstellt...' : 'Erstellen'}</span>
+                </button>
+                <button
+                  onClick={() => setShowAddForm(false)}
+                  className="w-full sm:w-auto px-6 glass-button py-3 rounded-xl text-white/70 font-semibold hover:bg-red-600/30 transition-all duration-300"
+                >
+                  Abbrechen
+                </button>
               </div>
             </div>
           )}
@@ -375,81 +557,7 @@ const AdminDashboard: React.FC = () => {
                             </button>
                           </div>
 
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                            <div>
-                              <label className="text-white/70 text-sm">Name</label>
-                              <input
-                                type="text"
-                                value={editForm.name}
-                                onChange={(e) => setEditForm(prev => prev ? ({ ...prev, name: e.target.value }) : null)}
-                                className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="text-white/70 text-sm">Alter</label>
-                              <input
-                                type="number"
-                                value={editForm.age}
-                                onChange={(e) => setEditForm(prev => prev ? ({ ...prev, age: parseInt(e.target.value) || 18 }) : null)}
-                                className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                min="18"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                            <div>
-                              <label className="text-white/70 text-sm">Beschreibung</label>
-                              <textarea
-                                value={editForm.description}
-                                onChange={(e) => setEditForm(prev => prev ? ({ ...prev, description: e.target.value }) : null)}
-                                className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500 h-20"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="text-white/70 text-sm">Persönlichkeit</label>
-                              <textarea
-                                value={editForm.personality}
-                                onChange={(e) => setEditForm(prev => prev ? ({ ...prev, personality: e.target.value }) : null)}
-                                className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500 h-20"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                            <div>
-                              <label className="text-white/70 text-sm">Bild-URL</label>
-                              <input
-                                type="url"
-                                value={editForm.image_url}
-                                onChange={(e) => setEditForm(prev => prev ? ({ ...prev, image_url: e.target.value }) : null)}
-                                className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="text-white/70 text-sm">Webhook-URL</label>
-                              <input
-                                type="url"
-                                value={editForm.webhook_url}
-                                onChange={(e) => setEditForm(prev => prev ? ({ ...prev, webhook_url: e.target.value }) : null)}
-                                className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                required
-                              />
-                            </div>
-                          </div>
-
-                          <div>
-                            <label className="text-white/70 text-sm">Interessen (kommagetrennt)</label>
-                            <input
-                              type="text"
-                              value={editForm.interests.join(', ')}
-                              onChange={(e) => handleInterestsChange(e.target.value, false)}
-                              className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
-                            />
-                          </div>
+                          {renderWomanForm(editForm, false)}
 
                           <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
                             <button
@@ -478,11 +586,20 @@ const AdminDashboard: React.FC = () => {
                           />
                           
                           <div className="flex-1 text-center md:text-left min-w-0">
-                            <h3 className="text-base sm:text-lg font-semibold text-white truncate">{woman.name}</h3>
-                            <p className="text-white/70 text-sm">{woman.age} Jahre</p>
+                            <div className="flex items-center justify-center md:justify-start space-x-2 mb-1">
+                              <h3 className="text-base sm:text-lg font-semibold text-white truncate">{woman.name}</h3>
+                              {woman.nsfw && (
+                                <span className="bg-red-500/20 text-red-400 text-xs px-2 py-1 rounded-full border border-red-500/30">
+                                  NSFW
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-white/70 text-sm">{woman.age} Jahre {woman.height && `• ${woman.height}cm`} {woman.origin && `• ${woman.origin}`}</p>
                             <p className="text-white/60 text-sm line-clamp-2 md:line-clamp-1">{woman.description}</p>
                             <div className="flex flex-col md:flex-row items-center justify-center md:justify-start space-y-1 md:space-y-0 md:space-x-2 mt-1">
-                              <span className="text-green-400 font-semibold text-sm">€{woman.price}/Monat</span>
+                              <span className="text-green-400 font-semibold text-sm">
+                                {formatPrice(woman.price, woman.pricing_interval)}
+                              </span>
                               {woman.interests && woman.interests.length > 0 && (
                                 <span className="text-white/50 text-xs truncate">
                                   • {woman.interests.slice(0, 2).join(', ')}
