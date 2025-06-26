@@ -1,7 +1,8 @@
 
 import React from 'react';
-import { X, MapPin, Star, Heart } from 'lucide-react';
+import { X, MapPin, Star, Heart, MessageCircle } from 'lucide-react';
 import { useCheckSubscription, useSubscribeToWoman } from '../hooks/useSubscriptions';
+import { useCreateChat } from '../hooks/useChats';
 import { useAuth } from '../hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 
@@ -16,6 +17,9 @@ interface Profile {
   personality: string;
   price?: number;
   womanId?: string;
+  height?: number;
+  origin?: string;
+  nsfw?: boolean;
 }
 
 interface ProfileDetailModalProps {
@@ -34,6 +38,7 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
   const { user } = useAuth();
   const { data: hasSubscription, isLoading: checkingSubscription } = useCheckSubscription(profile.womanId || '');
   const subscribeToWoman = useSubscribeToWoman();
+  const createChat = useCreateChat();
 
   if (!isOpen) return null;
 
@@ -55,6 +60,25 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
       toast({
         title: "Fehler",
         description: error.message || "Abonnement fehlgeschlagen",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleStartChat = async () => {
+    if (!user || !profile.womanId) return;
+
+    try {
+      await createChat.mutateAsync(profile.womanId);
+      toast({
+        title: "Chat gestartet!",
+        description: `Chat mit ${profile.name} wurde erstellt.`,
+      });
+      onClose();
+    } catch (error: any) {
+      toast({
+        title: "Fehler",
+        description: error.message || "Chat konnte nicht erstellt werden",
         variant: "destructive",
       });
     }
@@ -96,6 +120,28 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
 
         {/* Content */}
         <div className="p-6 space-y-6">
+          {/* Additional Info */}
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            {profile.height && (
+              <div>
+                <span className="text-white/60">Größe:</span>
+                <span className="text-white ml-2">{profile.height} cm</span>
+              </div>
+            )}
+            {profile.origin && (
+              <div>
+                <span className="text-white/60">Herkunft:</span>
+                <span className="text-white ml-2">{profile.origin}</span>
+              </div>
+            )}
+            {profile.nsfw !== undefined && (
+              <div>
+                <span className="text-white/60">NSFW:</span>
+                <span className="text-white ml-2">{profile.nsfw ? 'Ja' : 'Nein'}</span>
+              </div>
+            )}
+          </div>
+
           {/* Personality */}
           {profile.personality && (
             <div>
@@ -158,8 +204,20 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
                 Wird geprüft...
               </div>
             ) : hasSubscription ? (
-              <div className="glass w-full py-3 rounded-xl text-center text-green-400">
-                ✓ Abonniert - Sie können jetzt chatten!
+              <div className="space-y-3">
+                <div className="glass w-full py-3 rounded-xl text-center text-green-400">
+                  ✓ Abonniert - Sie können chatten!
+                </div>
+                <button
+                  onClick={handleStartChat}
+                  disabled={createChat.isPending}
+                  className="w-full glass-button py-3 rounded-xl text-white font-semibold hover:bg-blue-600/30 transition-all duration-300 flex items-center justify-center space-x-2"
+                >
+                  <MessageCircle className="w-5 h-5" />
+                  <span>
+                    {createChat.isPending ? 'Chat wird erstellt...' : 'Chat starten'}
+                  </span>
+                </button>
               </div>
             ) : (
               <div className="space-y-3">

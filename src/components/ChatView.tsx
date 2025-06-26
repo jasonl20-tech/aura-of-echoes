@@ -1,66 +1,42 @@
 
-import React, { useState } from 'react';
-import { MessageCircle, Send, Smile } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { MessageCircle, Send, Smile, ArrowLeft } from 'lucide-react';
+import { useMessages, useSendMessage } from '../hooks/useChats';
+import { useAuth } from '../hooks/useAuth';
 
-interface ChatMessage {
-  id: number;
-  sender: 'user' | 'ai';
-  message: string;
-  timestamp: Date;
+interface ChatViewProps {
+  chatId?: string;
+  womanName?: string;
+  onBack?: () => void;
 }
 
-const ChatView: React.FC = () => {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: 1,
-      sender: 'ai',
-      message: 'Hallo! Schön, dass du da bist. Wie geht es dir heute? 😊',
-      timestamp: new Date(Date.now() - 300000)
-    },
-    {
-      id: 2,
-      sender: 'user',
-      message: 'Hi Emma! Mir geht es gut, danke. Wie war dein Tag?',
-      timestamp: new Date(Date.now() - 240000)
-    },
-    {
-      id: 3,
-      sender: 'ai',
-      message: 'Mein Tag war wunderbar! Ich habe neue Rezepte ausprobiert und dabei an dich gedacht. Was machst du gerne zum Entspannen? 💕',
-      timestamp: new Date(Date.now() - 180000)
-    }
-  ]);
-  
+const ChatView: React.FC<ChatViewProps> = ({ chatId, womanName, onBack }) => {
+  const { user } = useAuth();
+  const { data: messages, isLoading } = useMessages(chatId || '');
+  const sendMessage = useSendMessage();
   const [newMessage, setNewMessage] = useState('');
-  const [isSubscribed, setIsSubscribed] = useState(false); // Mock subscription state
 
-  const handleSendMessage = () => {
-    if (!isSubscribed) {
-      alert('Abonnement erforderlich um Nachrichten zu senden. Upgrade auf Premium!');
-      return;
-    }
-    
-    if (newMessage.trim()) {
-      const userMessage: ChatMessage = {
-        id: messages.length + 1,
-        sender: 'user',
-        message: newMessage,
-        timestamp: new Date()
-      };
-      
-      setMessages(prev => [...prev, userMessage]);
+  const handleSendMessage = async () => {
+    if (!chatId || !newMessage.trim() || sendMessage.isPending) return;
+
+    try {
+      await sendMessage.mutateAsync({
+        chatId,
+        content: newMessage,
+        senderType: 'user',
+      });
       setNewMessage('');
-      
-      // Simulate AI response
-      setTimeout(() => {
-        const aiResponse: ChatMessage = {
-          id: messages.length + 2,
-          sender: 'ai',
-          message: 'Das klingt interessant! Erzähl mir mehr davon. Ich höre gerne zu 😊',
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, aiResponse]);
+
+      // Simulate AI response after a delay
+      setTimeout(async () => {
+        await sendMessage.mutateAsync({
+          chatId,
+          content: 'Das ist interessant! Erzähl mir mehr davon. 😊',
+          senderType: 'ai',
+        });
       }, 1000);
+    } catch (error) {
+      console.error('Failed to send message:', error);
     }
   };
 
@@ -71,27 +47,28 @@ const ChatView: React.FC = () => {
     "Was machst du gerne?"
   ];
 
-  if (!isSubscribed) {
+  if (!chatId || !user) {
     return (
       <div className="flex flex-col items-center justify-center h-full space-y-6 text-center">
         <div className="glass-card rounded-3xl p-8 max-w-sm">
           <MessageCircle className="w-16 h-16 text-pink-400 mx-auto mb-4 animate-glow" />
           <h2 className="text-xl font-bold text-white mb-3">
-            Premium Chat freischalten
+            Chat auswählen
           </h2>
-          <p className="text-white/70 mb-6">
-            Starte bedeutungsvolle Gespräche mit deinen Lieblingsprofilen. 
-            Unbegrenzte Nachrichten und exklusive Features.
+          <p className="text-white/70">
+            Wähle einen Chat aus der Liste oder abonniere neue Profile, um zu chatten.
           </p>
-          <button
-            onClick={() => setIsSubscribed(true)} // Mock subscription
-            className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-semibold py-3 rounded-xl transition-all duration-300"
-          >
-            Jetzt Premium werden
-          </button>
-          <p className="text-xs text-white/60 mt-3">
-            Ab 9,99€/Monat • Jederzeit kündbar
-          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-white text-center">
+          <div className="animate-spin w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p>Chat wird geladen...</p>
         </div>
       </div>
     );
@@ -102,13 +79,21 @@ const ChatView: React.FC = () => {
       {/* Chat Header */}
       <div className="glass-card rounded-2xl p-4 mb-4">
         <div className="flex items-center space-x-3">
+          {onBack && (
+            <button
+              onClick={onBack}
+              className="glass-button p-2 rounded-full hover:bg-white/20 transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5 text-white" />
+            </button>
+          )}
           <img
             src="https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=100&h=100&fit=crop"
-            alt="Emma"
+            alt={womanName}
             className="w-12 h-12 rounded-full object-cover border-2 border-pink-400/50"
           />
           <div>
-            <h3 className="font-semibold text-white">Emma</h3>
+            <h3 className="font-semibold text-white">{womanName}</h3>
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-green-400 rounded-full"></div>
               <span className="text-sm text-white/60">Online</span>
@@ -119,30 +104,34 @@ const ChatView: React.FC = () => {
 
       {/* Messages */}
       <div className="flex-1 space-y-4 overflow-y-auto mb-4">
-        {messages.map((message) => (
+        {messages?.map((message) => (
           <div
             key={message.id}
-            className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+            className={`flex ${message.sender_type === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
               className={`max-w-[80%] p-3 rounded-2xl ${
-                message.sender === 'user'
+                message.sender_type === 'user'
                   ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-br-sm'
                   : 'glass-card text-white rounded-bl-sm'
               }`}
             >
-              <p className="text-sm">{message.message}</p>
+              <p className="text-sm">{message.content}</p>
               <p className={`text-xs mt-1 ${
-                message.sender === 'user' ? 'text-white/70' : 'text-white/50'
+                message.sender_type === 'user' ? 'text-white/70' : 'text-white/50'
               }`}>
-                {message.timestamp.toLocaleTimeString('de-DE', { 
+                {new Date(message.created_at).toLocaleTimeString('de-DE', { 
                   hour: '2-digit', 
                   minute: '2-digit' 
                 })}
               </p>
             </div>
           </div>
-        ))}
+        )) || (
+          <div className="text-center text-white/70 py-8">
+            <p>Noch keine Nachrichten. Starte das Gespräch!</p>
+          </div>
+        )}
       </div>
 
       {/* Suggested Messages */}
@@ -174,7 +163,8 @@ const ChatView: React.FC = () => {
           />
           <button
             onClick={handleSendMessage}
-            className="bg-gradient-to-r from-pink-500 to-purple-500 p-2 rounded-full hover:from-pink-600 hover:to-purple-600 transition-all duration-300"
+            disabled={sendMessage.isPending || !newMessage.trim()}
+            className="bg-gradient-to-r from-pink-500 to-purple-500 p-2 rounded-full hover:from-pink-600 hover:to-purple-600 transition-all duration-300 disabled:opacity-50"
           >
             <Send className="w-5 h-5 text-white" />
           </button>

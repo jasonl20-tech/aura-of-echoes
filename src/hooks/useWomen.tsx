@@ -12,6 +12,9 @@ export interface Woman {
   webhook_url: string;
   price: number;
   interests: string[] | null;
+  height: number | null;
+  origin: string | null;
+  nsfw: boolean | null;
   created_at: string;
   updated_at: string;
 }
