@@ -3,3 +3,6 @@ project_id = "axarouxelvazgeewnakv"
 
 [functions.receive-message]
 verify_jwt = false
+
+[functions.set-typing-status]
+verify_jwt = false
