@@ -9,13 +9,199 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      chats: {
+        Row: {
+          created_at: string | null
+          id: string
+          user_id: string
+          woman_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          user_id: string
+          woman_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          user_id?: string
+          woman_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chats_woman_id_fkey"
+            columns: ["woman_id"]
+            isOneToOne: false
+            referencedRelation: "women"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          chat_id: string
+          content: string
+          created_at: string | null
+          id: string
+          sender_type: string
+        }
+        Insert: {
+          chat_id: string
+          content: string
+          created_at?: string | null
+          id?: string
+          sender_type: string
+        }
+        Update: {
+          chat_id?: string
+          content?: string
+          created_at?: string | null
+          id?: string
+          sender_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          user_id: string
+          woman_id: string
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          user_id: string
+          woman_id: string
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          user_id?: string
+          woman_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_woman_id_fkey"
+            columns: ["woman_id"]
+            isOneToOne: false
+            referencedRelation: "women"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      women: {
+        Row: {
+          age: number
+          created_at: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          interests: string[] | null
+          name: string
+          personality: string | null
+          price: number
+          updated_at: string | null
+          webhook_url: string
+        }
+        Insert: {
+          age: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          interests?: string[] | null
+          name: string
+          personality?: string | null
+          price?: number
+          updated_at?: string | null
+          webhook_url: string
+        }
+        Update: {
+          age?: number
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          interests?: string[] | null
+          name?: string
+          personality?: string | null
+          price?: number
+          updated_at?: string | null
+          webhook_url?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_subscription: {
+        Args: { user_id: string; woman_id: string }
+        Returns: boolean
+      }
+      is_admin: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

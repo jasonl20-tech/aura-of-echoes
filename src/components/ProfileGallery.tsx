@@ -1,126 +1,97 @@
+
 import React, { useState } from 'react';
 import ProfileCard from './ProfileCard';
 import ProfileDetailModal from './ProfileDetailModal';
+import { useWomen } from '../hooks/useWomen';
 
-interface Profile {
-  id: number;
-  name: string;
-  age: number;
-  interests: string[];
-  distance: number;
-  image: string;
-  description: string;
-  personality: string;
-  isSubscribed?: boolean;
+interface ProfileGalleryProps {
+  isRandom?: boolean;
 }
 
-const ProfileGallery: React.FC<{ isRandom?: boolean }> = ({ isRandom = false }) => {
-  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
+const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false }) => {
+  const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
+  const { data: women, isLoading, error } = useWomen();
 
-  const profiles: Profile[] = [
-    {
-      id: 1,
-      name: "Emma",
-      age: 24,
-      interests: ["Fitness", "Reisen", "Kochen", "Musik", "Yoga"],
-      distance: 2,
-      image: "https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=400&h=600&fit=crop",
-      description: "Ich liebe es, neue Orte zu entdecken und Menschen kennenzulernen. Fitness ist meine Leidenschaft und ich koche gerne für Freunde.",
-      personality: "Lebensfroh, abenteuerlustig und immer für Spaß zu haben!",
-      isSubscribed: true
-    },
-    {
-      id: 2,
-      name: "Sophie",
-      age: 22,
-      interests: ["Kunst", "Fotografie", "Kaffee", "Bücher"],
-      distance: 5,
-      image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=600&fit=crop",
-      description: "Kreative Seele mit einer Leidenschaft für Fotografie und Kunst. Verbringe gerne Zeit in Cafés mit einem guten Buch.",
-      personality: "Nachdenklich, kreativ und ein bisschen verträumt.",
-      isSubscribed: false
-    },
-    {
-      id: 3,
-      name: "Lisa",
-      age: 26,
-      interests: ["Tanzen", "Mode", "Wellness", "Filme"],
-      distance: 3,
-      image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=600&fit=crop",
-      description: "Tänzerin mit einer Vorliebe für Mode und Wellness. Liebe es, gemütliche Filmabende zu verbringen.",
-      personality: "Elegant, selbstbewusst und voller Energie.",
-      isSubscribed: false
-    },
-    {
-      id: 4,
-      name: "Anna",
-      age: 23,
-      interests: ["Natur", "Wandern", "Tiere", "Meditation"],
-      distance: 7,
-      image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&h=600&fit=crop",
-      description: "Naturliebhaberin, die gerne wandert und Zeit mit Tieren verbringt. Meditation hilft mir, zur Ruhe zu kommen.",
-      personality: "Ruhig, naturverbunden und sehr einfühlsam.",
-      isSubscribed: false
-    },
-    {
-      id: 5,
-      name: "Mia",
-      age: 25,
-      interests: ["Gaming", "Technologie", "Anime", "Coding"],
-      distance: 4,
-      image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=600&fit=crop",
-      description: "Tech-begeisterte Gamerin mit einer Schwäche für Anime. Programmiere in meiner Freizeit und liebe komplexe Herausforderungen.",
-      personality: "Intelligent, verspielt und immer neugierig auf neue Technologien.",
-      isSubscribed: false
-    },
-    {
-      id: 6,
-      name: "Julia",
-      age: 27,
-      interests: ["Business", "Networking", "Wine", "Travel"],
-      distance: 6,
-      image: "https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=400&h=600&fit=crop",
-      description: "Erfolgreiche Unternehmerin mit einer Leidenschaft für guten Wein und Reisen. Networking ist mein zweiter Vorname.",
-      personality: "Ambitioniert, charismatisch und weltoffen.",
-      isSubscribed: true
-    }
-  ];
+  if (isLoading) {
+    return (
+      <div className="space-y-4">
+        {[...Array(3)].map((_, index) => (
+          <div key={index} className="profile-glass rounded-2xl h-64 animate-pulse" />
+        ))}
+      </div>
+    );
+  }
 
-  const handleSubscribe = (profileId: number) => {
-    console.log(`Subscribing to profile ${profileId}`);
+  if (error) {
+    return (
+      <div className="glass-card p-6 text-center">
+        <p className="text-white/70">Fehler beim Laden der Profile</p>
+      </div>
+    );
+  }
+
+  if (!women || women.length === 0) {
+    return (
+      <div className="glass-card p-6 text-center">
+        <p className="text-white/70">Keine Profile verfügbar</p>
+      </div>
+    );
+  }
+
+  const displayWomen = isRandom 
+    ? [...women].sort(() => Math.random() - 0.5)
+    : women;
+
+  const handleProfileClick = (profileId: string) => {
+    setSelectedProfileId(profileId);
   };
 
-  const displayedProfiles = isRandom ? [...profiles].sort(() => Math.random() - 0.5) : profiles;
+  const selectedWoman = women.find(w => w.id === selectedProfileId);
 
   return (
-    <div className="space-y-6">
-      {/* Title */}
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-white text-sharp mb-2">
-          {isRandom ? 'Zufällige Profile' : 'Entdecke neue Personen'}
+    <div className="space-y-4">
+      <div className="text-center mb-6">
+        <h2 className="text-2xl font-bold text-white text-glow mb-2">
+          {isRandom ? 'Zufällige Entdeckungen' : 'Verfügbare Profile'}
         </h2>
-        <p className="text-white/60 text-sm">
-          {isRandom ? 'Überraschende Begegnungen warten' : 'Finde deine perfekte Verbindung'}
+        <p className="text-white/70">
+          {isRandom ? 'Lassen Sie sich überraschen' : 'Wählen Sie Ihr perfektes Match'}
         </p>
       </div>
 
-      {/* Profile Grid */}
-      <div className="grid grid-cols-2 gap-4">
-        {displayedProfiles.map((profile) => (
-          <ProfileCard
-            key={profile.id}
-            profile={profile}
-            onClick={() => setSelectedProfile(profile)}
-          />
-        ))}
-      </div>
+      {displayWomen.map((woman) => (
+        <ProfileCard
+          key={woman.id}
+          profile={{
+            id: parseInt(woman.id.slice(-8), 16), // Convert UUID to number for compatibility
+            name: woman.name,
+            age: woman.age,
+            interests: woman.interests || [],
+            distance: Math.floor(Math.random() * 50) + 1, // Random distance for now
+            image: woman.image_url || '/placeholder.svg',
+            description: woman.description || '',
+            personality: woman.personality || '',
+          }}
+          onClick={() => handleProfileClick(woman.id)}
+        />
+      ))}
 
-      {/* Profile Detail Modal */}
-      {selectedProfile && (
+      {selectedWoman && (
         <ProfileDetailModal
-          profile={selectedProfile}
-          onClose={() => setSelectedProfile(null)}
-          onSubscribe={() => handleSubscribe(selectedProfile.id)}
+          profile={{
+            id: parseInt(selectedWoman.id.slice(-8), 16),
+            name: selectedWoman.name,
+            age: selectedWoman.age,
+            interests: selectedWoman.interests || [],
+            distance: Math.floor(Math.random() * 50) + 1,
+            image: selectedWoman.image_url || '/placeholder.svg',
+            description: selectedWoman.description || '',
+            personality: selectedWoman.personality || '',
+            price: selectedWoman.price,
+            womanId: selectedWoman.id,
+          }}
+          isOpen={!!selectedProfileId}
+          onClose={() => setSelectedProfileId(null)}
         />
       )}
     </div>

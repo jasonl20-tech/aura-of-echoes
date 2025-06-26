@@ -1,12 +1,40 @@
-
-import React, { useState } from 'react';
-import { Heart, Settings, MessageCircle, Users, Shuffle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Heart, Settings, MessageCircle, Users, Shuffle, LogOut } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 import ProfileGallery from '../components/ProfileGallery';
 import ChatView from '../components/ChatView';
 import SettingsView from '../components/SettingsView';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('profiles');
+  const { user, loading, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/auth');
+    }
+  }, [user, loading, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="glass-card p-8">
+          <div className="text-white text-center">Wird geladen...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -25,6 +53,19 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col relative">
+      {/* Header with user info and logout */}
+      <header className="p-4 flex justify-between items-center">
+        <div className="text-white/70 text-sm">
+          Willkommen, {user.email}
+        </div>
+        <button
+          onClick={handleSignOut}
+          className="text-white/70 hover:text-white transition-colors"
+        >
+          <LogOut className="w-5 h-5" />
+        </button>
+      </header>
+
       {/* Subtle background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-32 h-32 bg-purple-600/5 rounded-full blur-3xl"></div>

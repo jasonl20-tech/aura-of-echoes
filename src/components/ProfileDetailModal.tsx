@@ -1,6 +1,8 @@
 
 import React from 'react';
-import { X, MapPin, Heart, Star, Crown } from 'lucide-react';
+import { X, MapPin, Star, Heart } from 'lucide-react';
+import { useCheckSubscription, useSubscribeToWoman } from '../hooks/useSubscriptions';
+import { toast } from '@/hooks/use-toast';
 
 interface Profile {
   id: number;
@@ -11,69 +13,69 @@ interface Profile {
   image: string;
   description: string;
   personality: string;
-  isSubscribed?: boolean;
+  price?: number;
+  womanId?: string;
 }
 
 interface ProfileDetailModalProps {
   profile: Profile;
+  isOpen: boolean;
   onClose: () => void;
-  onSubscribe: () => void;
 }
 
-const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({ profile, onClose, onSubscribe }) => {
-  const handleStartChat = () => {
-    if (profile.isSubscribed) {
-      alert(`Chat mit ${profile.name} öffnen...`);
-    } else {
-      const confirmed = confirm(`Möchtest du ${profile.name} für 9,99€/Monat abonnieren?`);
-      if (confirmed) {
-        onSubscribe();
-        alert(`Du hast ${profile.name} erfolgreich abonniert! Chat wird geöffnet...`);
-      }
+const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({ profile, isOpen, onClose }) => {
+  const { data: hasSubscription, isLoading: checkingSubscription } = useCheckSubscription(profile.womanId || '');
+  const subscribeToWoman = useSubscribeToWoman();
+
+  if (!isOpen) return null;
+
+  const handleSubscribe = async () => {
+    if (!profile.womanId) return;
+    
+    try {
+      await subscribeToWoman.mutateAsync(profile.womanId);
+      toast({
+        title: "Abonnement erfolgreich!",
+        description: `Sie können jetzt mit ${profile.name} chatten.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Fehler",
+        description: error.message || "Abonnement fehlgeschlagen",
+        variant: "destructive",
+      });
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
-      <div className="profile-glass rounded-3xl max-w-md w-full max-h-[90vh] overflow-hidden">
-        {/* Header with close button */}
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="profile-glass rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+        {/* Header */}
         <div className="relative">
           <img
             src={profile.image}
             alt={profile.name}
-            className="w-full h-72 object-cover"
+            className="w-full h-64 object-cover rounded-t-2xl"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
-          
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 w-10 h-10 glass-button rounded-full flex items-center justify-center hover:bg-white/20"
+            className="absolute top-4 right-4 glass w-10 h-10 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-colors"
           >
-            <X className="w-5 h-5 text-white" />
+            <X className="w-5 h-5" />
           </button>
-
-          {/* Subscription Badge */}
-          {profile.isSubscribed && (
-            <div className="absolute top-4 left-4 bg-gradient-to-r from-purple-600 to-purple-700 px-3 py-2 rounded-xl backdrop-blur-sm">
-              <span className="text-sm text-white font-bold">Abonniert</span>
-            </div>
-          )}
-
-          {/* Profile name overlay */}
+          
           <div className="absolute bottom-4 left-4 right-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-3xl font-bold text-white text-glow">
-                  {profile.name}, {profile.age}
-                </h2>
-                <div className="flex items-center space-x-2 text-white/90 mt-2">
-                  <MapPin className="w-4 h-4" />
-                  <span className="text-sm font-medium">{profile.distance} km entfernt</span>
-                </div>
+            <h2 className="text-2xl font-bold text-white text-sharp mb-1">
+              {profile.name}, {profile.age}
+            </h2>
+            <div className="flex items-center space-x-4 text-white/80">
+              <div className="flex items-center space-x-1">
+                <MapPin className="w-4 h-4" />
+                <span className="text-sm">{profile.distance} km</span>
               </div>
-              <div className="flex items-center space-x-1 glass px-3 py-2 rounded-xl">
-                <Star className="w-5 h-5 text-yellow-400 fill-current" />
-                <span className="text-lg font-bold text-white">4.8</span>
+              <div className="flex items-center space-x-1">
+                <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                <span className="text-sm">4.8</span>
               </div>
             </div>
           </div>
@@ -81,37 +83,30 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({ profile, onClos
 
         {/* Content */}
         <div className="p-6 space-y-6">
-          {/* About */}
+          {/* Personality */}
           <div>
-            <h3 className="text-lg font-bold text-white mb-3 flex items-center text-sharp">
-              <Heart className="w-5 h-5 text-purple-400 mr-2" />
-              Über mich
-            </h3>
-            <p className="text-white/80 leading-relaxed">
-              {profile.description}
+            <h3 className="text-white font-semibold mb-2">Persönlichkeit</h3>
+            <p className="text-white/80 text-sm leading-relaxed">
+              {profile.personality}
             </p>
           </div>
 
-          {/* Personality */}
+          {/* Description */}
           <div>
-            <h3 className="text-lg font-bold text-white mb-3 text-sharp">
-              Persönlichkeit
-            </h3>
-            <p className="text-white/70 italic bg-white/5 p-3 rounded-xl">
-              {profile.personality}
+            <h3 className="text-white font-semibold mb-2">Über mich</h3>
+            <p className="text-white/80 text-sm leading-relaxed">
+              {profile.description}
             </p>
           </div>
 
           {/* Interests */}
           <div>
-            <h3 className="text-lg font-bold text-white mb-3 text-sharp">
-              Interessen
-            </h3>
+            <h3 className="text-white font-semibold mb-3">Interessen</h3>
             <div className="flex flex-wrap gap-2">
               {profile.interests.map((interest, index) => (
                 <span
                   key={index}
-                  className="px-3 py-2 glass rounded-xl text-sm text-white font-medium"
+                  className="px-3 py-1 glass rounded-full text-sm text-white/80"
                 >
                   {interest}
                 </span>
@@ -119,42 +114,37 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({ profile, onClos
             </div>
           </div>
 
-          {/* Premium Features Hint - only show if not subscribed */}
-          {!profile.isSubscribed && (
-            <div className="glass rounded-2xl p-4 border border-purple-400/30">
-              <div className="flex items-center space-x-2 mb-3">
-                <Crown className="w-5 h-5 text-purple-400" />
-                <span className="font-bold text-purple-300">Mit {profile.name} chatten</span>
+          {/* Subscription Status & Action */}
+          <div className="pt-4 border-t border-white/10">
+            {checkingSubscription ? (
+              <div className="glass-button w-full py-3 rounded-xl text-center text-white/70">
+                Wird geprüft...
               </div>
-              <ul className="text-sm text-white/70 space-y-2">
-                <li>• Unbegrenzte Nachrichten mit {profile.name}</li>
-                <li>• Persönliche Sprachnachrichten</li>
-                <li>• Priorität bei Antworten</li>
-                <li>• Exklusive Inhalte von {profile.name}</li>
-              </ul>
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <div className="space-y-3">
-            <button
-              onClick={handleStartChat}
-              className={`w-full font-bold py-4 rounded-2xl transition-all duration-300 transform hover:scale-[1.02] shadow-xl ${
-                profile.isSubscribed
-                  ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700'
-                  : 'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800'
-              } text-white text-sharp`}
-            >
-              {profile.isSubscribed 
-                ? `Chat mit ${profile.name} öffnen` 
-                : `${profile.name} abonnieren – 9,99€/Monat`
-              }
-            </button>
-            
-            {!profile.isSubscribed && (
-              <p className="text-center text-xs text-white/50">
-                Individuelles Abo für {profile.name} • Jederzeit kündbar • Sichere Zahlung
-              </p>
+            ) : hasSubscription ? (
+              <div className="glass w-full py-3 rounded-xl text-center text-green-400">
+                ✓ Abonniert - Sie können jetzt chatten!
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="text-center">
+                  <p className="text-white/70 text-sm mb-2">
+                    Abonnieren Sie {profile.name} für
+                  </p>
+                  <p className="text-2xl font-bold text-white">
+                    €{profile.price?.toFixed(2)} <span className="text-sm text-white/60">/Monat</span>
+                  </p>
+                </div>
+                <button
+                  onClick={handleSubscribe}
+                  disabled={subscribeToWoman.isPending}
+                  className="w-full glass-button py-3 rounded-xl text-white font-semibold hover:bg-purple-600/30 transition-all duration-300 disabled:opacity-50 flex items-center justify-center space-x-2"
+                >
+                  <Heart className="w-5 h-5" />
+                  <span>
+                    {subscribeToWoman.isPending ? 'Wird abonniert...' : 'Jetzt abonnieren'}
+                  </span>
+                </button>
+              </div>
             )}
           </div>
         </div>
