@@ -2,6 +2,7 @@
 import React from 'react';
 import { X, MapPin, Star, Heart } from 'lucide-react';
 import { useCheckSubscription, useSubscribeToWoman } from '../hooks/useSubscriptions';
+import { useAuth } from '../hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 
 interface Profile {
@@ -21,15 +22,27 @@ interface ProfileDetailModalProps {
   profile: Profile;
   isOpen: boolean;
   onClose: () => void;
+  onAuthRequired?: () => void;
 }
 
-const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({ profile, isOpen, onClose }) => {
+const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({ 
+  profile, 
+  isOpen, 
+  onClose, 
+  onAuthRequired 
+}) => {
+  const { user } = useAuth();
   const { data: hasSubscription, isLoading: checkingSubscription } = useCheckSubscription(profile.womanId || '');
   const subscribeToWoman = useSubscribeToWoman();
 
   if (!isOpen) return null;
 
   const handleSubscribe = async () => {
+    if (!user) {
+      onAuthRequired?.();
+      return;
+    }
+
     if (!profile.womanId) return;
     
     try {
@@ -84,39 +97,63 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({ profile, isOpen
         {/* Content */}
         <div className="p-6 space-y-6">
           {/* Personality */}
-          <div>
-            <h3 className="text-white font-semibold mb-2">Persönlichkeit</h3>
-            <p className="text-white/80 text-sm leading-relaxed">
-              {profile.personality}
-            </p>
-          </div>
+          {profile.personality && (
+            <div>
+              <h3 className="text-white font-semibold mb-2">Persönlichkeit</h3>
+              <p className="text-white/80 text-sm leading-relaxed">
+                {profile.personality}
+              </p>
+            </div>
+          )}
 
           {/* Description */}
-          <div>
-            <h3 className="text-white font-semibold mb-2">Über mich</h3>
-            <p className="text-white/80 text-sm leading-relaxed">
-              {profile.description}
-            </p>
-          </div>
+          {profile.description && (
+            <div>
+              <h3 className="text-white font-semibold mb-2">Über mich</h3>
+              <p className="text-white/80 text-sm leading-relaxed">
+                {profile.description}
+              </p>
+            </div>
+          )}
 
           {/* Interests */}
-          <div>
-            <h3 className="text-white font-semibold mb-3">Interessen</h3>
-            <div className="flex flex-wrap gap-2">
-              {profile.interests.map((interest, index) => (
-                <span
-                  key={index}
-                  className="px-3 py-1 glass rounded-full text-sm text-white/80"
-                >
-                  {interest}
-                </span>
-              ))}
+          {profile.interests.length > 0 && (
+            <div>
+              <h3 className="text-white font-semibold mb-3">Interessen</h3>
+              <div className="flex flex-wrap gap-2">
+                {profile.interests.map((interest, index) => (
+                  <span
+                    key={index}
+                    className="px-3 py-1 glass rounded-full text-sm text-white/80"
+                  >
+                    {interest}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Subscription Status & Action */}
           <div className="pt-4 border-t border-white/10">
-            {checkingSubscription ? (
+            {!user ? (
+              <div className="space-y-3">
+                <div className="text-center">
+                  <p className="text-white/70 text-sm mb-2">
+                    Melde dich an, um mit {profile.name} zu chatten
+                  </p>
+                  <p className="text-2xl font-bold text-white">
+                    €{profile.price?.toFixed(2)} <span className="text-sm text-white/60">/Monat</span>
+                  </p>
+                </div>
+                <button
+                  onClick={() => onAuthRequired?.()}
+                  className="w-full glass-button py-3 rounded-xl text-white font-semibold hover:bg-purple-600/30 transition-all duration-300 flex items-center justify-center space-x-2"
+                >
+                  <Heart className="w-5 h-5" />
+                  <span>Anmelden & Abonnieren</span>
+                </button>
+              </div>
+            ) : checkingSubscription ? (
               <div className="glass-button w-full py-3 rounded-xl text-center text-white/70">
                 Wird geprüft...
               </div>

@@ -1,155 +1,157 @@
 
 import React from 'react';
-import { Crown, CreditCard, Bell, Shield, Globe, Download, LogOut, ChevronRight } from 'lucide-react';
+import { User, Shield, Bell, Globe, Trash2, LogOut } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
-const SettingsView: React.FC = () => {
-  const settingsGroups = [
-    {
-      title: 'Premium',
-      items: [
-        {
-          icon: Crown,
-          label: 'Abo verwalten',
-          description: 'Premium Plan - 9,99€/Monat',
-          action: () => alert('Abo-Verwaltung öffnen'),
-          highlight: true
-        },
-        {
-          icon: CreditCard,
-          label: 'Zahlungsmethoden',
-          description: 'Kreditkarten & PayPal',
-          action: () => alert('Zahlungsmethoden verwalten')
-        }
-      ]
-    },
-    {
-      title: 'Einstellungen',
-      items: [
-        {
-          icon: Bell,
-          label: 'Benachrichtigungen',
-          description: 'Push-Nachrichten verwalten',
-          action: () => alert('Benachrichtigungen konfigurieren')
-        },
-        {
-          icon: Globe,
-          label: 'Sprache & Region',
-          description: 'Deutsch (Deutschland)',
-          action: () => alert('Sprache auswählen')
-        },
-        {
-          icon: Download,
-          label: 'Chat-Verlauf exportieren',
-          description: 'Deine Gespräche herunterladen',
-          action: () => alert('Export wird vorbereitet...')
-        }
-      ]
-    },
-    {
-      title: 'Rechtliches',
-      items: [
-        {
-          icon: Shield,
-          label: 'Datenschutz',
-          description: 'Datenschutzerklärung lesen',
-          action: () => alert('Datenschutz öffnen')
-        },
-        {
-          icon: Shield,
-          label: 'AGB',
-          description: 'Allgemeine Geschäftsbedingungen',
-          action: () => alert('AGB öffnen')
-        },
-        {
-          icon: Shield,
-          label: 'Impressum',
-          description: 'Rechtliche Informationen',
-          action: () => alert('Impressum öffnen')
-        }
-      ]
-    }
-  ];
+interface SettingsViewProps {
+  onAuthRequired?: () => void;
+}
+
+const SettingsView: React.FC<SettingsViewProps> = ({ onAuthRequired }) => {
+  const { user, signOut } = useAuth();
+
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full space-y-6 text-center">
+        <div className="glass-card rounded-3xl p-8 max-w-sm">
+          <User className="w-16 h-16 text-purple-400 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-white mb-3">
+            Anmeldung erforderlich
+          </h2>
+          <p className="text-white/70 mb-6">
+            Melde dich an, um deine Einstellungen zu verwalten und dein Profil anzupassen.
+          </p>
+          <button
+            onClick={() => onAuthRequired?.()}
+            className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white font-semibold py-3 rounded-xl transition-all duration-300"
+          >
+            Jetzt anmelden
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="text-center">
-        <h2 className="text-2xl font-bold text-white mb-2">Einstellungen</h2>
-        <p className="text-white/70">Verwalte dein Konto und deine Präferenzen</p>
+        <h1 className="text-3xl font-bold text-white text-glow mb-2">
+          Einstellungen
+        </h1>
+        <p className="text-white/70">
+          Verwalte dein Profil und deine Präferenzen
+        </p>
       </div>
 
-      {/* User Info Card */}
-      <div className="glass-card rounded-2xl p-6">
-        <div className="flex items-center space-x-4">
-          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-violet-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
-            U
+      <div className="space-y-4">
+        {/* Profile Section */}
+        <div className="glass-card rounded-2xl p-6">
+          <div className="flex items-center space-x-3 mb-4">
+            <User className="w-6 h-6 text-purple-400" />
+            <h2 className="text-xl font-semibold text-white">Profil</h2>
           </div>
-          <div className="flex-1">
-            <h3 className="text-lg font-semibold text-white">Benutzer</h3>
-            <p className="text-white/60">Premium Mitglied seit März 2024</p>
-            <div className="flex items-center space-x-2 mt-2">
-              <Crown className="w-4 h-4 text-purple-400" />
-              <span className="text-sm text-purple-400">Premium aktiv</span>
+          <div className="space-y-3">
+            <div>
+              <label className="text-white/70 text-sm">E-Mail</label>
+              <p className="text-white font-medium">{user.email}</p>
+            </div>
+            <div>
+              <label className="text-white/70 text-sm">Mitglied seit</label>
+              <p className="text-white font-medium">
+                {new Date(user.created_at).toLocaleDateString('de-DE')}
+              </p>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Settings Groups */}
-      {settingsGroups.map((group, groupIndex) => (
-        <div key={groupIndex} className="space-y-3">
-          <h3 className="text-lg font-semibold text-white/80 px-2">{group.title}</h3>
-          <div className="glass-card rounded-2xl overflow-hidden">
-            {group.items.map((item, itemIndex) => (
-              <button
-                key={itemIndex}
-                onClick={item.action}
-                className={`w-full p-4 flex items-center space-x-4 hover:bg-purple-500/10 transition-all duration-200 ${
-                  itemIndex !== group.items.length - 1 ? 'border-b border-purple-500/20' : ''
-                } ${item.highlight ? 'bg-gradient-to-r from-purple-500/20 to-violet-500/10' : ''}`}
-              >
-                <div className={`p-2 rounded-lg ${
-                  item.highlight ? 'bg-purple-500/30' : 'glass'
-                }`}>
-                  <item.icon className={`w-5 h-5 ${
-                    item.highlight ? 'text-purple-300' : 'text-white/70'
-                  }`} />
-                </div>
-                <div className="flex-1 text-left">
-                  <h4 className={`font-medium ${
-                    item.highlight ? 'text-purple-300' : 'text-white'
-                  }`}>
-                    {item.label}
-                  </h4>
-                  <p className="text-sm text-white/60">{item.description}</p>
-                </div>
-                <ChevronRight className="w-5 h-5 text-white/40" />
-              </button>
-            ))}
+        {/* Privacy Section */}
+        <div className="glass-card rounded-2xl p-6">
+          <div className="flex items-center space-x-3 mb-4">
+            <Shield className="w-6 h-6 text-green-400" />
+            <h2 className="text-xl font-semibold text-white">Datenschutz</h2>
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-white/80">Chat-Verlauf speichern</span>
+              <div className="w-12 h-6 bg-purple-600 rounded-full relative">
+                <div className="w-5 h-5 bg-white rounded-full absolute top-0.5 right-0.5 transition-all"></div>
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-white/80">Daten für Verbesserungen nutzen</span>
+              <div className="w-12 h-6 bg-gray-600 rounded-full relative">
+                <div className="w-5 h-5 bg-white rounded-full absolute top-0.5 left-0.5 transition-all"></div>
+              </div>
+            </div>
           </div>
         </div>
-      ))}
 
-      {/* Logout Button */}
-      <div className="glass-card rounded-2xl overflow-hidden">
+        {/* Notifications Section */}
+        <div className="glass-card rounded-2xl p-6">
+          <div className="flex items-center space-x-3 mb-4">
+            <Bell className="w-6 h-6 text-yellow-400" />
+            <h2 className="text-xl font-semibold text-white">Benachrichtigungen</h2>
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-white/80">Neue Nachrichten</span>
+              <div className="w-12 h-6 bg-purple-600 rounded-full relative">
+                <div className="w-5 h-5 bg-white rounded-full absolute top-0.5 right-0.5 transition-all"></div>
+              </div>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-white/80">Neue Features</span>
+              <div className="w-12 h-6 bg-purple-600 rounded-full relative">
+                <div className="w-5 h-5 bg-white rounded-full absolute top-0.5 right-0.5 transition-all"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Language Section */}
+        <div className="glass-card rounded-2xl p-6">
+          <div className="flex items-center space-x-3 mb-4">
+            <Globe className="w-6 h-6 text-blue-400" />
+            <h2 className="text-xl font-semibold text-white">Sprache</h2>
+          </div>
+          <div className="space-y-3">
+            <select className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500">
+              <option value="de" className="bg-gray-800">Deutsch</option>
+              <option value="en" className="bg-gray-800">English</option>
+              <option value="fr" className="bg-gray-800">Français</option>
+              <option value="es" className="bg-gray-800">Español</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Danger Zone */}
+        <div className="glass-card rounded-2xl p-6 border border-red-500/20">
+          <div className="flex items-center space-x-3 mb-4">
+            <Trash2 className="w-6 h-6 text-red-400" />
+            <h2 className="text-xl font-semibold text-white">Gefährlicher Bereich</h2>
+          </div>
+          <div className="space-y-3">
+            <button className="w-full glass-button py-3 rounded-xl text-red-400 font-semibold hover:bg-red-600/20 transition-all duration-300">
+              Alle Chat-Daten löschen
+            </button>
+            <button className="w-full glass-button py-3 rounded-xl text-red-400 font-semibold hover:bg-red-600/20 transition-all duration-300">
+              Konto löschen
+            </button>
+          </div>
+        </div>
+
+        {/* Logout */}
         <button
-          onClick={() => alert('Ausloggen')}
-          className="w-full p-4 flex items-center space-x-4 hover:bg-red-500/10 transition-all duration-200 text-red-400"
+          onClick={handleSignOut}
+          className="w-full glass-button py-4 rounded-xl text-white font-semibold hover:bg-red-600/30 transition-all duration-300 flex items-center justify-center space-x-2"
         >
-          <div className="p-2 rounded-lg bg-red-500/20">
-            <LogOut className="w-5 h-5" />
-          </div>
-          <div className="flex-1 text-left">
-            <h4 className="font-medium">Ausloggen</h4>
-            <p className="text-sm text-white/60">Von deinem Konto abmelden</p>
-          </div>
+          <LogOut className="w-5 h-5" />
+          <span>Abmelden</span>
         </button>
-      </div>
-
-      {/* App Version */}
-      <div className="text-center">
-        <p className="text-xs text-white/50">HeartConnect v1.0.0</p>
-        <p className="text-xs text-white/40 mt-1">© 2024 HeartConnect. Alle Rechte vorbehalten.</p>
       </div>
     </div>
   );

@@ -1,21 +1,40 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Heart, Settings, MessageCircle, Users, Shuffle, LogOut } from 'lucide-react';
+
+import React, { useState } from 'react';
+import { Heart, Settings, MessageCircle, Users, Shuffle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import ProfileGallery from '../components/ProfileGallery';
 import ChatView from '../components/ChatView';
 import SettingsView from '../components/SettingsView';
+import AuthModal from '../components/AuthModal';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('profiles');
-  const { user, loading, signOut } = useAuth();
-  const navigate = useNavigate();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const { user, loading } = useAuth();
 
-  useEffect(() => {
-    if (!loading && !user) {
-      navigate('/auth');
+  const handleTabChange = (tab: string) => {
+    // Chat Tab requires authentication
+    if (tab === 'chats' && !user) {
+      setShowAuthModal(true);
+      return;
     }
-  }, [user, loading, navigate]);
+    setActiveTab(tab);
+  };
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'profiles':
+        return <ProfileGallery onAuthRequired={() => setShowAuthModal(true)} />;
+      case 'chats':
+        return user ? <ChatView /> : <ProfileGallery onAuthRequired={() => setShowAuthModal(true)} />;
+      case 'settings':
+        return <SettingsView onAuthRequired={() => setShowAuthModal(true)} />;
+      case 'random':
+        return <ProfileGallery isRandom onAuthRequired={() => setShowAuthModal(true)} />;
+      default:
+        return <ProfileGallery onAuthRequired={() => setShowAuthModal(true)} />;
+    }
+  };
 
   if (loading) {
     return (
@@ -27,43 +46,21 @@ const Index = () => {
     );
   }
 
-  if (!user) {
-    return null;
-  }
-
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/auth');
-  };
-
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'profiles':
-        return <ProfileGallery />;
-      case 'chats':
-        return <ChatView />;
-      case 'settings':
-        return <SettingsView />;
-      case 'random':
-        return <ProfileGallery isRandom />;
-      default:
-        return <ProfileGallery />;
-    }
-  };
-
   return (
     <div className="min-h-screen flex flex-col relative">
-      {/* Header with user info and logout */}
+      {/* Header with user info */}
       <header className="p-4 flex justify-between items-center">
         <div className="text-white/70 text-sm">
-          Willkommen, {user.email}
+          {user ? `Willkommen, ${user.email}` : 'Entdecke AI-Companions'}
         </div>
-        <button
-          onClick={handleSignOut}
-          className="text-white/70 hover:text-white transition-colors"
-        >
-          <LogOut className="w-5 h-5" />
-        </button>
+        {user && (
+          <button
+            onClick={() => setShowAuthModal(true)}
+            className="text-white/70 hover:text-white transition-colors text-sm"
+          >
+            Profil
+          </button>
+        )}
       </header>
 
       {/* Subtle background elements */}
@@ -93,7 +90,7 @@ const Index = () => {
           </button>
           
           <button
-            onClick={() => setActiveTab('chats')}
+            onClick={() => handleTabChange('chats')}
             className={`flex flex-col items-center space-y-1 p-2 rounded-xl transition-all duration-300 ${
               activeTab === 'chats'
                 ? 'glass-button text-white bg-purple-600/20 purple-glow'
@@ -102,6 +99,7 @@ const Index = () => {
           >
             <MessageCircle className="w-5 h-5" />
             <span className="text-xs font-medium">Chats</span>
+            {!user && <div className="w-2 h-2 bg-red-400 rounded-full -mt-1"></div>}
           </button>
           
           <button
@@ -117,7 +115,7 @@ const Index = () => {
           </button>
           
           <button
-            onClick={() => setActiveTab('settings')}
+            onClick={() => handleTabChange('settings')}
             className={`flex flex-col items-center space-y-1 p-2 rounded-xl transition-all duration-300 ${
               activeTab === 'settings'
                 ? 'glass-button text-white bg-purple-600/20 purple-glow'
@@ -126,9 +124,18 @@ const Index = () => {
           >
             <Settings className="w-5 h-5" />
             <span className="text-xs font-medium">Settings</span>
+            {!user && <div className="w-2 h-2 bg-red-400 rounded-full -mt-1"></div>}
           </button>
         </div>
       </nav>
+
+      {/* Auth Modal */}
+      {showAuthModal && (
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+        />
+      )}
     </div>
   );
 };
