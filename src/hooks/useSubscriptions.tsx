@@ -76,7 +76,10 @@ export function useCheckSubscription(womanId: string) {
         woman_id: womanId
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error checking access:', error);
+        throw error;
+      }
       
       // Separate Checks für UI-Anzeige
       const { data: hasSubscription } = await supabase.rpc('has_subscription', {
@@ -85,7 +88,8 @@ export function useCheckSubscription(womanId: string) {
       });
       
       const { data: hasFreeAccess } = await supabase.rpc('has_free_access', {
-        woman_id: womanId
+        woman_id: womanId,
+        specific_user_id: user.id
       });
       
       return {
