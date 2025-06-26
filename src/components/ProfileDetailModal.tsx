@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { X, MapPin, Star, Heart, MessageCircle, Settings, Gift } from 'lucide-react';
+import { X, Heart, MessageCircle, Settings, Gift } from 'lucide-react';
 import { useCheckSubscription, useSubscribeToWoman, useCustomerPortal } from '../hooks/useSubscriptions';
 import { useCreateChat } from '../hooks/useChats';
 import { useAuth } from '../hooks/useAuth';
@@ -127,6 +127,13 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
           >
             <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
+
+          {/* NSFW badge - only show if nsfw is true */}
+          {profile.nsfw && (
+            <div className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-red-500/90 px-2 py-1 rounded backdrop-blur-sm">
+              <span className="text-xs text-white font-semibold">NSFW</span>
+            </div>
+          )}
           
           <div className="absolute bottom-2 sm:bottom-4 left-2 sm:left-4 right-2 sm:right-4">
             <div className="flex justify-between items-end">
@@ -134,15 +141,10 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
                 <h2 className="text-xl sm:text-2xl font-bold text-white text-sharp mb-1">
                   {profile.name}, {profile.age}
                 </h2>
-                <div className="flex items-center space-x-3 sm:space-x-4 text-white/80">
-                  <div className="flex items-center space-x-1">
-                    <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
-                    <span className="text-xs sm:text-sm">{profile.distance} km</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Star className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-400 fill-current" />
-                    <span className="text-xs sm:text-sm">4.8</span>
-                  </div>
+                <div className="text-white/80">
+                  {profile.origin && (
+                    <span className="text-xs sm:text-sm">{profile.origin}</span>
+                  )}
                 </div>
               </div>
               
@@ -181,10 +183,10 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
               </div>
             )}
             <div className="glass rounded-lg p-2">
-              <span className="text-white/60 text-xs">Rating:</span>
+              <span className="text-white/60 text-xs">Status:</span>
               <div className="text-white font-medium flex items-center space-x-1">
-                <Star className="w-3 h-3 text-yellow-400 fill-current" />
-                <span>4.8/5</span>
+                <Heart className="w-3 h-3 text-purple-400" />
+                <span>Premium</span>
               </div>
             </div>
           </div>

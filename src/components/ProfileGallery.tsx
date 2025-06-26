@@ -71,7 +71,7 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
     name: woman.name,
     age: woman.age,
     interests: woman.interests || [],
-    distance: Math.floor(Math.random() * 50) + 1,
+    distance: Math.floor(Math.random() * 50) + 1, // Keep for compatibility but won't display
     image: woman.image_url || 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=400&h=600&fit=crop',
     description: woman.description || '',
     personality: woman.personality || '',

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MapPin, Star, Heart } from 'lucide-react';
+import { Heart } from 'lucide-react';
 
 interface Profile {
   id: number;
@@ -39,36 +39,30 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onClick }) => {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
         
+        {/* NSFW badge - only show if nsfw is true */}
+        {profile.nsfw && (
+          <div className="absolute top-3 left-3 bg-red-500/90 px-2 py-1 rounded backdrop-blur-sm">
+            <span className="text-xs text-white font-semibold">NSFW</span>
+          </div>
+        )}
+
         {/* Subscription badge */}
         {profile.isSubscribed && (
-          <div className="absolute top-3 left-3 bg-gradient-to-r from-purple-600 to-purple-700 px-2 py-1 rounded-lg backdrop-blur-sm">
+          <div className="absolute top-3 right-3 bg-gradient-to-r from-purple-600 to-purple-700 px-2 py-1 rounded-lg backdrop-blur-sm">
             <span className="text-xs text-white font-semibold">Abonniert</span>
           </div>
         )}
 
-        {/* Rating */}
-        <div className="absolute top-3 right-3 flex items-center space-x-1 glass px-2 py-1 rounded-lg">
-          <Star className="w-3 h-3 text-yellow-400 fill-current" />
-          <span className="text-xs text-white font-medium">4.8</span>
-        </div>
-
-        {/* Price Badge */}
-        <div className="absolute bottom-3 right-3 bg-gradient-to-r from-green-600 to-green-700 px-2 py-1 rounded-lg backdrop-blur-sm">
-          <span className="text-xs text-white font-semibold">{profile.formattedPrice}</span>
-        </div>
-
         {/* Profile info overlay */}
-        <div className="absolute bottom-3 left-3">
+        <div className="absolute bottom-3 left-3 right-3">
           <h3 className="text-white font-bold text-lg text-sharp">
             {profile.name}, {profile.age}
           </h3>
-          <div className="flex items-center space-x-2 text-white/80 mt-1">
-            <MapPin className="w-3 h-3" />
-            <span className="text-sm">{profile.distance} km</span>
-            {profile.nsfw && (
-              <span className="text-xs bg-red-500/80 px-1 py-0.5 rounded">18+</span>
-            )}
-          </div>
+          {profile.origin && (
+            <div className="text-white/80 mt-1">
+              <span className="text-sm">{profile.origin}</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -94,7 +88,10 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onClick }) => {
         {/* Additional Info */}
         <div className="flex justify-between items-center text-xs text-white/60">
           {profile.height && <span>{profile.height}cm</span>}
-          {profile.origin && <span>{profile.origin}</span>}
+          <div className="flex items-center space-x-1">
+            <Heart className="w-3 h-3" />
+            <span>Premium</span>
+          </div>
         </div>
 
         {/* Description preview */}
