@@ -7,6 +7,7 @@ import { useSettings } from '../hooks/useSettings';
 import { useIsAdmin } from '../hooks/useAdminWomen';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import SubscriptionManagement from './SubscriptionManagement';
 
 interface SettingsViewProps {
   onAuthRequired?: () => void;
@@ -142,6 +143,9 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onAuthRequired, onNavigateT
           </div>
         )}
       </div>
+
+      {/* Subscription Management Section */}
+      {user && <SubscriptionManagement />}
 
       {/* Notification Settings */}
       <div className="glass-card rounded-2xl p-6">
