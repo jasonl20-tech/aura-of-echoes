@@ -92,11 +92,21 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
       });
     } catch (error: any) {
       console.error('Customer portal error:', error);
-      toast({
-        title: "Fehler",
-        description: error.message || "Kundenverwaltung konnte nicht geöffnet werden",
-        variant: "destructive",
-      });
+      
+      // Bessere Fehlerbehandlung für verschiedene Fälle
+      if (error.message?.includes('Keine aktiven Abonnements')) {
+        toast({
+          title: "Keine Abonnements vorhanden",
+          description: "Du hast noch keine aktiven Abonnements. Erstelle zuerst ein Abonnement.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Fehler",
+          description: error.message || "Kundenverwaltung konnte nicht geöffnet werden",
+          variant: "destructive",
+        });
+      }
     }
   };
 

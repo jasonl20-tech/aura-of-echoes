@@ -41,13 +41,42 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
     
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-    if (customers.data.length === 0) {
-      throw new Error("No Stripe customer found for this user");
-    }
+    // Suche nach existierendem Kunden oder erstelle einen neuen
+    let customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    let customerId;
     
-    const customerId = customers.data[0].id;
-    logStep("Customer found", { customerId });
+    if (customers.data.length === 0) {
+      logStep("No existing customer found, creating new customer");
+      const newCustomer = await stripe.customers.create({
+        email: user.email,
+        metadata: {
+          supabase_user_id: user.id
+        }
+      });
+      customerId = newCustomer.id;
+      logStep("New customer created", { customerId });
+    } else {
+      customerId = customers.data[0].id;
+      logStep("Existing customer found", { customerId });
+    }
+
+    // Prüfe ob der Kunde aktive Abonnements hat
+    const subscriptions = await stripe.subscriptions.list({
+      customer: customerId,
+      status: "active",
+      limit: 1,
+    });
+
+    if (subscriptions.data.length === 0) {
+      logStep("No active subscriptions found for customer");
+      return new Response(JSON.stringify({ 
+        error: "Keine aktiven Abonnements gefunden. Bitte erstellen Sie zuerst ein Abonnement.",
+        hasSubscriptions: false 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
 
     const origin = req.headers.get("origin") || "http://localhost:3000";
     const portalSession = await stripe.billingPortal.sessions.create({
