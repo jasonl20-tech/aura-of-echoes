@@ -6,6 +6,7 @@ import { useWoman } from '../hooks/useWomen';
 import { supabase } from '@/integrations/supabase/client';
 import ProfileModal from './ProfileModal';
 import AudioRecorder from './AudioRecorder';
+import TypingIndicator from './TypingIndicator';
 
 interface ChatViewProps {
   chatId?: string;
@@ -22,6 +23,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
   const [newMessage, setNewMessage] = useState('');
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<{ play: () => Promise<void> } | null>(null);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -246,7 +248,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
     );
   }, []);
 
-  // Enhanced real-time message subscription with stable dependencies
+  // Enhanced real-time message subscription with typing indicators
   useEffect(() => {
     if (!chatId) return;
 
@@ -261,13 +263,16 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
         audioRef.current?.play().catch(error => {
           console.log('❌ Could not play notification sound:', error);
         });
+        
+        // Stop typing indicator when AI message arrives
+        setIsTyping(false);
       }
       
       console.log('🔄 Refetching messages due to real-time update');
       refetchMessages();
     };
 
-    const channel = supabase
+    const messageChannel = supabase
       .channel(`messages-${chatId}`)
       .on(
         'postgres_changes',
@@ -280,7 +285,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
         handleRealtimeMessage
       )
       .subscribe((status) => {
-        console.log('📡 Real-time subscription status:', status);
+        console.log('📡 Real-time message subscription status:', status);
         if (status === 'SUBSCRIBED') {
           setIsRealtimeConnected(true);
           console.log('✅ Real-time connection established successfully');
@@ -293,10 +298,25 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
         }
       });
 
+    // Typing indicator channel
+    const typingChannel = supabase
+      .channel(`typing-${chatId}`)
+      .on('broadcast', { event: 'typing_start' }, (payload) => {
+        console.log('⌨️ Typing started:', payload);
+        setIsTyping(true);
+      })
+      .on('broadcast', { event: 'typing_stop' }, (payload) => {
+        console.log('⌨️ Typing stopped:', payload);
+        setIsTyping(false);
+      })
+      .subscribe();
+
     return () => {
-      console.log('🧹 Cleaning up real-time subscription for chat:', chatId);
-      supabase.removeChannel(channel);
+      console.log('🧹 Cleaning up real-time subscriptions for chat:', chatId);
+      supabase.removeChannel(messageChannel);
+      supabase.removeChannel(typingChannel);
       setIsRealtimeConnected(false);
+      setIsTyping(false);
     };
   }, [chatId, refetchMessages]);
 
@@ -552,6 +572,14 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
                 </div>
               );
             })}
+            
+            {/* Typing Indicator */}
+            {isTyping && (
+              <TypingIndicator 
+                womanName={womanData.name}
+                womanImageUrl={womanData.image_url}
+              />
+            )}
             
             {/* Auto-scroll target */}
             <div ref={messagesEndRef} />
