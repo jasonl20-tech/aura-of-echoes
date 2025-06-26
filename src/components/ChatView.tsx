@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, ArrowLeft, MoreVertical, Phone, Video } from 'lucide-react';
+import { Send, ArrowLeft, MoreVertical } from 'lucide-react';
 import { useMessages, useSendMessage } from '../hooks/useChats';
 import { useAuth } from '../hooks/useAuth';
 import ProfileModal from './ProfileModal';
@@ -24,7 +24,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanName, onBack }) => {
   const womanData = {
     id: 'woman-1',
     name: womanName || 'Unknown',
-    image_url: 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=300&h=300&fit=crop',
+    image_url: `https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=300&h=300&fit=crop&faces=1&auto=format`,
     age: 25,
     description: 'Ich liebe es, neue Leute kennenzulernen und interessante Gespräche zu führen.',
     interests: ['Reisen', 'Fotografie', 'Musik', 'Sport']
@@ -115,8 +115,8 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanName, onBack }) => {
 
   return (
     <div className="min-h-screen flex flex-col bg-black">
-      {/* Chat Header */}
-      <div className="glass-card border-b border-white/10 px-4 py-3 flex items-center justify-between">
+      {/* Chat Header - Fixed/Sticky */}
+      <div className="fixed top-0 left-0 right-0 z-40 glass-card border-b border-white/10 px-4 py-3 flex items-center justify-between bg-black/80 backdrop-blur-xl">
         <div className="flex items-center space-x-3">
           <button
             onClick={onBack}
@@ -134,6 +134,10 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanName, onBack }) => {
                 src={womanData.image_url}
                 alt={womanName}
                 className="w-10 h-10 rounded-full object-cover border-2 border-purple-400/50"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=300&h=300&fit=crop&auto=format';
+                }}
               />
               <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-black"></div>
             </div>
@@ -147,19 +151,13 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanName, onBack }) => {
 
         <div className="flex items-center space-x-2">
           <button className="p-2 hover:bg-white/10 rounded-full transition-colors">
-            <Phone className="w-5 h-5 text-white/70" />
-          </button>
-          <button className="p-2 hover:bg-white/10 rounded-full transition-colors">
-            <Video className="w-5 h-5 text-white/70" />
-          </button>
-          <button className="p-2 hover:bg-white/10 rounded-full transition-colors">
             <MoreVertical className="w-5 h-5 text-white/70" />
           </button>
         </div>
       </div>
 
-      {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+      {/* Messages Container - with top padding to account for fixed header */}
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 pt-20 pb-20">
         {isLoading ? (
           <div className="flex justify-center py-8">
             <div className="animate-spin w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full"></div>
@@ -189,6 +187,10 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanName, onBack }) => {
                           src={womanData.image_url}
                           alt={womanName}
                           className="w-6 h-6 rounded-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=300&h=300&fit=crop&auto=format';
+                          }}
                         />
                       )}
                       
@@ -220,6 +222,10 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanName, onBack }) => {
                     src={womanData.image_url}
                     alt={womanName}
                     className="w-6 h-6 rounded-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=300&h=300&fit=crop&auto=format';
+                    }}
                   />
                   <div className="bg-white/10 px-4 py-3 rounded-2xl rounded-bl-md">
                     <div className="flex space-x-1">
@@ -238,8 +244,8 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanName, onBack }) => {
         )}
       </div>
 
-      {/* Message Input */}
-      <div className="glass-card border-t border-white/10 p-4">
+      {/* Message Input - Fixed at bottom */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 glass-card border-t border-white/10 p-4 bg-black/80 backdrop-blur-xl">
         <div className="flex items-center space-x-3">
           <div className="flex-1 relative">
             <input
