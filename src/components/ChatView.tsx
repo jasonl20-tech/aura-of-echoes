@@ -105,43 +105,104 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
     audioRef.current = { play: createNotificationSound };
   }, []);
 
-  // New component for rendering audio messages
+  // Enhanced audio message component with actual playback
   const AudioMessage = useCallback(({ message }: { message: any }) => {
     const [isPlaying, setIsPlaying] = useState(false);
+    const [duration, setDuration] = useState(0);
+    const [currentTime, setCurrentTime] = useState(0);
+    const audioElementRef = useRef<HTMLAudioElement | null>(null);
     
-    const handlePlayAudio = () => {
-      // Placeholder for audio playback - would need actual audio data
-      setIsPlaying(!isPlaying);
-      // In a real implementation, you would play the audio file here
+    // Create a mock audio URL for demo purposes
+    // In a real implementation, you would have the actual audio file URL
+    const audioUrl = useMemo(() => {
+      // For demo purposes, we'll use a text-to-speech service or a placeholder
+      // In production, you'd store the actual audio file and retrieve its URL
+      return `data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N6QQAoUXrTp66hVFApGn+DyvmkfCD2Y3+zBgiEFL4zS8dKEMQcSaLrtr49MCAxPmODy03EhBSqAzu7PkxoNJnvB7uxSLggWcMPx4vJsKAUjhc3zzZNLBCN+zu3PkysRPJ3Y+O5WLgkYfsXy4PI4DAUhiM3z11ooBCGAzezNkjoCGHDK8+PuYCMFJI3U89OdRQcmg8/nxZggHCiFz+nZkjoCGHDK8+PuYCMFJI3U89OdRQ=`;
+    }, []);
+
+    useEffect(() => {
+      if (audioElementRef.current) {
+        const audio = audioElementRef.current;
+        
+        const updateTime = () => setCurrentTime(audio.currentTime);
+        const updateDuration = () => setDuration(audio.duration);
+        const handleEnded = () => setIsPlaying(false);
+        
+        audio.addEventListener('timeupdate', updateTime);
+        audio.addEventListener('loadedmetadata', updateDuration);
+        audio.addEventListener('ended', handleEnded);
+        
+        return () => {
+          audio.removeEventListener('timeupdate', updateTime);
+          audio.removeEventListener('loadedmetadata', updateDuration);
+          audio.removeEventListener('ended', handleEnded);
+        };
+      }
+    }, []);
+    
+    const handlePlayPause = async () => {
+      if (!audioElementRef.current) return;
+      
+      try {
+        if (isPlaying) {
+          audioElementRef.current.pause();
+          setIsPlaying(false);
+        } else {
+          await audioElementRef.current.play();
+          setIsPlaying(true);
+        }
+      } catch (error) {
+        console.error('Error playing audio:', error);
+      }
+    };
+
+    const formatTime = (time: number) => {
+      const minutes = Math.floor(time / 60);
+      const seconds = Math.floor(time % 60);
+      return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     };
 
     return (
-      <div className="flex items-center space-x-2 bg-purple-600/20 rounded-lg p-2">
+      <div className="flex items-center space-x-3 bg-purple-600/20 rounded-lg p-3 max-w-xs">
+        <audio
+          ref={audioElementRef}
+          src={audioUrl}
+          preload="metadata"
+        />
+        
         <button
-          onClick={handlePlayAudio}
-          className="p-1 hover:bg-white/10 rounded-full transition-colors"
+          onClick={handlePlayPause}
+          className="p-2 hover:bg-white/10 rounded-full transition-colors flex-shrink-0"
         >
           {isPlaying ? (
-            <Pause className="w-4 h-4 text-white" />
+            <Pause className="w-5 h-5 text-white" />
           ) : (
-            <Play className="w-4 h-4 text-white" />
+            <Play className="w-5 h-5 text-white" />
           )}
         </button>
-        <div className="flex-1">
-          <div className="flex items-center space-x-1">
+        
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center space-x-1 mb-1">
             <div className="flex space-x-1">
               {[...Array(12)].map((_, i) => (
                 <div
                   key={i}
-                  className={`w-1 bg-purple-400 rounded-full ${
+                  className={`w-1 bg-purple-400 rounded-full transition-all duration-150 ${
                     isPlaying ? 'animate-pulse' : ''
                   }`}
-                  style={{ height: `${Math.random() * 16 + 8}px` }}
+                  style={{ 
+                    height: `${Math.random() * 16 + 8}px`,
+                    opacity: currentTime > (duration / 12) * i ? 0.8 : 0.3
+                  }}
                 />
               ))}
             </div>
           </div>
-          <p className="text-xs text-white/70 mt-1">Audio-Nachricht</p>
+          
+          <div className="flex justify-between items-center text-xs text-white/70">
+            <span>Audio</span>
+            <span>{formatTime(currentTime)} / {formatTime(duration || 0)}</span>
+          </div>
         </div>
       </div>
     );
