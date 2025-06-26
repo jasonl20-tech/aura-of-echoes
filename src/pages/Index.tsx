@@ -16,6 +16,8 @@ const Index = () => {
   const [selectedWomanName, setSelectedWomanName] = useState<string | null>(null);
   const { user, loading } = useAuth();
 
+  const isInChat = selectedChatId && selectedWomanName && activeTab === 'chats';
+
   const handleTabChange = (tab: string) => {
     // Chat Tab requires authentication
     if (tab === 'chats' && !user) {
@@ -87,34 +89,38 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col relative">
-      {/* Header with user info */}
-      <header className="p-3 sm:p-4 flex justify-between items-center">
-        <div className="text-white/70 text-xs sm:text-sm truncate flex-1 mr-4">
-          {user ? `Willkommen, ${user.email}` : 'Entdecke AI-Companions'}
-        </div>
-        {user && (
-          <button
-            onClick={() => setShowAuthModal(true)}
-            className="text-white/70 hover:text-white transition-colors text-xs sm:text-sm whitespace-nowrap"
-          >
-            Profil
-          </button>
-        )}
-      </header>
+      {/* Header - verstecken wenn im Chat */}
+      {!isInChat && (
+        <header className="p-3 sm:p-4 flex justify-between items-center">
+          <div className="text-white/70 text-xs sm:text-sm truncate flex-1 mr-4">
+            {user ? `Willkommen, ${user.email}` : 'Entdecke AI-Companions'}
+          </div>
+          {user && (
+            <button
+              onClick={() => setShowAuthModal(true)}
+              className="text-white/70 hover:text-white transition-colors text-xs sm:text-sm whitespace-nowrap"
+            >
+              Profil
+            </button>
+          )}
+        </header>
+      )}
 
-      {/* Subtle background elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-24 sm:w-32 h-24 sm:h-32 bg-purple-600/5 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-40 right-16 w-16 sm:w-24 h-16 sm:h-24 bg-purple-500/8 rounded-full blur-2xl"></div>
-      </div>
+      {/* Subtle background elements - nur wenn nicht im Chat */}
+      {!isInChat && (
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-10 w-24 sm:w-32 h-24 sm:h-32 bg-purple-600/5 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-40 right-16 w-16 sm:w-24 h-16 sm:h-24 bg-purple-500/8 rounded-full blur-2xl"></div>
+        </div>
+      )}
 
       {/* Main Content */}
-      <main className="flex-1 px-3 sm:px-4 py-4 sm:py-6 max-w-md mx-auto w-full pb-20 sm:pb-24">
+      <main className={`flex-1 ${isInChat ? '' : 'px-3 sm:px-4 py-4 sm:py-6 max-w-md mx-auto w-full pb-20 sm:pb-24'}`}>
         {renderContent()}
       </main>
 
-      {/* Compact Bottom Navigation - Fixed - Hide for Admin Dashboard */}
-      {activeTab !== 'admin' && (
+      {/* Bottom Navigation - verstecken wenn im Chat oder Admin */}
+      {!isInChat && activeTab !== 'admin' && (
         <nav className="fixed bottom-0 left-0 right-0 nav-glass z-50 safe-area-bottom">
           <div className="flex justify-around max-w-md mx-auto px-2 py-2 sm:py-3">
             <button

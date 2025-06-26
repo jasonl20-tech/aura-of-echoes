@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { MessageCircle, Send, Smile, ArrowLeft } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Send, ArrowLeft, MoreVertical, Phone, Video } from 'lucide-react';
 import { useMessages, useSendMessage } from '../hooks/useChats';
 import { useAuth } from '../hooks/useAuth';
 import ProfileModal from './ProfileModal';
@@ -17,8 +17,10 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanName, onBack }) => {
   const sendMessage = useSendMessage();
   const [newMessage, setNewMessage] = useState('');
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Mock woman data - in a real app, this would come from props or be fetched
+  // Mock woman data - in einer echten App würde das von props kommen
   const womanData = {
     id: 'woman-1',
     name: womanName || 'Unknown',
@@ -27,6 +29,15 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanName, onBack }) => {
     description: 'Ich liebe es, neue Leute kennenzulernen und interessante Gespräche zu führen.',
     interests: ['Reisen', 'Fotografie', 'Musik', 'Sport']
   };
+
+  // Auto-scroll zu neuen Nachrichten
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const handleSendMessage = async () => {
     if (!chatId || !newMessage.trim() || sendMessage.isPending) return;
@@ -39,164 +50,225 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanName, onBack }) => {
       });
       setNewMessage('');
 
-      // Simulate AI response after a delay
+      // Zeige Typing Indicator
+      setIsTyping(true);
+      
+      // Simuliere AI-Antwort nach einer Verzögerung
       setTimeout(async () => {
+        setIsTyping(false);
         await sendMessage.mutateAsync({
           chatId,
           content: 'Das ist interessant! Erzähl mir mehr davon. 😊',
           senderType: 'ai',
         });
-      }, 1000);
+      }, 1500);
     } catch (error) {
       console.error('Failed to send message:', error);
     }
   };
 
-  const suggestedMessages = [
-    "Wie war dein Tag?",
-    "Was sind deine Hobbies?",
-    "Erzähl mir von dir",
-    "Was machst du gerne?"
-  ];
+  const formatMessageTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('de-DE', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+  };
+
+  const shouldShowDateHeader = (currentMessage: any, previousMessage: any) => {
+    if (!previousMessage) return true;
+    
+    const currentDate = new Date(currentMessage.created_at).toDateString();
+    const previousDate = new Date(previousMessage.created_at).toDateString();
+    
+    return currentDate !== previousDate;
+  };
+
+  const formatDateHeader = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    if (date.toDateString() === today.toDateString()) {
+      return 'Heute';
+    } else if (date.toDateString() === yesterday.toDateString()) {
+      return 'Gestern';
+    } else {
+      return date.toLocaleDateString('de-DE', { 
+        weekday: 'long', 
+        day: 'numeric', 
+        month: 'long' 
+      });
+    }
+  };
 
   if (!chatId || !user) {
     return (
-      <div className="flex flex-col items-center justify-center h-full space-y-6 text-center">
-        <div className="glass-card rounded-3xl p-8 max-w-sm">
-          <MessageCircle className="w-16 h-16 text-pink-400 mx-auto mb-4 animate-glow" />
-          <h2 className="text-xl font-bold text-white mb-3">
-            Chat auswählen
-          </h2>
-          <p className="text-white/70">
-            Wähle einen Chat aus der Liste oder abonniere neue Profile, um zu chatten.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-full">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-white text-center">
-          <div className="animate-spin w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p>Chat wird geladen...</p>
+          <p>Kein Chat ausgewählt</p>
         </div>
       </div>
     );
   }
 
   return (
-    <>
-      <div className="flex flex-col h-full max-h-[70vh]">
-        {/* Chat Header */}
-        <div className="glass-card rounded-2xl p-4 mb-4">
-          <div className="flex items-center space-x-3">
-            {onBack && (
-              <button
-                onClick={onBack}
-                className="glass-button p-2 rounded-full hover:bg-white/20 transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5 text-white" />
-              </button>
-            )}
-            <img
-              src={womanData.image_url}
-              alt={womanName}
-              onClick={() => setShowProfileModal(true)}
-              className="w-12 h-12 rounded-full object-cover border-2 border-pink-400/50 cursor-pointer hover:border-pink-400 transition-colors"
-            />
-            <div className="flex-1">
-              <h3 
-                className="font-semibold text-white cursor-pointer hover:text-purple-300 transition-colors"
-                onClick={() => setShowProfileModal(true)}
-              >
-                {womanName}
-              </h3>
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                <span className="text-sm text-white/60">Online</span>
-              </div>
+    <div className="min-h-screen flex flex-col bg-black">
+      {/* Chat Header */}
+      <div className="glass-card border-b border-white/10 px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={onBack}
+            className="p-2 hover:bg-white/10 rounded-full transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5 text-white" />
+          </button>
+          
+          <div 
+            className="flex items-center space-x-3 cursor-pointer"
+            onClick={() => setShowProfileModal(true)}
+          >
+            <div className="relative">
+              <img
+                src={womanData.image_url}
+                alt={womanName}
+                className="w-10 h-10 rounded-full object-cover border-2 border-purple-400/50"
+              />
+              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 rounded-full border-2 border-black"></div>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold text-white text-sm">{womanName}</h3>
+              <p className="text-xs text-green-400">Online</p>
             </div>
           </div>
         </div>
 
-        {/* Messages */}
-        <div className="flex-1 space-y-4 overflow-y-auto mb-4">
-          {messages?.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.sender_type === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
-              <div
-                className={`max-w-[80%] p-3 rounded-2xl ${
-                  message.sender_type === 'user'
-                    ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-br-sm'
-                    : 'glass-card text-white rounded-bl-sm'
-                }`}
-              >
-                <p className="text-sm">{message.content}</p>
-                <p className={`text-xs mt-1 ${
-                  message.sender_type === 'user' ? 'text-white/70' : 'text-white/50'
-                }`}>
-                  {new Date(message.created_at).toLocaleTimeString('de-DE', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                  })}
-                </p>
+        <div className="flex items-center space-x-2">
+          <button className="p-2 hover:bg-white/10 rounded-full transition-colors">
+            <Phone className="w-5 h-5 text-white/70" />
+          </button>
+          <button className="p-2 hover:bg-white/10 rounded-full transition-colors">
+            <Video className="w-5 h-5 text-white/70" />
+          </button>
+          <button className="p-2 hover:bg-white/10 rounded-full transition-colors">
+            <MoreVertical className="w-5 h-5 text-white/70" />
+          </button>
+        </div>
+      </div>
+
+      {/* Messages Container */}
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+        {isLoading ? (
+          <div className="flex justify-center py-8">
+            <div className="animate-spin w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full"></div>
+          </div>
+        ) : (
+          <>
+            {messages?.map((message, index) => {
+              const previousMessage = index > 0 ? messages[index - 1] : null;
+              const showDate = shouldShowDateHeader(message, previousMessage);
+              
+              return (
+                <React.Fragment key={message.id}>
+                  {/* Date Header */}
+                  {showDate && (
+                    <div className="flex justify-center my-4">
+                      <span className="bg-black/50 px-3 py-1 rounded-full text-xs text-white/60">
+                        {formatDateHeader(message.created_at)}
+                      </span>
+                    </div>
+                  )}
+                  
+                  {/* Message */}
+                  <div className={`flex ${message.sender_type === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className="flex items-end space-x-2 max-w-[80%]">
+                      {message.sender_type === 'ai' && (
+                        <img
+                          src={womanData.image_url}
+                          alt={womanName}
+                          className="w-6 h-6 rounded-full object-cover"
+                        />
+                      )}
+                      
+                      <div
+                        className={`px-4 py-2 rounded-2xl max-w-full ${
+                          message.sender_type === 'user'
+                            ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-br-md'
+                            : 'bg-white/10 text-white rounded-bl-md'
+                        }`}
+                      >
+                        <p className="text-sm leading-relaxed">{message.content}</p>
+                        <p className={`text-xs mt-1 ${
+                          message.sender_type === 'user' ? 'text-white/70' : 'text-white/50'
+                        }`}>
+                          {formatMessageTime(message.created_at)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </React.Fragment>
+              );
+            })}
+            
+            {/* Typing Indicator */}
+            {isTyping && (
+              <div className="flex justify-start">
+                <div className="flex items-end space-x-2">
+                  <img
+                    src={womanData.image_url}
+                    alt={womanName}
+                    className="w-6 h-6 rounded-full object-cover"
+                  />
+                  <div className="bg-white/10 px-4 py-3 rounded-2xl rounded-bl-md">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          )) || (
-            <div className="text-center text-white/70 py-8">
-              <p>Noch keine Nachrichten. Starte das Gespräch!</p>
-            </div>
-          )}
-        </div>
+            )}
+            
+            {/* Auto-scroll target */}
+            <div ref={messagesEndRef} />
+          </>
+        )}
+      </div>
 
-        {/* Suggested Messages */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {suggestedMessages.map((suggestion, index) => (
-            <button
-              key={index}
-              onClick={() => setNewMessage(suggestion)}
-              className="glass-button px-3 py-1 rounded-full text-sm text-white/80 hover:text-white"
-            >
-              {suggestion}
-            </button>
-          ))}
-        </div>
-
-        {/* Message Input */}
-        <div className="glass-card rounded-2xl p-3">
-          <div className="flex items-center space-x-3">
-            <button className="glass-button p-2 rounded-full">
-              <Smile className="w-5 h-5 text-white/60" />
-            </button>
+      {/* Message Input */}
+      <div className="glass-card border-t border-white/10 p-4">
+        <div className="flex items-center space-x-3">
+          <div className="flex-1 relative">
             <input
               type="text"
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-              placeholder="Schreibe eine Nachricht..."
-              className="flex-1 bg-transparent border-none outline-none text-white placeholder-white/50"
+              placeholder="Nachricht schreiben..."
+              className="w-full bg-white/10 border border-white/20 rounded-full px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
-            <button
-              onClick={handleSendMessage}
-              disabled={sendMessage.isPending || !newMessage.trim()}
-              className="bg-gradient-to-r from-pink-500 to-purple-500 p-2 rounded-full hover:from-pink-600 hover:to-purple-600 transition-all duration-300 disabled:opacity-50"
-            >
-              <Send className="w-5 h-5 text-white" />
-            </button>
           </div>
+          
+          <button
+            onClick={handleSendMessage}
+            disabled={sendMessage.isPending || !newMessage.trim()}
+            className="bg-gradient-to-r from-purple-600 to-pink-600 p-3 rounded-full hover:from-purple-700 hover:to-pink-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Send className="w-5 h-5 text-white" />
+          </button>
         </div>
       </div>
 
+      {/* Profile Modal */}
       <ProfileModal
         isOpen={showProfileModal}
         onClose={() => setShowProfileModal(false)}
         woman={womanData}
       />
-    </>
+    </div>
   );
 };
 
