@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import ProfileGallery from '../components/ProfileGallery';
 import ChatView from '../components/ChatView';
 import SettingsView from '../components/SettingsView';
+import AdminDashboard from '../components/AdminDashboard';
 import AuthModal from '../components/AuthModal';
 
 const Index = () => {
@@ -21,6 +22,10 @@ const Index = () => {
     setActiveTab(tab);
   };
 
+  const handleNavigateToAdmin = () => {
+    setActiveTab('admin');
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'profiles':
@@ -28,9 +33,11 @@ const Index = () => {
       case 'chats':
         return user ? <ChatView /> : <ProfileGallery onAuthRequired={() => setShowAuthModal(true)} />;
       case 'settings':
-        return <SettingsView onAuthRequired={() => setShowAuthModal(true)} />;
+        return <SettingsView onAuthRequired={() => setShowAuthModal(true)} onNavigateToAdmin={handleNavigateToAdmin} />;
       case 'random':
         return <ProfileGallery isRandom onAuthRequired={() => setShowAuthModal(true)} />;
+      case 'admin':
+        return <AdminDashboard />;
       default:
         return <ProfileGallery onAuthRequired={() => setShowAuthModal(true)} />;
     }
@@ -74,60 +81,74 @@ const Index = () => {
         {renderContent()}
       </main>
 
-      {/* Compact Bottom Navigation - Fixed */}
-      <nav className="fixed bottom-0 left-0 right-0 nav-glass z-50">
-        <div className="flex justify-around max-w-md mx-auto px-2 py-2">
+      {/* Compact Bottom Navigation - Fixed - Hide for Admin Dashboard */}
+      {activeTab !== 'admin' && (
+        <nav className="fixed bottom-0 left-0 right-0 nav-glass z-50">
+          <div className="flex justify-around max-w-md mx-auto px-2 py-2">
+            <button
+              onClick={() => setActiveTab('profiles')}
+              className={`flex flex-col items-center space-y-1 p-2 rounded-xl transition-all duration-300 ${
+                activeTab === 'profiles'
+                  ? 'glass-button text-white bg-purple-600/20 purple-glow'
+                  : 'text-white/60 hover:text-white/90 hover:bg-white/5'
+              }`}
+            >
+              <Users className="w-5 h-5" />
+              <span className="text-xs font-medium">Profile</span>
+            </button>
+            
+            <button
+              onClick={() => handleTabChange('chats')}
+              className={`flex flex-col items-center space-y-1 p-2 rounded-xl transition-all duration-300 ${
+                activeTab === 'chats'
+                  ? 'glass-button text-white bg-purple-600/20 purple-glow'
+                  : 'text-white/60 hover:text-white/90 hover:bg-white/5'
+              }`}
+            >
+              <MessageCircle className="w-5 h-5" />
+              <span className="text-xs font-medium">Chats</span>
+              {!user && <div className="w-2 h-2 bg-red-400 rounded-full -mt-1"></div>}
+            </button>
+            
+            <button
+              onClick={() => setActiveTab('random')}
+              className={`flex flex-col items-center space-y-1 p-2 rounded-xl transition-all duration-300 ${
+                activeTab === 'random'
+                  ? 'glass-button text-white bg-purple-600/20 purple-glow'
+                  : 'text-white/60 hover:text-white/90 hover:bg-white/5'
+              }`}
+            >
+              <Shuffle className="w-5 h-5" />
+              <span className="text-xs font-medium">Zufall</span>
+            </button>
+            
+            <button
+              onClick={() => handleTabChange('settings')}
+              className={`flex flex-col items-center space-y-1 p-2 rounded-xl transition-all duration-300 ${
+                activeTab === 'settings'
+                  ? 'glass-button text-white bg-purple-600/20 purple-glow'
+                  : 'text-white/60 hover:text-white/90 hover:bg-white/5'
+              }`}
+            >
+              <Settings className="w-5 h-5" />
+              <span className="text-xs font-medium">Settings</span>
+              {!user && <div className="w-2 h-2 bg-red-400 rounded-full -mt-1"></div>}
+            </button>
+          </div>
+        </nav>
+      )}
+
+      {/* Back button for Admin Dashboard */}
+      {activeTab === 'admin' && (
+        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
           <button
-            onClick={() => setActiveTab('profiles')}
-            className={`flex flex-col items-center space-y-1 p-2 rounded-xl transition-all duration-300 ${
-              activeTab === 'profiles'
-                ? 'glass-button text-white bg-purple-600/20 purple-glow'
-                : 'text-white/60 hover:text-white/90 hover:bg-white/5'
-            }`}
+            onClick={() => setActiveTab('settings')}
+            className="glass-button px-6 py-3 rounded-xl text-white font-semibold hover:bg-purple-600/30 transition-all duration-300"
           >
-            <Users className="w-5 h-5" />
-            <span className="text-xs font-medium">Profile</span>
-          </button>
-          
-          <button
-            onClick={() => handleTabChange('chats')}
-            className={`flex flex-col items-center space-y-1 p-2 rounded-xl transition-all duration-300 ${
-              activeTab === 'chats'
-                ? 'glass-button text-white bg-purple-600/20 purple-glow'
-                : 'text-white/60 hover:text-white/90 hover:bg-white/5'
-            }`}
-          >
-            <MessageCircle className="w-5 h-5" />
-            <span className="text-xs font-medium">Chats</span>
-            {!user && <div className="w-2 h-2 bg-red-400 rounded-full -mt-1"></div>}
-          </button>
-          
-          <button
-            onClick={() => setActiveTab('random')}
-            className={`flex flex-col items-center space-y-1 p-2 rounded-xl transition-all duration-300 ${
-              activeTab === 'random'
-                ? 'glass-button text-white bg-purple-600/20 purple-glow'
-                : 'text-white/60 hover:text-white/90 hover:bg-white/5'
-            }`}
-          >
-            <Shuffle className="w-5 h-5" />
-            <span className="text-xs font-medium">Zufall</span>
-          </button>
-          
-          <button
-            onClick={() => handleTabChange('settings')}
-            className={`flex flex-col items-center space-y-1 p-2 rounded-xl transition-all duration-300 ${
-              activeTab === 'settings'
-                ? 'glass-button text-white bg-purple-600/20 purple-glow'
-                : 'text-white/60 hover:text-white/90 hover:bg-white/5'
-            }`}
-          >
-            <Settings className="w-5 h-5" />
-            <span className="text-xs font-medium">Settings</span>
-            {!user && <div className="w-2 h-2 bg-red-400 rounded-full -mt-1"></div>}
+            ← Zurück zu Einstellungen
           </button>
         </div>
-      </nav>
+      )}
 
       {/* Auth Modal */}
       {showAuthModal && (

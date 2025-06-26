@@ -142,7 +142,7 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
                     Melde dich an, um mit {profile.name} zu chatten
                   </p>
                   <p className="text-2xl font-bold text-white">
-                    €{profile.price?.toFixed(2)} <span className="text-sm text-white/60">/Monat</span>
+                    €3.99 <span className="text-sm text-white/60">/Monat</span>
                   </p>
                 </div>
                 <button
@@ -168,7 +168,7 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
                     Abonnieren Sie {profile.name} für
                   </p>
                   <p className="text-2xl font-bold text-white">
-                    €{profile.price?.toFixed(2)} <span className="text-sm text-white/60">/Monat</span>
+                    €3.99 <span className="text-sm text-white/60">/Monat</span>
                   </p>
                 </div>
                 <button

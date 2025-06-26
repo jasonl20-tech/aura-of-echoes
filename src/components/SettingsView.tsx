@@ -1,14 +1,17 @@
 
 import React from 'react';
-import { User, Shield, Bell, Globe, Trash2, LogOut } from 'lucide-react';
+import { User, Shield, Bell, Globe, Trash2, LogOut, Settings } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useIsAdmin } from '@/hooks/useAdminWomen';
 
 interface SettingsViewProps {
   onAuthRequired?: () => void;
+  onNavigateToAdmin?: () => void;
 }
 
-const SettingsView: React.FC<SettingsViewProps> = ({ onAuthRequired }) => {
+const SettingsView: React.FC<SettingsViewProps> = ({ onAuthRequired, onNavigateToAdmin }) => {
   const { user, signOut } = useAuth();
+  const { data: isAdmin, isLoading: adminLoading } = useIsAdmin();
 
   if (!user) {
     return (
@@ -48,6 +51,25 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onAuthRequired }) => {
       </div>
 
       <div className="space-y-4">
+        {/* Admin Dashboard Section */}
+        {!adminLoading && isAdmin && (
+          <div className="glass-card rounded-2xl p-6">
+            <div className="flex items-center space-x-3 mb-4">
+              <Settings className="w-6 h-6 text-orange-400" />
+              <h2 className="text-xl font-semibold text-white">Administration</h2>
+            </div>
+            <p className="text-white/70 text-sm mb-4">
+              Als Administrator können Sie neue Frauen erstellen und verwalten.
+            </p>
+            <button
+              onClick={() => onNavigateToAdmin?.()}
+              className="w-full glass-button py-3 rounded-xl text-white font-semibold hover:bg-orange-600/30 transition-all duration-300"
+            >
+              Admin Dashboard öffnen
+            </button>
+          </div>
+        )}
+
         {/* Profile Section */}
         <div className="glass-card rounded-2xl p-6">
           <div className="flex items-center space-x-3 mb-4">
