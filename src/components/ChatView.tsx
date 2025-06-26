@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Send, ArrowLeft, MoreVertical } from 'lucide-react';
 import { useMessages, useSendMessage } from '../hooks/useChats';
@@ -47,10 +46,14 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
     };
   }, [woman, womanId, womanName]);
 
-  // Memoized image URL to prevent flickering
+  // Memoized image URL to prevent flickering - now properly handles empty strings
   const imageUrl = useMemo(() => {
     const fallbackImageUrl = 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=300&h=300&fit=crop&faces=1&auto=format';
-    return womanData.image_url || fallbackImageUrl;
+    
+    // Check if image_url exists and is not empty/whitespace
+    const hasValidImageUrl = womanData.image_url && womanData.image_url.trim().length > 0;
+    
+    return hasValidImageUrl ? womanData.image_url : fallbackImageUrl;
   }, [womanData.image_url]);
 
   // Memoized image error handler
