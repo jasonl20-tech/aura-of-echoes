@@ -124,6 +124,11 @@ export function useSendMessage() {
         queryKey: ['messages', variables.chatId] 
       });
       
+      // Invalidiere auch die Chats Query um die letzte Nachricht zu aktualisieren
+      queryClient.invalidateQueries({ 
+        queryKey: ['chats'] 
+      });
+      
       console.log('Message sent and queries invalidated');
     },
     onError: (error) => {

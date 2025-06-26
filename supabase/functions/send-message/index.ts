@@ -72,14 +72,15 @@ serve(async (req) => {
       throw new Error('Woman not found')
     }
 
-    // Send message to woman's AI API
+    // Send message to woman's AI API (no waiting for response)
     try {
-      const aiResponse = await fetch(woman.webhook_url, {
+      await fetch(woman.webhook_url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          chatId: chatId,
           message: content,
           character: {
             name: woman.name,
@@ -89,54 +90,18 @@ serve(async (req) => {
         })
       })
 
-      if (!aiResponse.ok) {
-        throw new Error('AI API request failed')
-      }
-
-      const aiData = await aiResponse.json()
-      const aiMessage = aiData.response || 'Entschuldigung, ich kann gerade nicht antworten.'
-
-      // Insert AI response
-      const { error: aiMessageError } = await supabaseClient
-        .from('messages')
-        .insert({
-          chat_id: chatId,
-          sender_type: 'ai',
-          content: aiMessage
-        })
-
-      if (aiMessageError) {
-        throw aiMessageError
-      }
-
-      return new Response(
-        JSON.stringify({ success: true, aiMessage }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      )
-
-    } catch (aiError) {
-      console.error('AI API Error:', aiError)
-      
-      // Insert fallback message
-      const fallbackMessage = 'Entschuldigung, ich bin gerade nicht verfügbar. Versuchen Sie es später erneut.'
-      
-      await supabaseClient
-        .from('messages')
-        .insert({
-          chat_id: chatId,
-          sender_type: 'ai',
-          content: fallbackMessage
-        })
-
-      return new Response(
-        JSON.stringify({ success: true, aiMessage: fallbackMessage }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      )
+      console.log('Webhook called successfully for woman:', woman.name)
+    } catch (webhookError) {
+      console.error('Webhook call failed:', webhookError)
+      // Don't throw error - user message was saved successfully
     }
+
+    return new Response(
+      JSON.stringify({ success: true, message: 'Message sent successfully' }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    )
 
   } catch (error) {
     console.error('Error:', error)

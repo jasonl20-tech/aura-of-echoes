@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, ArrowLeft, MoreVertical } from 'lucide-react';
 import { useMessages, useSendMessage } from '../hooks/useChats';
@@ -19,7 +20,6 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
   const sendMessage = useSendMessage();
   const [newMessage, setNewMessage] = useState('');
   const [showProfileModal, setShowProfileModal] = useState(false);
-  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Verwende echte Daten wenn verfügbar, sonst Fallback
@@ -67,16 +67,9 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
       });
       
       setNewMessage('');
-      setIsTyping(true);
-      
-      // Typing indicator wird automatisch durch die AI-Antwort beendet
-      setTimeout(() => {
-        setIsTyping(false);
-      }, 5000); // Fallback falls keine AI-Antwort kommt
       
     } catch (error) {
       console.error('Failed to send message:', error);
-      setIsTyping(false);
     }
   };
 
@@ -234,30 +227,6 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
                 </React.Fragment>
               );
             })}
-            
-            {/* Typing Indicator */}
-            {isTyping && (
-              <div className="flex justify-start">
-                <div className="flex items-end space-x-2">
-                  <img
-                    src={imageUrl}
-                    alt={womanData.name}
-                    className="w-6 h-6 rounded-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = fallbackImageUrl;
-                    }}
-                  />
-                  <div className="bg-white/10 px-4 py-3 rounded-2xl rounded-bl-md">
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-white/60 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
             
             {/* Auto-scroll target */}
             <div ref={messagesEndRef} />
