@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Plus, Edit, Trash2, Save, X, Users, Settings, Key, Copy, FileText } from 'lucide-react';
 import { useWomen } from '@/hooks/useWomen';
@@ -17,12 +18,17 @@ interface NewWomanForm {
   interests: string[];
 }
 
+interface EditWomanForm extends NewWomanForm {
+  id: string;
+}
+
 const AdminDashboard: React.FC = () => {
   const { data: women, refetch } = useWomen();
   const { data: apiKeys } = useWomenApiKeys();
   const [activeTab, setActiveTab] = useState<'women' | 'users' | 'api-docs'>('women');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingWoman, setEditingWoman] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<EditWomanForm | null>(null);
   const [showApiKeys, setShowApiKeys] = useState<Set<string>>(new Set());
   const [newWoman, setNewWoman] = useState<NewWomanForm>({
     name: '',
@@ -33,6 +39,10 @@ const AdminDashboard: React.FC = () => {
     webhook_url: '',
     interests: []
   });
+
+  const createWoman = useCreateWoman();
+  const updateWoman = useUpdateWoman();
+  const deleteWoman = useDeleteWoman();
 
   const handleCreateWoman = async () => {
     try {
@@ -61,6 +71,46 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  const handleEditWoman = (woman: any) => {
+    setEditForm({
+      id: woman.id,
+      name: woman.name,
+      age: woman.age,
+      description: woman.description || '',
+      personality: woman.personality || '',
+      image_url: woman.image_url || '',
+      webhook_url: woman.webhook_url,
+      interests: woman.interests || []
+    });
+    setEditingWoman(woman.id);
+  };
+
+  const handleUpdateWoman = async () => {
+    if (!editForm) return;
+    
+    try {
+      await updateWoman.mutateAsync(editForm);
+      toast({
+        title: "Erfolgreich!",
+        description: `${editForm.name} wurde erfolgreich aktualisiert.`,
+      });
+      setEditingWoman(null);
+      setEditForm(null);
+      refetch();
+    } catch (error: any) {
+      toast({
+        title: "Fehler",
+        description: error.message || "Fehler beim Aktualisieren der Frau",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingWoman(null);
+    setEditForm(null);
+  };
+
   const handleDeleteWoman = async (id: string, name: string) => {
     if (window.confirm(`Sind Sie sicher, dass Sie ${name} löschen möchten?`)) {
       try {
@@ -84,6 +134,8 @@ const AdminDashboard: React.FC = () => {
     const interestArray = interests.split(',').map(i => i.trim()).filter(i => i);
     if (isNew) {
       setNewWoman(prev => ({ ...prev, interests: interestArray }));
+    } else {
+      setEditForm(prev => prev ? ({ ...prev, interests: interestArray }) : null);
     }
   };
 
@@ -116,10 +168,6 @@ const AdminDashboard: React.FC = () => {
   const getApiKeyForWoman = (womanId: string) => {
     return apiKeys?.find(key => key.woman_id === womanId);
   };
-
-  const createWoman = useCreateWoman();
-  const updateWoman = useUpdateWoman();
-  const deleteWoman = useDeleteWoman();
 
   return (
     <div className="space-y-4 sm:space-y-6 px-2 sm:px-4 max-w-7xl mx-auto">
@@ -310,76 +358,193 @@ const AdminDashboard: React.FC = () => {
                 {women.map((woman) => {
                   const apiKey = getApiKeyForWoman(woman.id);
                   const isApiKeyVisible = showApiKeys.has(woman.id);
+                  const isEditing = editingWoman === woman.id;
                   
                   return (
                     <div key={woman.id} className="glass-card rounded-xl p-4 sm:p-6">
-                      <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-                        <img
-                          src={woman.image_url || 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=60&h=60&fit=crop'}
-                          alt={woman.name}
-                          className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover mx-auto md:mx-0 flex-shrink-0"
-                        />
-                        
-                        <div className="flex-1 text-center md:text-left min-w-0">
-                          <h3 className="text-base sm:text-lg font-semibold text-white truncate">{woman.name}</h3>
-                          <p className="text-white/70 text-sm">{woman.age} Jahre</p>
-                          <p className="text-white/60 text-sm line-clamp-2 md:line-clamp-1">{woman.description}</p>
-                          <div className="flex flex-col md:flex-row items-center justify-center md:justify-start space-y-1 md:space-y-0 md:space-x-2 mt-1">
-                            <span className="text-green-400 font-semibold text-sm">€{woman.price}/Monat</span>
-                            {woman.interests && woman.interests.length > 0 && (
-                              <span className="text-white/50 text-xs truncate">
-                                • {woman.interests.slice(0, 2).join(', ')}
-                                {woman.interests.length > 2 && ` +${woman.interests.length - 2}`}
-                              </span>
-                            )}
+                      {isEditing && editForm ? (
+                        // Edit Form
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-semibold text-white">Frau bearbeiten</h3>
+                            <button
+                              onClick={handleCancelEdit}
+                              className="text-white/60 hover:text-white p-1"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
                           </div>
 
-                          {/* API Key Section */}
-                          {apiKey && (
-                            <div className="mt-3 space-y-2">
-                              <div className="flex items-center justify-center md:justify-start space-x-2">
-                                <button
-                                  onClick={() => toggleApiKeyVisibility(woman.id)}
-                                  className="flex items-center space-x-1 text-xs text-purple-400 hover:text-purple-300 transition-colors"
-                                >
-                                  <Key className="w-3 h-3" />
-                                  <span>{isApiKeyVisible ? 'API-Key verbergen' : 'API-Key anzeigen'}</span>
-                                </button>
-                              </div>
-                              
-                              {isApiKeyVisible && (
-                                <div className="bg-black/30 rounded-lg p-2 flex items-center justify-between">
-                                  <code className="text-xs text-green-400 font-mono truncate">
-                                    {apiKey.api_key}
-                                  </code>
-                                  <button
-                                    onClick={() => copyApiKey(apiKey.api_key)}
-                                    className="ml-2 p-1 hover:bg-white/10 rounded transition-colors"
-                                    title="API-Key kopieren"
-                                  >
-                                    <Copy className="w-3 h-3 text-white/70" />
-                                  </button>
-                                </div>
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-white/70 text-sm">Name</label>
+                              <input
+                                type="text"
+                                value={editForm.name}
+                                onChange={(e) => setEditForm(prev => prev ? ({ ...prev, name: e.target.value }) : null)}
+                                className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="text-white/70 text-sm">Alter</label>
+                              <input
+                                type="number"
+                                value={editForm.age}
+                                onChange={(e) => setEditForm(prev => prev ? ({ ...prev, age: parseInt(e.target.value) || 18 }) : null)}
+                                className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                min="18"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-white/70 text-sm">Beschreibung</label>
+                              <textarea
+                                value={editForm.description}
+                                onChange={(e) => setEditForm(prev => prev ? ({ ...prev, description: e.target.value }) : null)}
+                                className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500 h-20"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="text-white/70 text-sm">Persönlichkeit</label>
+                              <textarea
+                                value={editForm.personality}
+                                onChange={(e) => setEditForm(prev => prev ? ({ ...prev, personality: e.target.value }) : null)}
+                                className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500 h-20"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-white/70 text-sm">Bild-URL</label>
+                              <input
+                                type="url"
+                                value={editForm.image_url}
+                                onChange={(e) => setEditForm(prev => prev ? ({ ...prev, image_url: e.target.value }) : null)}
+                                className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="text-white/70 text-sm">Webhook-URL</label>
+                              <input
+                                type="url"
+                                value={editForm.webhook_url}
+                                onChange={(e) => setEditForm(prev => prev ? ({ ...prev, webhook_url: e.target.value }) : null)}
+                                className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                required
+                              />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="text-white/70 text-sm">Interessen (kommagetrennt)</label>
+                            <input
+                              type="text"
+                              value={editForm.interests.join(', ')}
+                              onChange={(e) => handleInterestsChange(e.target.value, false)}
+                              className="w-full glass rounded-xl px-4 py-3 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            />
+                          </div>
+
+                          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 pt-4">
+                            <button
+                              onClick={handleUpdateWoman}
+                              disabled={updateWoman.isPending || !editForm.name || !editForm.webhook_url}
+                              className="flex-1 glass-button py-3 rounded-xl text-white font-semibold hover:bg-green-600/30 transition-all duration-300 disabled:opacity-50 flex items-center justify-center space-x-2"
+                            >
+                              <Save className="w-4 h-4 sm:w-5 sm:h-5" />
+                              <span>{updateWoman.isPending ? 'Wird aktualisiert...' : 'Speichern'}</span>
+                            </button>
+                            <button
+                              onClick={handleCancelEdit}
+                              className="w-full sm:w-auto px-6 glass-button py-3 rounded-xl text-white/70 font-semibold hover:bg-red-600/30 transition-all duration-300"
+                            >
+                              Abbrechen
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        // Display Mode
+                        <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                          <img
+                            src={woman.image_url || 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=60&h=60&fit=crop'}
+                            alt={woman.name}
+                            className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover mx-auto md:mx-0 flex-shrink-0"
+                          />
+                          
+                          <div className="flex-1 text-center md:text-left min-w-0">
+                            <h3 className="text-base sm:text-lg font-semibold text-white truncate">{woman.name}</h3>
+                            <p className="text-white/70 text-sm">{woman.age} Jahre</p>
+                            <p className="text-white/60 text-sm line-clamp-2 md:line-clamp-1">{woman.description}</p>
+                            <div className="flex flex-col md:flex-row items-center justify-center md:justify-start space-y-1 md:space-y-0 md:space-x-2 mt-1">
+                              <span className="text-green-400 font-semibold text-sm">€{woman.price}/Monat</span>
+                              {woman.interests && woman.interests.length > 0 && (
+                                <span className="text-white/50 text-xs truncate">
+                                  • {woman.interests.slice(0, 2).join(', ')}
+                                  {woman.interests.length > 2 && ` +${woman.interests.length - 2}`}
+                                </span>
                               )}
                             </div>
-                          )}
+
+                            {/* Webhook URL Display */}
+                            <div className="mt-2">
+                              <p className="text-white/50 text-xs truncate">
+                                Webhook: {woman.webhook_url}
+                              </p>
+                            </div>
+
+                            {/* API Key Section */}
+                            {apiKey && (
+                              <div className="mt-3 space-y-2">
+                                <div className="flex items-center justify-center md:justify-start space-x-2">
+                                  <button
+                                    onClick={() => toggleApiKeyVisibility(woman.id)}
+                                    className="flex items-center space-x-1 text-xs text-purple-400 hover:text-purple-300 transition-colors"
+                                  >
+                                    <Key className="w-3 h-3" />
+                                    <span>{isApiKeyVisible ? 'API-Key verbergen' : 'API-Key anzeigen'}</span>
+                                  </button>
+                                </div>
+                                
+                                {isApiKeyVisible && (
+                                  <div className="bg-black/30 rounded-lg p-2 flex items-center justify-between">
+                                    <code className="text-xs text-green-400 font-mono truncate">
+                                      {apiKey.api_key}
+                                    </code>
+                                    <button
+                                      onClick={() => copyApiKey(apiKey.api_key)}
+                                      className="ml-2 p-1 hover:bg-white/10 rounded transition-colors"
+                                      title="API-Key kopieren"
+                                    >
+                                      <Copy className="w-3 h-3 text-white/70" />
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="flex space-x-2 w-full md:w-auto justify-center flex-shrink-0">
+                            <button
+                              onClick={() => handleEditWoman(woman)}
+                              className="flex-1 md:flex-none glass-button p-2 rounded-lg text-white/70 hover:text-white hover:bg-blue-600/30 transition-all duration-300"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteWoman(woman.id, woman.name)}
+                              className="flex-1 md:flex-none glass-button p-2 rounded-lg text-white/70 hover:text-white hover:bg-red-600/30 transition-all duration-300"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </div>
-                        
-                        <div className="flex space-x-2 w-full md:w-auto justify-center flex-shrink-0">
-                          <button
-                            onClick={() => setEditingWoman(woman.id)}
-                            className="flex-1 md:flex-none glass-button p-2 rounded-lg text-white/70 hover:text-white hover:bg-blue-600/30 transition-all duration-300"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteWoman(woman.id, woman.name)}
-                            className="flex-1 md:flex-none glass-button p-2 rounded-lg text-white/70 hover:text-white hover:bg-red-600/30 transition-all duration-300"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
+                      )}
                     </div>
                   );
                 })}
