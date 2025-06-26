@@ -50,3 +50,8 @@ export function useWoman(id: string) {
     enabled: !!id,
   });
 }
+
+// Hilfsfunktion um die API-Endpoint URL für eine Frau zu generieren
+export function getWomanApiEndpoint(womanId: string): string {
+  return `https://axarouxelvazgeewnakv.supabase.co/functions/v1/receive-message`;
+}

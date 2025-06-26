@@ -3,31 +3,42 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Send, ArrowLeft, MoreVertical } from 'lucide-react';
 import { useMessages, useSendMessage } from '../hooks/useChats';
 import { useAuth } from '../hooks/useAuth';
+import { useWoman } from '../hooks/useWomen';
 import ProfileModal from './ProfileModal';
 
 interface ChatViewProps {
   chatId?: string;
+  womanId?: string;
   womanName?: string;
   onBack?: () => void;
 }
 
-const ChatView: React.FC<ChatViewProps> = ({ chatId, womanName, onBack }) => {
+const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack }) => {
   const { user } = useAuth();
-  const { data: messages, isLoading } = useMessages(chatId || '');
+  const { data: messages, isLoading: messagesLoading } = useMessages(chatId || '');
+  const { data: woman, isLoading: womanLoading } = useWoman(womanId || '');
   const sendMessage = useSendMessage();
   const [newMessage, setNewMessage] = useState('');
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Mock woman data - in einer echten App würde das von props kommen
-  const womanData = {
-    id: 'woman-1',
+  // Fallback zu Mock-Daten falls keine echten Daten verfügbar
+  const womanData = woman || {
+    id: womanId || 'unknown',
     name: womanName || 'Unknown',
     image_url: `https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=300&h=300&fit=crop&faces=1&auto=format`,
     age: 25,
     description: 'Ich liebe es, neue Leute kennenzulernen und interessante Gespräche zu führen.',
-    interests: ['Reisen', 'Fotografie', 'Musik', 'Sport']
+    interests: ['Reisen', 'Fotografie', 'Musik', 'Sport'],
+    personality: 'Freundlich und aufgeschlossen',
+    webhook_url: '',
+    price: 3.99,
+    height: null,
+    origin: null,
+    nsfw: false,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   };
 
   // Auto-scroll zu neuen Nachrichten
@@ -40,30 +51,29 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanName, onBack }) => {
   }, [messages]);
 
   const handleSendMessage = async () => {
-    if (!chatId || !newMessage.trim() || sendMessage.isPending) return;
+    if (!chatId || !newMessage.trim() || sendMessage.isPending || !womanId) return;
+
+    console.log('Sending message to chatId:', chatId, 'womanId:', womanId);
 
     try {
+      // Sende Nachricht über die send-message Edge Function
       await sendMessage.mutateAsync({
         chatId,
         content: newMessage,
-        senderType: 'user',
+        womanId,
       });
+      
       setNewMessage('');
-
-      // Zeige Typing Indicator
       setIsTyping(true);
       
-      // Simuliere AI-Antwort nach einer Verzögerung
-      setTimeout(async () => {
+      // Typing indicator wird automatisch durch die AI-Antwort beendet
+      setTimeout(() => {
         setIsTyping(false);
-        await sendMessage.mutateAsync({
-          chatId,
-          content: 'Das ist interessant! Erzähl mir mehr davon. 😊',
-          senderType: 'ai',
-        });
-      }, 1500);
+      }, 5000); // Fallback falls keine AI-Antwort kommt
+      
     } catch (error) {
       console.error('Failed to send message:', error);
+      setIsTyping(false);
     }
   };
 
@@ -113,6 +123,14 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanName, onBack }) => {
     );
   }
 
+  if (womanLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-black">
       {/* Chat Header - Fixed/Sticky */}
@@ -131,8 +149,8 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanName, onBack }) => {
           >
             <div className="relative">
               <img
-                src={womanData.image_url}
-                alt={womanName}
+                src={womanData.image_url || `https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=300&h=300&fit=crop&faces=1&auto=format`}
+                alt={womanData.name}
                 className="w-10 h-10 rounded-full object-cover border-2 border-purple-400/50"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
@@ -143,7 +161,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanName, onBack }) => {
             </div>
             
             <div>
-              <h3 className="font-semibold text-white text-sm">{womanName}</h3>
+              <h3 className="font-semibold text-white text-sm">{womanData.name}</h3>
               <p className="text-xs text-green-400">Online</p>
             </div>
           </div>
@@ -158,7 +176,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanName, onBack }) => {
 
       {/* Messages Container - with top padding to account for fixed header */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 pt-20 pb-20">
-        {isLoading ? (
+        {messagesLoading ? (
           <div className="flex justify-center py-8">
             <div className="animate-spin w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full"></div>
           </div>
@@ -184,8 +202,8 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanName, onBack }) => {
                     <div className="flex items-end space-x-2 max-w-[80%]">
                       {message.sender_type === 'ai' && (
                         <img
-                          src={womanData.image_url}
-                          alt={womanName}
+                          src={womanData.image_url || `https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=300&h=300&fit=crop&faces=1&auto=format`}
+                          alt={womanData.name}
                           className="w-6 h-6 rounded-full object-cover"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
@@ -219,8 +237,8 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanName, onBack }) => {
               <div className="flex justify-start">
                 <div className="flex items-end space-x-2">
                   <img
-                    src={womanData.image_url}
-                    alt={womanName}
+                    src={womanData.image_url || `https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=300&h=300&fit=crop&faces=1&auto=format`}
+                    alt={womanData.name}
                     className="w-6 h-6 rounded-full object-cover"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;

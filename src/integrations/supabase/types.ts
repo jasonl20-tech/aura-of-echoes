@@ -230,11 +230,50 @@ export type Database = {
         }
         Relationships: []
       }
+      women_api_keys: {
+        Row: {
+          active: boolean
+          api_key: string
+          created_at: string
+          id: string
+          last_used_at: string | null
+          woman_id: string
+        }
+        Insert: {
+          active?: boolean
+          api_key: string
+          created_at?: string
+          id?: string
+          last_used_at?: string | null
+          woman_id: string
+        }
+        Update: {
+          active?: boolean
+          api_key?: string
+          created_at?: string
+          id?: string
+          last_used_at?: string | null
+          woman_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "women_api_keys_woman_id_fkey"
+            columns: ["woman_id"]
+            isOneToOne: false
+            referencedRelation: "women"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      generate_api_key: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       has_free_access: {
         Args:
           | { woman_id: string }

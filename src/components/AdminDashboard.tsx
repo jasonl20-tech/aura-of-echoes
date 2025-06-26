@@ -1,8 +1,8 @@
-
 import React, { useState } from 'react';
-import { Plus, Edit, Trash2, Save, X, Users, Settings } from 'lucide-react';
+import { Plus, Edit, Trash2, Save, X, Users, Settings, Key, Copy } from 'lucide-react';
 import { useWomen } from '@/hooks/useWomen';
 import { useCreateWoman, useUpdateWoman, useDeleteWoman } from '@/hooks/useAdminWomen';
+import { useWomenApiKeys } from '@/hooks/useWomenApiKeys';
 import { toast } from '@/hooks/use-toast';
 import UserManagement from './UserManagement';
 
@@ -18,9 +18,11 @@ interface NewWomanForm {
 
 const AdminDashboard: React.FC = () => {
   const { data: women, refetch } = useWomen();
+  const { data: apiKeys } = useWomenApiKeys();
   const [activeTab, setActiveTab] = useState<'women' | 'users'>('women');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingWoman, setEditingWoman] = useState<string | null>(null);
+  const [showApiKeys, setShowApiKeys] = useState<Set<string>>(new Set());
   const [newWoman, setNewWoman] = useState<NewWomanForm>({
     name: '',
     age: 18,
@@ -86,6 +88,36 @@ const AdminDashboard: React.FC = () => {
     if (isNew) {
       setNewWoman(prev => ({ ...prev, interests: interestArray }));
     }
+  };
+
+  const toggleApiKeyVisibility = (womanId: string) => {
+    const newShowApiKeys = new Set(showApiKeys);
+    if (newShowApiKeys.has(womanId)) {
+      newShowApiKeys.delete(womanId);
+    } else {
+      newShowApiKeys.add(womanId);
+    }
+    setShowApiKeys(newShowApiKeys);
+  };
+
+  const copyApiKey = async (apiKey: string) => {
+    try {
+      await navigator.clipboard.writeText(apiKey);
+      toast({
+        title: "Kopiert!",
+        description: "API-Key wurde in die Zwischenablage kopiert.",
+      });
+    } catch (error) {
+      toast({
+        title: "Fehler",
+        description: "API-Key konnte nicht kopiert werden.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getApiKeyForWoman = (womanId: string) => {
+    return apiKeys?.find(key => key.woman_id === womanId);
   };
 
   return (
@@ -261,47 +293,82 @@ const AdminDashboard: React.FC = () => {
             
             {women && women.length > 0 ? (
               <div className="grid gap-3 sm:gap-4 lg:gap-6">
-                {women.map((woman) => (
-                  <div key={woman.id} className="glass-card rounded-xl p-4 sm:p-6">
-                    <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-                      <img
-                        src={woman.image_url || 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=60&h=60&fit=crop'}
-                        alt={woman.name}
-                        className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover mx-auto md:mx-0 flex-shrink-0"
-                      />
-                      
-                      <div className="flex-1 text-center md:text-left min-w-0">
-                        <h3 className="text-base sm:text-lg font-semibold text-white truncate">{woman.name}</h3>
-                        <p className="text-white/70 text-sm">{woman.age} Jahre</p>
-                        <p className="text-white/60 text-sm line-clamp-2 md:line-clamp-1">{woman.description}</p>
-                        <div className="flex flex-col md:flex-row items-center justify-center md:justify-start space-y-1 md:space-y-0 md:space-x-2 mt-1">
-                          <span className="text-green-400 font-semibold text-sm">€3.99/Monat</span>
-                          {woman.interests && woman.interests.length > 0 && (
-                            <span className="text-white/50 text-xs truncate">
-                              • {woman.interests.slice(0, 2).join(', ')}
-                              {woman.interests.length > 2 && ` +${woman.interests.length - 2}`}
-                            </span>
+                {women.map((woman) => {
+                  const apiKey = getApiKeyForWoman(woman.id);
+                  const isApiKeyVisible = showApiKeys.has(woman.id);
+                  
+                  return (
+                    <div key={woman.id} className="glass-card rounded-xl p-4 sm:p-6">
+                      <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                        <img
+                          src={woman.image_url || 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=60&h=60&fit=crop'}
+                          alt={woman.name}
+                          className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover mx-auto md:mx-0 flex-shrink-0"
+                        />
+                        
+                        <div className="flex-1 text-center md:text-left min-w-0">
+                          <h3 className="text-base sm:text-lg font-semibold text-white truncate">{woman.name}</h3>
+                          <p className="text-white/70 text-sm">{woman.age} Jahre</p>
+                          <p className="text-white/60 text-sm line-clamp-2 md:line-clamp-1">{woman.description}</p>
+                          <div className="flex flex-col md:flex-row items-center justify-center md:justify-start space-y-1 md:space-y-0 md:space-x-2 mt-1">
+                            <span className="text-green-400 font-semibold text-sm">€{woman.price}/Monat</span>
+                            {woman.interests && woman.interests.length > 0 && (
+                              <span className="text-white/50 text-xs truncate">
+                                • {woman.interests.slice(0, 2).join(', ')}
+                                {woman.interests.length > 2 && ` +${woman.interests.length - 2}`}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* API Key Section */}
+                          {apiKey && (
+                            <div className="mt-3 space-y-2">
+                              <div className="flex items-center justify-center md:justify-start space-x-2">
+                                <button
+                                  onClick={() => toggleApiKeyVisibility(woman.id)}
+                                  className="flex items-center space-x-1 text-xs text-purple-400 hover:text-purple-300 transition-colors"
+                                >
+                                  <Key className="w-3 h-3" />
+                                  <span>{isApiKeyVisible ? 'API-Key verbergen' : 'API-Key anzeigen'}</span>
+                                </button>
+                              </div>
+                              
+                              {isApiKeyVisible && (
+                                <div className="bg-black/30 rounded-lg p-2 flex items-center justify-between">
+                                  <code className="text-xs text-green-400 font-mono truncate">
+                                    {apiKey.api_key}
+                                  </code>
+                                  <button
+                                    onClick={() => copyApiKey(apiKey.api_key)}
+                                    className="ml-2 p-1 hover:bg-white/10 rounded transition-colors"
+                                    title="API-Key kopieren"
+                                  >
+                                    <Copy className="w-3 h-3 text-white/70" />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
                           )}
                         </div>
-                      </div>
-                      
-                      <div className="flex space-x-2 w-full md:w-auto justify-center flex-shrink-0">
-                        <button
-                          onClick={() => setEditingWoman(woman.id)}
-                          className="flex-1 md:flex-none glass-button p-2 rounded-lg text-white/70 hover:text-white hover:bg-blue-600/30 transition-all duration-300"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteWoman(woman.id, woman.name)}
-                          className="flex-1 md:flex-none glass-button p-2 rounded-lg text-white/70 hover:text-white hover:bg-red-600/30 transition-all duration-300"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        
+                        <div className="flex space-x-2 w-full md:w-auto justify-center flex-shrink-0">
+                          <button
+                            onClick={() => setEditingWoman(woman.id)}
+                            className="flex-1 md:flex-none glass-button p-2 rounded-lg text-white/70 hover:text-white hover:bg-blue-600/30 transition-all duration-300"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteWoman(woman.id, woman.name)}
+                            className="flex-1 md:flex-none glass-button p-2 rounded-lg text-white/70 hover:text-white hover:bg-red-600/30 transition-all duration-300"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="glass-card rounded-xl sm:rounded-2xl p-6 sm:p-8 text-center">
