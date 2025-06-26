@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -26,6 +27,7 @@ export interface Message {
   content: string;
   created_at: string;
   message_type: string;
+  audio_url?: string | null;
 }
 
 export function useChats() {

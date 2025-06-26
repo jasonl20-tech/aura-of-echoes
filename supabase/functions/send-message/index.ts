@@ -1,5 +1,4 @@
 
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -58,28 +57,77 @@ serve(async (req) => {
 
     console.log('Access confirmed for user:', user.id, 'woman:', womanId)
 
+    // Handle audio upload if present
+    let audioUrl = null;
+    if (audioData) {
+      try {
+        console.log('Processing audio upload...')
+        
+        // Convert base64 to binary
+        const binaryData = Uint8Array.from(atob(audioData), c => c.charCodeAt(0));
+        console.log('Audio binary data size:', binaryData.length, 'bytes')
+        
+        // Generate unique filename
+        const timestamp = Date.now();
+        const filename = `${chatId}_${timestamp}.webm`;
+        
+        // Upload to Supabase Storage
+        const { data: uploadData, error: uploadError } = await supabaseClient.storage
+          .from('audio-messages')
+          .upload(filename, binaryData, {
+            contentType: audioType || 'audio/webm;codecs=opus',
+            cacheControl: '3600'
+          });
+
+        if (uploadError) {
+          console.error('Storage upload error:', uploadError);
+          throw new Error('Failed to upload audio file');
+        }
+
+        console.log('Audio uploaded successfully:', uploadData.path);
+
+        // Get public URL
+        const { data: { publicUrl } } = supabaseClient.storage
+          .from('audio-messages')
+          .getPublicUrl(filename);
+
+        audioUrl = publicUrl;
+        console.log('Audio public URL:', audioUrl);
+
+      } catch (audioError) {
+        console.error('Audio processing error:', audioError);
+        // Continue without audio URL - fallback behavior
+      }
+    }
+
     // Determine message type and content
     const messageType = audioData ? 'audio' : 'text'
     const messageContent = audioData ? '[Audio-Nachricht]' : content
 
-    console.log('Inserting message:', { type: messageType, content: messageContent })
+    console.log('Inserting message:', { type: messageType, content: messageContent, audioUrl })
 
-    // Insert user message with correct message_type
+    // Insert user message with audio URL if available
+    const messageInsert: any = {
+      chat_id: chatId,
+      sender_type: 'user',
+      content: messageContent,
+      message_type: messageType
+    };
+
+    if (audioUrl) {
+      messageInsert.audio_url = audioUrl;
+    }
+
     const { error: messageError } = await supabaseClient
       .from('messages')
-      .insert({
-        chat_id: chatId,
-        sender_type: 'user',
-        content: messageContent,
-        message_type: messageType
-      })
+      .insert(messageInsert)
 
     if (messageError) {
       console.error('Error inserting message:', messageError)
       throw messageError
     }
 
-    console.log('Message inserted successfully, type:', messageType)
+    console.log('Message inserted successfully, type:', messageType, 'audio URL:', audioUrl)
 
     // Get woman's webhook URL
     const { data: woman, error: womanError } = await supabaseClient
@@ -183,4 +231,3 @@ serve(async (req) => {
     )
   }
 })
-

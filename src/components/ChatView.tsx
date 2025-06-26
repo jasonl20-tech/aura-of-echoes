@@ -105,43 +105,56 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
     audioRef.current = { play: createNotificationSound };
   }, []);
 
-  // Enhanced audio message component with actual playback
+  // Enhanced audio message component with real audio playback
   const AudioMessage = useCallback(({ message }: { message: any }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [duration, setDuration] = useState(0);
     const [currentTime, setCurrentTime] = useState(0);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const audioElementRef = useRef<HTMLAudioElement | null>(null);
     
-    // Create a mock audio URL for demo purposes
-    // In a real implementation, you would have the actual audio file URL
-    const audioUrl = useMemo(() => {
-      // For demo purposes, we'll use a text-to-speech service or a placeholder
-      // In production, you'd store the actual audio file and retrieve its URL
-      return `data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N6QQAoUXrTp66hVFApGn+DyvmkfCD2Y3+zBgiEFL4zS8dKEMQcSaLrtr49MCAxPmODy03EhBSqAzu7PkxoNJnvB7uxSLggWcMPx4vJsKAUjhc3zzZNLBCN+zu3PkysRPJ3Y+O5WLgkYfsXy4PI4DAUhiM3z11ooBCGAzezNkjoCGHDK8+PuYCMFJI3U89OdRQcmg8/nxZggHCiFz+nZkjoCGHDK8+PuYCMFJI3U89OdRQ=`;
-    }, []);
+    console.log('AudioMessage component:', { 
+      messageId: message.id, 
+      audioUrl: message.audio_url,
+      hasAudioUrl: !!message.audio_url 
+    });
 
     useEffect(() => {
-      if (audioElementRef.current) {
+      if (audioElementRef.current && message.audio_url) {
         const audio = audioElementRef.current;
         
         const updateTime = () => setCurrentTime(audio.currentTime);
-        const updateDuration = () => setDuration(audio.duration);
+        const updateDuration = () => {
+          setDuration(audio.duration || 0);
+          setIsLoading(false);
+        };
         const handleEnded = () => setIsPlaying(false);
+        const handleLoadStart = () => setIsLoading(true);
+        const handleError = (e: any) => {
+          console.error('Audio load error:', e);
+          setError('Audio konnte nicht geladen werden');
+          setIsLoading(false);
+        };
         
         audio.addEventListener('timeupdate', updateTime);
         audio.addEventListener('loadedmetadata', updateDuration);
         audio.addEventListener('ended', handleEnded);
+        audio.addEventListener('loadstart', handleLoadStart);
+        audio.addEventListener('error', handleError);
         
         return () => {
           audio.removeEventListener('timeupdate', updateTime);
           audio.removeEventListener('loadedmetadata', updateDuration);
           audio.removeEventListener('ended', handleEnded);
+          audio.removeEventListener('loadstart', handleLoadStart);
+          audio.removeEventListener('error', handleError);
         };
       }
-    }, []);
+    }, [message.audio_url]);
     
     const handlePlayPause = async () => {
-      if (!audioElementRef.current) return;
+      if (!audioElementRef.current || !message.audio_url) return;
       
       try {
         if (isPlaying) {
@@ -153,28 +166,47 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
         }
       } catch (error) {
         console.error('Error playing audio:', error);
+        setError('Wiedergabe fehlgeschlagen');
       }
     };
 
     const formatTime = (time: number) => {
+      if (!isFinite(time)) return '0:00';
       const minutes = Math.floor(time / 60);
       const seconds = Math.floor(time % 60);
       return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     };
 
+    // If no audio URL, show fallback
+    if (!message.audio_url) {
+      return (
+        <div className="flex items-center space-x-3 bg-purple-600/20 rounded-lg p-3 max-w-xs">
+          <div className="p-2 bg-red-500/20 rounded-full">
+            <Play className="w-5 h-5 text-red-400" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm text-white/70">Audio nicht verfügbar</p>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="flex items-center space-x-3 bg-purple-600/20 rounded-lg p-3 max-w-xs">
         <audio
           ref={audioElementRef}
-          src={audioUrl}
+          src={message.audio_url}
           preload="metadata"
         />
         
         <button
           onClick={handlePlayPause}
-          className="p-2 hover:bg-white/10 rounded-full transition-colors flex-shrink-0"
+          disabled={isLoading || !!error}
+          className="p-2 hover:bg-white/10 rounded-full transition-colors flex-shrink-0 disabled:opacity-50"
         >
-          {isPlaying ? (
+          {isLoading ? (
+            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          ) : isPlaying ? (
             <Pause className="w-5 h-5 text-white" />
           ) : (
             <Play className="w-5 h-5 text-white" />
@@ -182,27 +214,33 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
         </button>
         
         <div className="flex-1 min-w-0">
-          <div className="flex items-center space-x-1 mb-1">
-            <div className="flex space-x-1">
-              {[...Array(12)].map((_, i) => (
-                <div
-                  key={i}
-                  className={`w-1 bg-purple-400 rounded-full transition-all duration-150 ${
-                    isPlaying ? 'animate-pulse' : ''
-                  }`}
-                  style={{ 
-                    height: `${Math.random() * 16 + 8}px`,
-                    opacity: currentTime > (duration / 12) * i ? 0.8 : 0.3
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-          
-          <div className="flex justify-between items-center text-xs text-white/70">
-            <span>Audio</span>
-            <span>{formatTime(currentTime)} / {formatTime(duration || 0)}</span>
-          </div>
+          {error ? (
+            <p className="text-xs text-red-400">{error}</p>
+          ) : (
+            <>
+              <div className="flex items-center space-x-1 mb-1">
+                <div className="flex space-x-1">
+                  {[...Array(12)].map((_, i) => (
+                    <div
+                      key={i}
+                      className={`w-1 bg-purple-400 rounded-full transition-all duration-150 ${
+                        isPlaying ? 'animate-pulse' : ''
+                      }`}
+                      style={{ 
+                        height: `${Math.random() * 16 + 8}px`,
+                        opacity: duration > 0 && currentTime > (duration / 12) * i ? 0.8 : 0.3
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+              
+              <div className="flex justify-between items-center text-xs text-white/70">
+                <span>Audio</span>
+                <span>{formatTime(currentTime)} / {formatTime(duration)}</span>
+              </div>
+            </>
+          )}
         </div>
       </div>
     );
