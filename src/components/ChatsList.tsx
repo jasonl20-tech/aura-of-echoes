@@ -1,10 +1,11 @@
 
-import React from 'react';
-import { MessageCircle, Clock, Crown, Gift } from 'lucide-react';
+import React, { useState } from 'react';
+import { MessageCircle, Clock } from 'lucide-react';
 import { useChats } from '../hooks/useChats';
 import { useAuth } from '../hooks/useAuth';
 import { useSubscriptions } from '../hooks/useSubscriptions';
 import { useFreeAccessPeriods } from '../hooks/useFreeAccess';
+import ProfileModal from './ProfileModal';
 
 interface ChatsListProps {
   onChatSelect: (chatId: string, womanName: string) => void;
@@ -15,6 +16,7 @@ const ChatsList: React.FC<ChatsListProps> = ({ onChatSelect }) => {
   const { data: chats, isLoading, error } = useChats();
   const { data: subscriptions } = useSubscriptions();
   const { data: freeAccessPeriods } = useFreeAccessPeriods();
+  const [selectedProfile, setSelectedProfile] = useState<any>(null);
 
   const getAccessInfo = (womanId: string) => {
     // Check for active subscription
@@ -71,6 +73,30 @@ const ChatsList: React.FC<ChatsListProps> = ({ onChatSelect }) => {
     }
   };
 
+  const formatLastMessageTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffHours = diffMs / (1000 * 60 * 60);
+    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+
+    if (diffHours < 1) {
+      const diffMinutes = Math.floor(diffMs / (1000 * 60));
+      return `${diffMinutes}m`;
+    } else if (diffHours < 24) {
+      return `${Math.floor(diffHours)}h`;
+    } else if (diffDays < 7) {
+      return `${Math.floor(diffDays)}d`;
+    } else {
+      return date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+    }
+  };
+
+  const handleProfileClick = (woman: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedProfile(woman);
+  };
+
   if (!user) {
     return (
       <div className="flex flex-col items-center justify-center h-64 text-center">
@@ -118,81 +144,95 @@ const ChatsList: React.FC<ChatsListProps> = ({ onChatSelect }) => {
   }
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-white text-glow mb-6">Deine Chats</h2>
-      
-      <div className="space-y-3">
-        {chats.map((chat) => {
-          const accessInfo = getAccessInfo(chat.woman_id);
-          const woman = chat.woman;
-          
-          return (
-            <div
-              key={chat.id}
-              onClick={() => onChatSelect(chat.id, woman?.name || 'Unknown')}
-              className="glass rounded-xl p-4 cursor-pointer hover:bg-white/20 transition-all duration-300"
-            >
-              <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <img
-                    src={woman?.image_url || 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=100&h=100&fit=crop'}
-                    alt={woman?.name}
-                    className="w-16 h-16 rounded-full object-cover border-2 border-purple-400/50"
-                  />
-                  {accessInfo && (
-                    <div className={`absolute -top-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center ${
-                      accessInfo.type === 'subscription' 
-                        ? 'bg-gradient-to-r from-yellow-400 to-orange-500' 
-                        : 'bg-gradient-to-r from-green-400 to-blue-500'
-                    }`}>
-                      {accessInfo.type === 'subscription' ? (
-                        <Crown className="w-3 h-3 text-white" />
-                      ) : (
-                        <Gift className="w-3 h-3 text-white" />
+    <>
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold text-white text-glow mb-6">Deine Chats</h2>
+        
+        <div className="space-y-3">
+          {chats.map((chat) => {
+            const accessInfo = getAccessInfo(chat.woman_id);
+            const woman = chat.woman;
+            const lastMessage = chat.lastMessage;
+            
+            return (
+              <div
+                key={chat.id}
+                onClick={() => onChatSelect(chat.id, woman?.name || 'Unknown')}
+                className="glass rounded-xl p-4 cursor-pointer hover:bg-white/20 transition-all duration-300"
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="relative">
+                    <img
+                      src={woman?.image_url || 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=100&h=100&fit=crop'}
+                      alt={woman?.name}
+                      onClick={(e) => handleProfileClick(woman, e)}
+                      className="w-16 h-16 rounded-full object-cover border-2 border-purple-400/50 hover:border-purple-400 transition-colors cursor-pointer"
+                    />
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-400 rounded-full border-2 border-gray-900"></div>
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <h3 
+                        className="font-semibold text-white text-lg hover:text-purple-300 transition-colors cursor-pointer"
+                        onClick={(e) => handleProfileClick(woman, e)}
+                      >
+                        {woman?.name}
+                      </h3>
+                      {lastMessage && (
+                        <span className="text-xs text-white/50">
+                          {formatLastMessageTime(lastMessage.created_at)}
+                        </span>
                       )}
                     </div>
-                  )}
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-white text-lg">{woman?.name}</h3>
+                    
+                    {lastMessage && (
+                      <p className="text-white/70 text-sm truncate mb-1">
+                        {lastMessage.sender_type === 'user' ? 'Du: ' : ''}
+                        {lastMessage.content}
+                      </p>
+                    )}
+                    
+                    {accessInfo && (
+                      <div className={`flex items-center space-x-2 text-sm ${
+                        accessInfo.isExpiring ? 'text-orange-400' : 'text-white/70'
+                      }`}>
+                        <Clock className="w-4 h-4" />
+                        <span>
+                          {accessInfo.type === 'subscription' ? 'Abonniert' : 'Freigeschaltet'}
+                          {accessInfo.expiresAt && (
+                            <span className="ml-2">
+                              • {formatTimeRemaining(accessInfo.expiresAt)} verbleibend
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                    )}
+                  </div>
                   
-                  {accessInfo && (
-                    <div className={`flex items-center space-x-2 text-sm ${
-                      accessInfo.isExpiring ? 'text-orange-400' : 'text-white/70'
-                    }`}>
-                      <Clock className="w-4 h-4" />
-                      <span>
-                        {accessInfo.type === 'subscription' ? 'Abonniert' : 'Freigeschaltet'}
-                        {accessInfo.expiresAt && (
-                          <span className="ml-2">
-                            • {formatTimeRemaining(accessInfo.expiresAt)} verbleibend
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                  )}
-                  
-                  <div className="flex items-center space-x-2 text-white/50 text-sm mt-1">
-                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                    <span>Verfügbar zum Chatten</span>
+                  <div className="flex flex-col items-end space-y-2">
+                    <MessageCircle className="w-5 h-5 text-purple-400" />
+                    {accessInfo?.isExpiring && (
+                      <div className="bg-orange-500/20 px-2 py-1 rounded text-xs text-orange-400">
+                        Läuft bald ab
+                      </div>
+                    )}
                   </div>
                 </div>
-                
-                <div className="flex flex-col items-end space-y-2">
-                  <MessageCircle className="w-5 h-5 text-purple-400" />
-                  {accessInfo?.isExpiring && (
-                    <div className="bg-orange-500/20 px-2 py-1 rounded text-xs text-orange-400">
-                      Läuft bald ab
-                    </div>
-                  )}
-                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
-    </div>
+
+      {selectedProfile && (
+        <ProfileModal
+          isOpen={!!selectedProfile}
+          onClose={() => setSelectedProfile(null)}
+          woman={selectedProfile}
+        />
+      )}
+    </>
   );
 };
 

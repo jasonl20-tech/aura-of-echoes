@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
@@ -12,6 +11,15 @@ export interface Chat {
     id: string;
     name: string;
     image_url: string | null;
+    age?: number;
+    description?: string;
+    interests?: string[];
+  };
+  lastMessage?: {
+    id: string;
+    content: string;
+    sender_type: 'user' | 'ai';
+    created_at: string;
   };
 }
 
@@ -37,7 +45,10 @@ export function useChats() {
         .select(`
           id,
           name,
-          image_url
+          image_url,
+          age,
+          description,
+          interests
         `);
 
       if (accessError) throw accessError;
@@ -96,7 +107,10 @@ export function useChats() {
           women:woman_id (
             id,
             name,
-            image_url
+            image_url,
+            age,
+            description,
+            interests
           )
         `)
         .eq('user_id', user.id)
@@ -104,7 +118,32 @@ export function useChats() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return chats as Chat[];
+
+      // Hole letzte Nachricht für jeden Chat
+      const chatsWithLastMessage = await Promise.all(
+        chats.map(async (chat) => {
+          const { data: lastMessage } = await supabase
+            .from('messages')
+            .select('id, content, sender_type, created_at')
+            .eq('chat_id', chat.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          return {
+            ...chat,
+            woman: chat.women,
+            lastMessage
+          };
+        })
+      );
+
+      // Sortiere Chats nach letzter Nachricht
+      return chatsWithLastMessage.sort((a, b) => {
+        const aTime = a.lastMessage?.created_at || a.created_at;
+        const bTime = b.lastMessage?.created_at || b.created_at;
+        return new Date(bTime).getTime() - new Date(aTime).getTime();
+      });
     },
     enabled: !!user,
   });
@@ -200,6 +239,7 @@ export function useSendMessage() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['messages', variables.chatId] });
+      queryClient.invalidateQueries({ queryKey: ['chats'] });
     },
   });
 }

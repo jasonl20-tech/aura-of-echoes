@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { MessageCircle, Send, Smile, ArrowLeft } from 'lucide-react';
 import { useMessages, useSendMessage } from '../hooks/useChats';
 import { useAuth } from '../hooks/useAuth';
+import ProfileModal from './ProfileModal';
 
 interface ChatViewProps {
   chatId?: string;
@@ -15,6 +16,17 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanName, onBack }) => {
   const { data: messages, isLoading } = useMessages(chatId || '');
   const sendMessage = useSendMessage();
   const [newMessage, setNewMessage] = useState('');
+  const [showProfileModal, setShowProfileModal] = useState(false);
+
+  // Mock woman data - in a real app, this would come from props or be fetched
+  const womanData = {
+    id: 'woman-1',
+    name: womanName || 'Unknown',
+    image_url: 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=300&h=300&fit=crop',
+    age: 25,
+    description: 'Ich liebe es, neue Leute kennenzulernen und interessante Gespräche zu führen.',
+    interests: ['Reisen', 'Fotografie', 'Musik', 'Sport']
+  };
 
   const handleSendMessage = async () => {
     if (!chatId || !newMessage.trim() || sendMessage.isPending) return;
@@ -75,102 +87,116 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanName, onBack }) => {
   }
 
   return (
-    <div className="flex flex-col h-full max-h-[70vh]">
-      {/* Chat Header */}
-      <div className="glass-card rounded-2xl p-4 mb-4">
-        <div className="flex items-center space-x-3">
-          {onBack && (
-            <button
-              onClick={onBack}
-              className="glass-button p-2 rounded-full hover:bg-white/20 transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5 text-white" />
-            </button>
-          )}
-          <img
-            src="https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=100&h=100&fit=crop"
-            alt={womanName}
-            className="w-12 h-12 rounded-full object-cover border-2 border-pink-400/50"
-          />
-          <div>
-            <h3 className="font-semibold text-white">{womanName}</h3>
-            <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-              <span className="text-sm text-white/60">Online</span>
+    <>
+      <div className="flex flex-col h-full max-h-[70vh]">
+        {/* Chat Header */}
+        <div className="glass-card rounded-2xl p-4 mb-4">
+          <div className="flex items-center space-x-3">
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="glass-button p-2 rounded-full hover:bg-white/20 transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5 text-white" />
+              </button>
+            )}
+            <img
+              src={womanData.image_url}
+              alt={womanName}
+              onClick={() => setShowProfileModal(true)}
+              className="w-12 h-12 rounded-full object-cover border-2 border-pink-400/50 cursor-pointer hover:border-pink-400 transition-colors"
+            />
+            <div className="flex-1">
+              <h3 
+                className="font-semibold text-white cursor-pointer hover:text-purple-300 transition-colors"
+                onClick={() => setShowProfileModal(true)}
+              >
+                {womanName}
+              </h3>
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                <span className="text-sm text-white/60">Online</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Messages */}
-      <div className="flex-1 space-y-4 overflow-y-auto mb-4">
-        {messages?.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${message.sender_type === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
+        {/* Messages */}
+        <div className="flex-1 space-y-4 overflow-y-auto mb-4">
+          {messages?.map((message) => (
             <div
-              className={`max-w-[80%] p-3 rounded-2xl ${
-                message.sender_type === 'user'
-                  ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-br-sm'
-                  : 'glass-card text-white rounded-bl-sm'
-              }`}
+              key={message.id}
+              className={`flex ${message.sender_type === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              <p className="text-sm">{message.content}</p>
-              <p className={`text-xs mt-1 ${
-                message.sender_type === 'user' ? 'text-white/70' : 'text-white/50'
-              }`}>
-                {new Date(message.created_at).toLocaleTimeString('de-DE', { 
-                  hour: '2-digit', 
-                  minute: '2-digit' 
-                })}
-              </p>
+              <div
+                className={`max-w-[80%] p-3 rounded-2xl ${
+                  message.sender_type === 'user'
+                    ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white rounded-br-sm'
+                    : 'glass-card text-white rounded-bl-sm'
+                }`}
+              >
+                <p className="text-sm">{message.content}</p>
+                <p className={`text-xs mt-1 ${
+                  message.sender_type === 'user' ? 'text-white/70' : 'text-white/50'
+                }`}>
+                  {new Date(message.created_at).toLocaleTimeString('de-DE', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  })}
+                </p>
+              </div>
             </div>
-          </div>
-        )) || (
-          <div className="text-center text-white/70 py-8">
-            <p>Noch keine Nachrichten. Starte das Gespräch!</p>
-          </div>
-        )}
-      </div>
+          )) || (
+            <div className="text-center text-white/70 py-8">
+              <p>Noch keine Nachrichten. Starte das Gespräch!</p>
+            </div>
+          )}
+        </div>
 
-      {/* Suggested Messages */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        {suggestedMessages.map((suggestion, index) => (
-          <button
-            key={index}
-            onClick={() => setNewMessage(suggestion)}
-            className="glass-button px-3 py-1 rounded-full text-sm text-white/80 hover:text-white"
-          >
-            {suggestion}
-          </button>
-        ))}
-      </div>
+        {/* Suggested Messages */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {suggestedMessages.map((suggestion, index) => (
+            <button
+              key={index}
+              onClick={() => setNewMessage(suggestion)}
+              className="glass-button px-3 py-1 rounded-full text-sm text-white/80 hover:text-white"
+            >
+              {suggestion}
+            </button>
+          ))}
+        </div>
 
-      {/* Message Input */}
-      <div className="glass-card rounded-2xl p-3">
-        <div className="flex items-center space-x-3">
-          <button className="glass-button p-2 rounded-full">
-            <Smile className="w-5 h-5 text-white/60" />
-          </button>
-          <input
-            type="text"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-            placeholder="Schreibe eine Nachricht..."
-            className="flex-1 bg-transparent border-none outline-none text-white placeholder-white/50"
-          />
-          <button
-            onClick={handleSendMessage}
-            disabled={sendMessage.isPending || !newMessage.trim()}
-            className="bg-gradient-to-r from-pink-500 to-purple-500 p-2 rounded-full hover:from-pink-600 hover:to-purple-600 transition-all duration-300 disabled:opacity-50"
-          >
-            <Send className="w-5 h-5 text-white" />
-          </button>
+        {/* Message Input */}
+        <div className="glass-card rounded-2xl p-3">
+          <div className="flex items-center space-x-3">
+            <button className="glass-button p-2 rounded-full">
+              <Smile className="w-5 h-5 text-white/60" />
+            </button>
+            <input
+              type="text"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+              placeholder="Schreibe eine Nachricht..."
+              className="flex-1 bg-transparent border-none outline-none text-white placeholder-white/50"
+            />
+            <button
+              onClick={handleSendMessage}
+              disabled={sendMessage.isPending || !newMessage.trim()}
+              className="bg-gradient-to-r from-pink-500 to-purple-500 p-2 rounded-full hover:from-pink-600 hover:to-purple-600 transition-all duration-300 disabled:opacity-50"
+            >
+              <Send className="w-5 h-5 text-white" />
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+
+      <ProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        woman={womanData}
+      />
+    </>
   );
 };
 
