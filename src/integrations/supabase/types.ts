@@ -46,6 +46,7 @@ export type Database = {
           end_time: string
           id: string
           start_time: string
+          user_id: string | null
           woman_id: string
         }
         Insert: {
@@ -55,6 +56,7 @@ export type Database = {
           end_time: string
           id?: string
           start_time?: string
+          user_id?: string | null
           woman_id: string
         }
         Update: {
@@ -64,6 +66,7 @@ export type Database = {
           end_time?: string
           id?: string
           start_time?: string
+          user_id?: string | null
           woman_id?: string
         }
         Relationships: [
@@ -233,7 +236,9 @@ export type Database = {
     }
     Functions: {
       has_free_access: {
-        Args: { woman_id: string }
+        Args:
+          | { woman_id: string }
+          | { woman_id: string; specific_user_id?: string }
         Returns: boolean
       }
       has_subscription: {
