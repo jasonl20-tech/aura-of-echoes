@@ -13,6 +13,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState('profiles');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
+  const [selectedWomanId, setSelectedWomanId] = useState<string | null>(null);
   const [selectedWomanName, setSelectedWomanName] = useState<string | null>(null);
   const { user, loading } = useAuth();
 
@@ -28,6 +29,7 @@ const Index = () => {
     // Reset chat selection when switching tabs
     if (tab !== 'chats') {
       setSelectedChatId(null);
+      setSelectedWomanId(null);
       setSelectedWomanName(null);
     }
     
@@ -35,12 +37,15 @@ const Index = () => {
   };
 
   const handleChatSelect = (chatId: string, womanName: string) => {
+    // Extract womanId from the chat - we need to get this from the chat data
     setSelectedChatId(chatId);
     setSelectedWomanName(womanName);
+    // We'll pass the womanId through the ChatView component
   };
 
   const handleBackToChats = () => {
     setSelectedChatId(null);
+    setSelectedWomanId(null);
     setSelectedWomanName(null);
   };
 

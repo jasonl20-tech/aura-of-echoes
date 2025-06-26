@@ -7,6 +7,17 @@ export interface Chat {
   user_id: string;
   woman_id: string;
   created_at: string | null;
+  woman?: {
+    id: string;
+    name: string;
+    image_url: string | null;
+  };
+  lastMessage?: {
+    id: string;
+    content: string;
+    sender_type: string;
+    created_at: string;
+  };
 }
 
 export interface Message {
@@ -21,13 +32,41 @@ export function useChats() {
   return useQuery({
     queryKey: ['chats'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Lade Chats mit Frauen-Daten und letzter Nachricht
+      const { data: chatsData, error } = await supabase
         .from('chats')
-        .select('*')
+        .select(`
+          *,
+          women:woman_id (
+            id,
+            name,
+            image_url
+          )
+        `)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as Chat[];
+
+      // Lade die letzte Nachricht für jeden Chat
+      const chatsWithMessages = await Promise.all(
+        (chatsData || []).map(async (chat) => {
+          const { data: lastMessage } = await supabase
+            .from('messages')
+            .select('*')
+            .eq('chat_id', chat.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+
+          return {
+            ...chat,
+            woman: Array.isArray(chat.women) ? chat.women[0] : chat.women,
+            lastMessage
+          };
+        })
+      );
+
+      return chatsWithMessages as Chat[];
     },
   });
 }
@@ -98,10 +137,17 @@ export function useCreateChat() {
 
   return useMutation({
     mutationFn: async ({ womanId }: { womanId: string }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       const { data, error } = await supabase
         .from('chats')
         .insert({
           woman_id: womanId,
+          user_id: user.id,
         })
         .select()
         .single();

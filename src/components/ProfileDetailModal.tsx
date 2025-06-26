@@ -90,7 +90,7 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
     if (!user || !profile.womanId) return;
 
     try {
-      await createChat.mutateAsync(profile.womanId);
+      await createChat.mutateAsync({ womanId: profile.womanId });
       toast({
         title: "Chat gestartet!",
         description: `Chat mit ${profile.name} wurde erstellt.`,
