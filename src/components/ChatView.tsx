@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, ArrowLeft, MoreVertical } from 'lucide-react';
 import { useMessages, useSendMessage } from '../hooks/useChats';
 import { useAuth } from '../hooks/useAuth';
 import { useWoman } from '../hooks/useWomen';
+import { supabase } from '@/integrations/supabase/client';
 import ProfileModal from './ProfileModal';
 
 interface ChatViewProps {
@@ -15,12 +15,13 @@ interface ChatViewProps {
 
 const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack }) => {
   const { user } = useAuth();
-  const { data: messages, isLoading: messagesLoading } = useMessages(chatId || '');
+  const { data: messages, isLoading: messagesLoading, refetch: refetchMessages } = useMessages(chatId || '');
   const { data: woman, isLoading: womanLoading } = useWoman(womanId || '');
   const sendMessage = useSendMessage();
   const [newMessage, setNewMessage] = useState('');
   const [showProfileModal, setShowProfileModal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Verwende echte Daten wenn verfügbar, sonst Fallback
   const womanData = woman || {
@@ -43,6 +44,72 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
   // Fallback-Bild URL
   const fallbackImageUrl = 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=300&h=300&fit=crop&faces=1&auto=format';
   const imageUrl = womanData.image_url || fallbackImageUrl;
+
+  // Initialize audio for notifications
+  useEffect(() => {
+    // Create a simple notification sound using Web Audio API
+    const createNotificationSound = () => {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+      oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+      
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime + 0.01);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
+    };
+
+    audioRef.current = { play: createNotificationSound };
+  }, []);
+
+  // Real-time message subscription
+  useEffect(() => {
+    if (!chatId) return;
+
+    console.log('Setting up real-time subscription for chat:', chatId);
+
+    const channel = supabase
+      .channel('messages-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `chat_id=eq.${chatId}`
+        },
+        (payload) => {
+          console.log('New message received:', payload);
+          
+          // Play notification sound for AI messages
+          if (payload.new.sender_type === 'ai') {
+            console.log('Playing notification sound for AI message');
+            try {
+              audioRef.current?.play();
+            } catch (error) {
+              console.log('Could not play notification sound:', error);
+            }
+          }
+          
+          // Refetch messages to update the UI
+          refetchMessages();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('Cleaning up real-time subscription');
+      supabase.removeChannel(channel);
+    };
+  }, [chatId, refetchMessages]);
 
   // Auto-scroll zu neuen Nachrichten
   const scrollToBottom = () => {
