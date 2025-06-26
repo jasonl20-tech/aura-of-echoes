@@ -46,19 +46,27 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
     };
   }, [woman, womanId, womanName]);
 
-  // Memoized image URL to prevent flickering - now properly handles empty strings
+  // Memoized image URL to prevent flickering - with debug logging
   const imageUrl = useMemo(() => {
     const fallbackImageUrl = 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=300&h=300&fit=crop&faces=1&auto=format';
     
     // Check if image_url exists and is not empty/whitespace
     const hasValidImageUrl = womanData.image_url && womanData.image_url.trim().length > 0;
     
+    console.log('🖼️ Image URL calculation:', {
+      womanName: womanData.name,
+      original_image_url: womanData.image_url,
+      hasValidImageUrl,
+      finalUrl: hasValidImageUrl ? womanData.image_url : fallbackImageUrl
+    });
+    
     return hasValidImageUrl ? womanData.image_url : fallbackImageUrl;
-  }, [womanData.image_url]);
+  }, [womanData.image_url, womanData.name]);
 
   // Memoized image error handler
   const handleImageError = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
     const target = e.target as HTMLImageElement;
+    console.log('🚨 Image error occurred, switching to fallback');
     target.src = 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=300&h=300&fit=crop&faces=1&auto=format';
   }, []);
 
@@ -339,7 +347,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
               const showDate = shouldShowDateHeader(message, previousMessage);
               
               return (
-                <React.Fragment key={message.id}>
+                <div key={message.id} className="message-container">
                   {/* Date Header */}
                   {showDate && (
                     <div className="flex justify-center my-4">
@@ -377,7 +385,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
                       </div>
                     </div>
                   </div>
-                </React.Fragment>
+                </div>
               );
             })}
             
