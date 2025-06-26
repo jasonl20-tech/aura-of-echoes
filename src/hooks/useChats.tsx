@@ -94,20 +94,34 @@ export function useSendMessage() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ chatId, content, womanId }: { 
+    mutationFn: async ({ chatId, content, womanId, audioBlob }: { 
       chatId: string; 
-      content: string; 
+      content?: string; 
       womanId: string;
+      audioBlob?: Blob;
     }) => {
-      console.log('Sending message via webhook...', { chatId, content, womanId });
+      console.log('Sending message via webhook...', { chatId, content, womanId, hasAudio: !!audioBlob });
+
+      let body: any = {
+        chatId,
+        womanId,
+      };
+
+      if (audioBlob) {
+        // Convert audio blob to base64
+        const arrayBuffer = await audioBlob.arrayBuffer();
+        const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+        
+        body.audioData = base64Audio;
+        body.audioType = audioBlob.type;
+        body.content = '[Audio-Nachricht]'; // Fallback text for display
+      } else {
+        body.content = content;
+      }
 
       // Rufe die send-message Edge Function auf
       const { data, error } = await supabase.functions.invoke('send-message', {
-        body: {
-          chatId,
-          content,
-          womanId,
-        },
+        body
       });
 
       if (error) {

@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useWoman } from '../hooks/useWomen';
 import { supabase } from '@/integrations/supabase/client';
 import ProfileModal from './ProfileModal';
+import AudioRecorder from './AudioRecorder';
 
 interface ChatViewProps {
   chatId?: string;
@@ -213,7 +214,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
   const handleSendMessage = useCallback(async () => {
     if (!chatId || !newMessage.trim() || sendMessage.isPending || !womanId) return;
 
-    console.log('📤 Sending message to chatId:', chatId, 'womanId:', womanId);
+    console.log('📤 Sending text message to chatId:', chatId, 'womanId:', womanId);
 
     try {
       await sendMessage.mutateAsync({
@@ -228,6 +229,23 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
       console.error('❌ Failed to send message:', error);
     }
   }, [chatId, newMessage, sendMessage, womanId]);
+
+  const handleSendAudio = useCallback(async (audioBlob: Blob) => {
+    if (!chatId || sendMessage.isPending || !womanId) return;
+
+    console.log('🎤 Sending audio message to chatId:', chatId, 'womanId:', womanId, 'audioBlob size:', audioBlob.size);
+
+    try {
+      await sendMessage.mutateAsync({
+        chatId,
+        womanId,
+        audioBlob,
+      });
+      
+    } catch (error) {
+      console.error('❌ Failed to send audio message:', error);
+    }
+  }, [chatId, sendMessage, womanId]);
 
   const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -408,6 +426,11 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
               className="w-full bg-white/10 border border-white/20 rounded-full px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
           </div>
+          
+          <AudioRecorder 
+            onSendAudio={handleSendAudio}
+            disabled={sendMessage.isPending}
+          />
           
           <button
             onClick={handleSendMessage}

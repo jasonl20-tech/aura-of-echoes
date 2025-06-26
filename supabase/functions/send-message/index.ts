@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { chatId, content, womanId } = await req.json()
+    const { chatId, content, womanId, audioData, audioType } = await req.json()
     
     // Initialize Supabase client
     const supabaseClient = createClient(
@@ -55,13 +55,18 @@ serve(async (req) => {
 
     console.log('Access confirmed for user:', user.id, 'woman:', womanId)
 
+    // Bestimme message type und content
+    const messageType = audioData ? 'audio' : 'text'
+    const messageContent = content || '[Audio-Nachricht]'
+
     // Insert user message
     const { error: messageError } = await supabaseClient
       .from('messages')
       .insert({
         chat_id: chatId,
         sender_type: 'user',
-        content: content
+        content: messageContent,
+        message_type: messageType
       })
 
     if (messageError) {
@@ -69,7 +74,7 @@ serve(async (req) => {
       throw messageError
     }
 
-    console.log('Message inserted successfully')
+    console.log('Message inserted successfully, type:', messageType)
 
     // Get woman's webhook URL
     const { data: woman, error: womanError } = await supabaseClient
@@ -86,9 +91,8 @@ serve(async (req) => {
     console.log('Calling webhook for woman:', woman.name, 'URL:', woman.webhook_url)
 
     // Prepare webhook payload
-    const webhookPayload = {
+    const webhookPayload: any = {
       chatId: chatId,
-      message: content,
       character: {
         name: woman.name,
         personality: woman.personality
@@ -96,7 +100,20 @@ serve(async (req) => {
       user_id: user.id
     }
 
-    console.log('Webhook payload:', JSON.stringify(webhookPayload, null, 2))
+    if (audioData) {
+      webhookPayload.audioData = audioData
+      webhookPayload.audioType = audioType || 'audio/webm;codecs=opus'
+      webhookPayload.message = '[Audio-Nachricht]'
+      webhookPayload.messageType = 'audio'
+    } else {
+      webhookPayload.message = content
+      webhookPayload.messageType = 'text'
+    }
+
+    console.log('Webhook payload:', JSON.stringify({
+      ...webhookPayload,
+      audioData: audioData ? '[AUDIO_DATA_PRESENT]' : undefined
+    }, null, 2))
 
     // Send message to woman's AI API (no waiting for response)
     try {
