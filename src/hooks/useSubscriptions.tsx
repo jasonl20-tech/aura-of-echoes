@@ -10,8 +10,8 @@ export interface Subscription {
   active: boolean;
   expires_at: string | null;
   created_at: string;
-  stripe_subscription_id?: string;
-  stripe_customer_id?: string;
+  stripe_subscription_id?: string | null;
+  stripe_customer_id?: string | null;
 }
 
 export function useSubscriptions() {
@@ -99,13 +99,17 @@ export function useCheckSubscription(womanId: string) {
       });
 
       // Prüfe ob es ein Stripe-Abonnement ist
-      const { data: subscriptionData } = await supabase
+      const { data: subscriptionData, error: subError } = await supabase
         .from('subscriptions')
         .select('stripe_subscription_id, stripe_customer_id')
         .eq('user_id', user.id)
         .eq('woman_id', womanId)
         .eq('active', true)
-        .single();
+        .maybeSingle();
+
+      if (subError) {
+        console.error('Error fetching subscription data:', subError);
+      }
 
       const hasStripeSubscription = !!(subscriptionData?.stripe_subscription_id);
       
