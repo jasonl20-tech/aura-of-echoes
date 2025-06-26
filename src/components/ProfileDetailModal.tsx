@@ -78,13 +78,20 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
   };
 
   const handleManageSubscription = async () => {
+    if (!user) {
+      onAuthRequired?.();
+      return;
+    }
+
     try {
+      console.log('Opening customer portal for user:', user.email);
       await customerPortal.mutateAsync();
       toast({
         title: "Kundenverwaltung geöffnet!",
         description: "Verwalte deine Abonnements im neuen Tab.",
       });
     } catch (error: any) {
+      console.error('Customer portal error:', error);
       toast({
         title: "Fehler",
         description: error.message || "Kundenverwaltung konnte nicht geöffnet werden",
@@ -125,7 +132,7 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
           
           <button
             onClick={onClose}
-            className="absolute top-3 sm:top-4 right-3 sm:right-4 glass w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-all duration-300 z-10 backdrop-blur-sm hover:scale-110 active:scale-95"
+            className="absolute top-3 sm:top-4 right-3 sm:right-4 glass w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-all duration-300 z-10 backdrop-blur-sm hover:scale-110 active:scale-95 animate-micro-bounce"
           >
             <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
@@ -152,7 +159,7 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
               </div>
               
               {/* Price Badge with better styling */}
-              <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 px-3 py-1.5 rounded-lg backdrop-blur-sm border border-emerald-400/30 shadow-lg animate-pulse">
+              <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 px-3 py-1.5 rounded-lg backdrop-blur-sm border border-emerald-400/30 shadow-lg animate-pulse-soft">
                 <span className="text-sm sm:text-base text-white font-bold drop-shadow-sm">
                   {profile.formattedPrice || `€${profile.price?.toFixed(2) || '3.99'}`}
                 </span>
@@ -203,7 +210,8 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
                   {profile.interests.map((interest, index) => (
                     <span
                       key={index}
-                      className="px-3 py-1.5 glass rounded-full text-xs sm:text-sm text-purple-300 font-medium border border-purple-400/40 hover:border-purple-400/60 hover:bg-purple-400/10 transition-all duration-300 backdrop-blur-sm cursor-default hover:scale-105"
+                      className="px-3 py-1.5 glass rounded-full text-xs sm:text-sm text-purple-300 font-medium border border-purple-400/40 hover:border-purple-400/60 hover:bg-purple-400/10 transition-all duration-300 backdrop-blur-sm cursor-default hover:scale-105 animate-micro-bounce"
+                      style={{ animationDelay: `${index * 50}ms` }}
                     >
                       #{interest}
                     </span>
@@ -250,14 +258,14 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
                   </div>
                   <button
                     onClick={() => onAuthRequired?.()}
-                    className="w-full glass-button py-4 rounded-xl text-white font-bold hover:bg-purple-600/30 transition-all duration-300 flex items-center justify-center space-x-2 text-sm sm:text-base border border-purple-400/30 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-purple-500/20"
+                    className="w-full glass-button py-4 rounded-xl text-white font-bold hover:bg-purple-600/30 transition-all duration-300 flex items-center justify-center space-x-2 text-sm sm:text-base border border-purple-400/30 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-purple-500/20 animate-micro-bounce"
                   >
                     <Heart className="w-5 h-5 sm:w-6 sm:h-6" />
                     <span>Anmelden & Abonnieren</span>
                   </button>
                 </div>
               ) : checkingSubscription ? (
-                <div className="glass-button w-full py-4 rounded-xl text-center text-white/70 text-sm sm:text-base animate-pulse">
+                <div className="glass-button w-full py-4 rounded-xl text-center text-white/70 text-sm sm:text-base animate-pulse-soft">
                   Zugang wird geprüft...
                 </div>
               ) : accessStatus?.hasAccess ? (
@@ -276,7 +284,7 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
                     <button
                       onClick={handleStartChat}
                       disabled={createChat.isPending}
-                      className="w-full glass-button py-4 rounded-xl text-white font-bold hover:bg-blue-600/30 transition-all duration-300 flex items-center justify-center space-x-2 text-sm sm:text-base border border-blue-400/30 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-blue-500/20"
+                      className="w-full glass-button py-4 rounded-xl text-white font-bold hover:bg-blue-600/30 transition-all duration-300 flex items-center justify-center space-x-2 text-sm sm:text-base border border-blue-400/30 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-blue-500/20 animate-micro-bounce"
                     >
                       <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
                       <span>
@@ -287,9 +295,11 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
                       <button
                         onClick={handleManageSubscription}
                         disabled={customerPortal.isPending}
-                        className="w-full glass-button py-3 rounded-xl text-white hover:bg-purple-600/30 transition-all duration-300 flex items-center justify-center space-x-2 border border-purple-400/30 hover:scale-105 active:scale-95 text-sm font-medium"
+                        className="w-full glass-button py-3 rounded-xl text-white hover:bg-purple-600/30 transition-all duration-300 flex items-center justify-center space-x-2 border border-purple-400/30 hover:scale-105 active:scale-95 text-sm font-medium animate-micro-bounce"
                       >
-                        <span>Abonnement verwalten</span>
+                        <span>
+                          {customerPortal.isPending ? 'Portal wird geöffnet...' : 'Abonnement verwalten'}
+                        </span>
                       </button>
                     )}
                   </div>
@@ -310,7 +320,7 @@ const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({
                   <button
                     onClick={handleSubscribe}
                     disabled={subscribeToWoman.isPending}
-                    className="w-full glass-button py-4 rounded-xl text-white font-bold hover:bg-purple-600/30 transition-all duration-300 disabled:opacity-50 flex items-center justify-center space-x-2 text-sm sm:text-base border border-purple-400/30 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-purple-500/20"
+                    className="w-full glass-button py-4 rounded-xl text-white font-bold hover:bg-purple-600/30 transition-all duration-300 disabled:opacity-50 flex items-center justify-center space-x-2 text-sm sm:text-base border border-purple-400/30 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-purple-500/20 animate-micro-bounce"
                   >
                     <Heart className="w-5 h-5 sm:w-6 sm:h-6" />
                     <span>

@@ -27,7 +27,7 @@ interface ProfileCardProps {
 const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onClick }) => {
   return (
     <div
-      className="profile-glass rounded-2xl overflow-hidden cursor-pointer hover-lift group w-full transform transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20"
+      className="profile-glass rounded-2xl overflow-hidden cursor-pointer hover-lift group w-full transform transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20 animate-micro-bounce"
       onClick={onClick}
     >
       {/* Image with overlay */}
@@ -48,7 +48,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onClick }) => {
 
         {/* Subscription badge */}
         {profile.isSubscribed && (
-          <div className="absolute top-3 right-3 bg-gradient-to-r from-purple-600 to-purple-700 px-2 py-1 rounded-lg backdrop-blur-sm border border-purple-400/50 animate-fade-in">
+          <div className="absolute top-3 right-3 bg-gradient-to-r from-purple-600 to-purple-700 px-2 py-1 rounded-lg backdrop-blur-sm border border-purple-400/50 animate-fade-in animate-pulse-soft">
             <span className="text-xs text-white font-semibold">Abonniert</span>
           </div>
         )}
@@ -73,14 +73,14 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onClick }) => {
           {profile.interests.slice(0, 3).map((interest, index) => (
             <span
               key={index}
-              className="px-2 py-1 glass rounded-full text-xs text-white/80 font-medium transition-all duration-300 hover:bg-white/10 hover:text-white/90 hover:scale-105"
+              className="px-2 py-1 glass rounded-full text-xs text-white/80 font-medium transition-all duration-300 hover:bg-white/10 hover:text-white/90 hover:scale-105 animate-micro-bounce"
               style={{ animationDelay: `${index * 100}ms` }}
             >
               {interest}
             </span>
           ))}
           {profile.interests.length > 3 && (
-            <span className="px-2 py-1 glass rounded-full text-xs text-white/60 transition-all duration-300 hover:text-white/80">
+            <span className="px-2 py-1 glass rounded-full text-xs text-white/60 transition-all duration-300 hover:text-white/80 animate-micro-bounce">
               +{profile.interests.length - 3}
             </span>
           )}
@@ -90,7 +90,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onClick }) => {
         <div className="flex justify-between items-center text-xs text-white/60 transition-colors duration-300 group-hover:text-white/80">
           {profile.height && <span>{profile.height}cm</span>}
           <div className="flex items-center space-x-1">
-            <Heart className="w-3 h-3 transition-colors duration-300 group-hover:text-red-400" />
+            <Heart className="w-3 h-3 transition-colors duration-300 group-hover:text-red-400 animate-pulse-soft" />
             <span>Premium</span>
           </div>
         </div>

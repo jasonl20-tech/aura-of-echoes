@@ -113,21 +113,21 @@ const Index = () => {
       {!isInChat && activeTab !== 'admin' && (
         <nav className="fixed bottom-0 left-0 right-0 nav-glass z-50 safe-area-bottom animate-slide-up">
           <div className="flex justify-around max-w-md mx-auto px-2 py-2 sm:py-3 relative">
-            {/* Moving background indicator */}
+            {/* Enhanced moving cloud indicator */}
             <div 
-              className={`absolute top-2 bottom-2 bg-gradient-to-r from-purple-600/30 to-purple-500/30 rounded-xl transition-all duration-500 ease-out border border-purple-400/40 shadow-lg shadow-purple-500/20 ${
-                activeTab === 'profiles' ? 'left-2 w-[calc(25%-8px)]' :
-                activeTab === 'chats' ? 'left-[calc(25%+2px)] w-[calc(25%-8px)]' :
-                activeTab === 'random' ? 'left-[calc(50%+2px)] w-[calc(25%-8px)]' :
-                activeTab === 'settings' ? 'left-[calc(75%+2px)] w-[calc(25%-8px)]' : ''
+              className={`absolute top-1.5 bottom-1.5 nav-cloud transition-all duration-500 ease-out animate-glow-pulse ${
+                activeTab === 'profiles' ? 'left-1.5 w-[calc(25%-12px)]' :
+                activeTab === 'chats' ? 'left-[calc(25%-4px)] w-[calc(25%-12px)]' :
+                activeTab === 'random' ? 'left-[calc(50%-4px)] w-[calc(25%-12px)]' :
+                activeTab === 'settings' ? 'left-[calc(75%-4px)] w-[calc(25%-12px)]' : ''
               }`}
             />
             
             <button
               onClick={() => setActiveTab('profiles')}
-              className={`flex flex-col items-center space-y-1 p-2 sm:p-3 rounded-xl transition-all duration-300 relative z-10 hover:scale-110 active:scale-95 ${
+              className={`flex flex-col items-center space-y-1 p-2 sm:p-3 rounded-xl transition-all duration-300 relative z-10 hover:scale-110 active:scale-95 animate-micro-bounce ${
                 activeTab === 'profiles'
-                  ? 'text-white'
+                  ? 'text-white drop-shadow-lg'
                   : 'text-white/60 hover:text-white/90'
               }`}
             >
@@ -139,20 +139,20 @@ const Index = () => {
               onClick={() => handleTabChange('chats')}
               className={`flex flex-col items-center space-y-1 p-2 sm:p-3 rounded-xl transition-all duration-300 relative z-10 hover:scale-110 active:scale-95 ${
                 activeTab === 'chats'
-                  ? 'text-white'
+                  ? 'text-white drop-shadow-lg'
                   : 'text-white/60 hover:text-white/90'
               }`}
             >
               <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
               <span className="text-[10px] sm:text-xs font-medium">Chats</span>
-              {!user && <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>}
+              {!user && <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-400 rounded-full animate-pulse-soft"></div>}
             </button>
             
             <button
               onClick={() => setActiveTab('random')}
               className={`flex flex-col items-center space-y-1 p-2 sm:p-3 rounded-xl transition-all duration-300 relative z-10 hover:scale-110 active:scale-95 ${
                 activeTab === 'random'
-                  ? 'text-white'
+                  ? 'text-white drop-shadow-lg'
                   : 'text-white/60 hover:text-white/90'
               }`}
             >
@@ -164,13 +164,13 @@ const Index = () => {
               onClick={() => handleTabChange('settings')}
               className={`flex flex-col items-center space-y-1 p-2 sm:p-3 rounded-xl transition-all duration-300 relative z-10 hover:scale-110 active:scale-95 ${
                 activeTab === 'settings'
-                  ? 'text-white'
+                  ? 'text-white drop-shadow-lg'
                   : 'text-white/60 hover:text-white/90'
               }`}
             >
               <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
               <span className="text-[10px] sm:text-xs font-medium">Settings</span>
-              {!user && <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>}
+              {!user && <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-400 rounded-full animate-pulse-soft"></div>}
             </button>
           </div>
         </nav>
@@ -181,7 +181,7 @@ const Index = () => {
         <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 px-4 animate-fade-in">
           <button
             onClick={() => setActiveTab('settings')}
-            className="glass-button px-4 sm:px-6 py-2 sm:py-3 rounded-xl text-white font-semibold hover:bg-purple-600/30 transition-all duration-300 text-sm sm:text-base hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-purple-500/20"
+            className="glass-button px-4 sm:px-6 py-2 sm:py-3 rounded-xl text-white font-semibold hover:bg-purple-600/30 transition-all duration-300 text-sm sm:text-base hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-purple-500/20 animate-micro-bounce"
           >
             ← Zurück zu Einstellungen
           </button>
