@@ -65,24 +65,34 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
     );
   }
 
-  // Convert women data to profile format
-  const profiles = filteredWomen.map(woman => ({
-    id: parseInt(woman.id.slice(-8), 16),
-    name: woman.name,
-    age: woman.age,
-    interests: woman.interests || [],
-    distance: Math.floor(Math.random() * 50) + 1, // Keep for compatibility but won't display
-    image: woman.image_url || 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=400&h=600&fit=crop',
-    description: woman.description || '',
-    personality: woman.personality || '',
-    price: parseFloat(woman.price.toString()),
-    womanId: woman.id,
-    height: woman.height,
-    origin: woman.origin,
-    nsfw: woman.nsfw,
-    pricing_interval: woman.pricing_interval,
-    formattedPrice: formatPrice(woman.price, woman.pricing_interval)
-  }));
+  // Convert women data to profile format with multiple images support
+  const profiles = filteredWomen.map(woman => {
+    // Parse images from JSONB or fallback to single image_url
+    let images = [];
+    if (woman.images && Array.isArray(woman.images)) {
+      images = woman.images.map((img: any) => img.url || img);
+    } else if (woman.image_url) {
+      images = [woman.image_url];
+    }
+
+    return {
+      id: parseInt(woman.id.slice(-8), 16),
+      name: woman.name,
+      age: woman.age,
+      interests: woman.interests || [],
+      image: images[0] || 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=400&h=600&fit=crop',
+      images: images,
+      description: woman.description || '',
+      personality: woman.personality || '',
+      price: parseFloat(woman.price.toString()),
+      womanId: woman.id,
+      height: woman.height,
+      origin: woman.origin,
+      nsfw: woman.nsfw,
+      pricing_interval: woman.pricing_interval,
+      formattedPrice: formatPrice(woman.price, woman.pricing_interval)
+    };
+  });
 
   // Shuffle profiles if random mode
   const displayProfiles = isRandom 
@@ -97,7 +107,7 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
     <div className="space-y-6">
       <div className="text-center">
         <h1 className="text-3xl font-bold text-white text-glow mb-6">
-          Search Woman
+          Find Your next Lovee~
         </h1>
       </div>
 

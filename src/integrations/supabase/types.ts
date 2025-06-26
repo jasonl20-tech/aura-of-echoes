@@ -202,6 +202,7 @@ export type Database = {
           height: number | null
           id: string
           image_url: string | null
+          images: Json | null
           interests: string[] | null
           name: string
           nsfw: boolean | null
@@ -219,6 +220,7 @@ export type Database = {
           height?: number | null
           id?: string
           image_url?: string | null
+          images?: Json | null
           interests?: string[] | null
           name: string
           nsfw?: boolean | null
@@ -236,6 +238,7 @@ export type Database = {
           height?: number | null
           id?: string
           image_url?: string | null
+          images?: Json | null
           interests?: string[] | null
           name?: string
           nsfw?: boolean | null

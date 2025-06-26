@@ -9,6 +9,7 @@ export interface Woman {
   description: string | null;
   personality: string | null;
   image_url: string | null;
+  images: any[] | null;
   webhook_url: string;
   price: number;
   pricing_interval: string;

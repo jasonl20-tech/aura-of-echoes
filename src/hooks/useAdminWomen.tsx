@@ -3,12 +3,18 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
+interface ImageData {
+  url: string;
+  alt?: string;
+}
+
 interface CreateWomanData {
   name: string;
   age: number;
   description: string;
   personality: string;
   image_url: string;
+  images: ImageData[];
   webhook_url: string;
   interests: string[];
   price: number;
