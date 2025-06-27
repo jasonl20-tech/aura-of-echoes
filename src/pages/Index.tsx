@@ -1,5 +1,6 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Settings, MessageCircle, Users, Shuffle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import ProfileGallery from '../components/ProfileGallery';
@@ -10,12 +11,20 @@ import AdminDashboard from '../components/AdminDashboard';
 import AuthModal from '../components/AuthModal';
 
 const Index = () => {
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState('profiles');
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [selectedWomanId, setSelectedWomanId] = useState<string | null>(null);
   const [selectedWomanName, setSelectedWomanName] = useState<string | null>(null);
   const { user, loading } = useAuth();
+
+  // Handle navigation from profile page
+  useEffect(() => {
+    if (location.state?.activeTab) {
+      setActiveTab(location.state.activeTab);
+    }
+  }, [location.state]);
 
   const isInChat = selectedChatId && selectedWomanName && activeTab === 'chats';
 

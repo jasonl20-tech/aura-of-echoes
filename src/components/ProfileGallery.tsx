@@ -1,7 +1,7 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import ProfileCard from './ProfileCard';
-import ProfileDetailModal from './ProfileDetailModal';
 import WomenSearch from './WomenSearch';
 import { useWomen } from '../hooks/useWomen';
 import { useWomenFilters } from '../hooks/useWomenFilters';
@@ -13,7 +13,7 @@ interface ProfileGalleryProps {
 }
 
 const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAuthRequired }) => {
-  const [selectedProfile, setSelectedProfile] = useState<any>(null);
+  const navigate = useNavigate();
   const { data: women, isLoading, error } = useWomen();
   const { filters, filteredWomen, updateFilter, resetFilters } = useWomenFilters(women);
   const { user } = useAuth();
@@ -95,15 +95,9 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
   }, [profiles, isRandom]);
 
   const handleProfileClick = useCallback((profile: any) => {
-    // If user is not logged in, require authentication first
-    if (!user) {
-      onAuthRequired?.();
-      return;
-    }
-    
-    // If user is logged in, show profile details
-    setSelectedProfile(profile);
-  }, [user, onAuthRequired]);
+    // Navigate to profile page using the woman ID
+    navigate(`/profile/${profile.womanId}`);
+  }, [navigate]);
 
   if (isLoading) {
     return (
@@ -171,15 +165,6 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
             />
           ))}
         </div>
-      )}
-
-      {selectedProfile && (
-        <ProfileDetailModal
-          profile={selectedProfile}
-          isOpen={!!selectedProfile}
-          onClose={() => setSelectedProfile(null)}
-          onAuthRequired={onAuthRequired}
-        />
       )}
     </div>
   );
