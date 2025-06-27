@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -11,6 +11,7 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -28,16 +29,20 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess('');
 
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         if (error) throw error;
+        
+        // Login successful - redirect to home
+        navigate('/');
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -45,10 +50,28 @@ const Auth = () => {
           }
         });
         if (error) throw error;
-        setError('Registrierung erfolgreich! Bitte überprüfen Sie Ihre E-Mail.');
+        
+        // Since email verification is disabled, user should be logged in immediately
+        if (data.user) {
+          setSuccess('Registrierung erfolgreich! Du wirst weitergeleitet...');
+          setTimeout(() => {
+            navigate('/');
+          }, 1500);
+        }
       }
     } catch (error: any) {
-      setError(error.message);
+      console.error('Auth error:', error);
+      
+      // Handle specific error messages
+      if (error.message.includes('Invalid login credentials')) {
+        setError('Ungültige Anmeldedaten. Bitte überprüfe E-Mail und Passwort.');
+      } else if (error.message.includes('User already registered')) {
+        setError('Diese E-Mail-Adresse ist bereits registriert. Versuche dich anzumelden.');
+      } else if (error.message.includes('Password should be at least')) {
+        setError('Das Passwort muss mindestens 6 Zeichen lang sein.');
+      } else {
+        setError(error.message || 'Ein Fehler ist aufgetreten.');
+      }
     } finally {
       setLoading(false);
     }
@@ -88,6 +111,7 @@ const Auth = () => {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full pl-12 pr-12 py-3 glass rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
               required
+              minLength={6}
             />
             <button
               type="button"
@@ -101,6 +125,12 @@ const Auth = () => {
           {error && (
             <div className="text-red-400 text-sm text-center bg-red-500/10 p-3 rounded-lg">
               {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="text-green-400 text-sm text-center bg-green-500/10 p-3 rounded-lg">
+              {success}
             </div>
           )}
 
