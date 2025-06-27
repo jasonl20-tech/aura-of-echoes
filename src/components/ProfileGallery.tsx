@@ -5,6 +5,7 @@ import ProfileDetailModal from './ProfileDetailModal';
 import WomenSearch from './WomenSearch';
 import { useWomen } from '../hooks/useWomen';
 import { useWomenFilters } from '../hooks/useWomenFilters';
+import { useAuth } from '../hooks/useAuth';
 
 interface ProfileGalleryProps {
   isRandom?: boolean;
@@ -15,6 +16,7 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
   const [selectedProfile, setSelectedProfile] = useState<any>(null);
   const { data: women, isLoading, error } = useWomen();
   const { filters, filteredWomen, updateFilter, resetFilters } = useWomenFilters(women);
+  const { user } = useAuth();
 
   const availableOrigins = useMemo(() => {
     if (!women) return [];
@@ -112,6 +114,13 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
     : profiles;
 
   const handleProfileClick = (profile: any) => {
+    // If user is not logged in, require authentication first
+    if (!user) {
+      onAuthRequired?.();
+      return;
+    }
+    
+    // If user is logged in, show profile details
     setSelectedProfile(profile);
   };
 
