@@ -500,9 +500,9 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-black">
-      {/* Chat Header - Fixed/Sticky */}
-      <div className="fixed top-0 left-0 right-0 z-40 glass-card border-b border-white/10 px-4 py-3 flex items-center justify-between bg-black/80 backdrop-blur-xl">
+    <div className="min-h-screen flex flex-col bg-black relative">
+      {/* Chat Header - Sticky at top */}
+      <div className="sticky top-0 z-40 glass-card border-b border-white/10 px-4 py-3 flex items-center justify-between bg-black/80 backdrop-blur-xl">
         <div className="flex items-center space-x-3">
           <button
             onClick={onBack}
@@ -544,8 +544,8 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
         </div>
       </div>
 
-      {/* Messages Container - with top padding to account for fixed header */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 pt-20 pb-20">
+      {/* Messages Container - Scrollable area between sticky header and input */}
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
         {messagesLoading ? (
           <div className="flex justify-center py-8">
             <div className="animate-spin w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full"></div>
@@ -618,8 +618,8 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
         )}
       </div>
 
-      {/* Message Input - Fixed at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 glass-card border-t border-white/10 p-4 bg-black/80 backdrop-blur-xl">
+      {/* Message Input - Sticky at bottom */}
+      <div className="sticky bottom-0 z-40 glass-card border-t border-white/10 p-4 bg-black/80 backdrop-blur-xl">
         <div className="flex items-center space-x-3">
           <div className="flex-1 relative">
             <input
