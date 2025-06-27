@@ -63,17 +63,36 @@ serve(async (req) => {
     // Erstelle immer eine Portal-Sitzung, auch ohne aktive Abonnements
     // Stripe zeigt automatisch verfügbare Optionen an
     const origin = req.headers.get("origin") || "http://localhost:3000";
-    const portalSession = await stripe.billingPortal.sessions.create({
-      customer: customerId,
-      return_url: `${origin}/`,
-    });
     
-    logStep("Portal session created", { sessionId: portalSession.id });
+    try {
+      const portalSession = await stripe.billingPortal.sessions.create({
+        customer: customerId,
+        return_url: `${origin}/`,
+      });
+      
+      logStep("Portal session created", { sessionId: portalSession.id });
 
-    return new Response(JSON.stringify({ url: portalSession.url }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
+      return new Response(JSON.stringify({ url: portalSession.url }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    } catch (portalError: any) {
+      logStep("Portal creation failed", { error: portalError.message });
+      
+      // Spezifische Behandlung für Konfigurationsfehler
+      if (portalError.message?.includes("configuration")) {
+        return new Response(JSON.stringify({ 
+          error: "PORTAL_NOT_CONFIGURED",
+          message: "Das Stripe Customer Portal ist noch nicht konfiguriert. Bitte konfigurieren Sie es im Stripe Dashboard unter Settings → Billing → Customer Portal.",
+          setupUrl: "https://dashboard.stripe.com/settings/billing/portal"
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        });
+      }
+      
+      throw portalError;
+    }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR in customer-portal", { message: errorMessage });

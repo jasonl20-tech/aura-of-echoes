@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { CreditCard, Calendar, ExternalLink, AlertCircle } from 'lucide-react';
+import { CreditCard, Calendar, ExternalLink, AlertCircle, Settings } from 'lucide-react';
 import { useSubscriptions, useCustomerPortal } from '../hooks/useSubscriptions';
 import { useAuth } from '../hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
@@ -13,11 +13,22 @@ const SubscriptionManagement: React.FC = () => {
   const handleManageSubscription = () => {
     customerPortal.mutate(undefined, {
       onError: (error: any) => {
-        toast({
-          title: "Fehler",
-          description: error.message || "Kunde Portal konnte nicht geöffnet werden",
-          variant: "destructive",
-        });
+        console.error('Customer Portal Error:', error);
+        
+        // Spezifische Behandlung für verschiedene Fehlertypen
+        if (error.error === "PORTAL_NOT_CONFIGURED") {
+          toast({
+            title: "Stripe Portal nicht konfiguriert",
+            description: "Das Customer Portal muss erst im Stripe Dashboard konfiguriert werden. Kontaktieren Sie den Administrator.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Fehler",
+            description: error.message || "Customer Portal konnte nicht geöffnet werden",
+            variant: "destructive",
+          });
+        }
       }
     });
   };
@@ -76,7 +87,18 @@ const SubscriptionManagement: React.FC = () => {
         <div className="text-center p-6 glass rounded-xl">
           <CreditCard className="w-12 h-12 text-white/30 mx-auto mb-4" />
           <p className="text-white font-medium mb-2">Keine aktiven Abonnements</p>
-          <p className="text-white/70 text-sm">Sie haben derzeit keine aktiven Abonnements.</p>
+          <p className="text-white/70 text-sm mb-4">Sie haben derzeit keine aktiven Abonnements.</p>
+          
+          <button
+            onClick={handleManageSubscription}
+            disabled={customerPortal.isPending}
+            className="flex items-center space-x-2 glass-button px-4 py-2 rounded-lg text-purple-300 hover:text-white hover:bg-purple-600/30 transition-all duration-300 disabled:opacity-50 mx-auto"
+          >
+            <ExternalLink className="w-4 h-4" />
+            <span>
+              {customerPortal.isPending ? 'Wird geöffnet...' : 'Abonnement erstellen'}
+            </span>
+          </button>
         </div>
       ) : (
         <div className="space-y-4">
@@ -87,9 +109,13 @@ const SubscriptionManagement: React.FC = () => {
                   <div className="flex items-center space-x-2 mb-2">
                     <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
                     <span className="text-white font-medium">Aktives Abonnement</span>
-                    {subscription.stripe_subscription_id && (
+                    {subscription.stripe_subscription_id ? (
                       <span className="px-2 py-1 bg-purple-600/30 text-purple-300 text-xs rounded-full">
                         Stripe
+                      </span>
+                    ) : (
+                      <span className="px-2 py-1 bg-blue-600/30 text-blue-300 text-xs rounded-full">
+                        Direkt
                       </span>
                     )}
                   </div>
@@ -158,6 +184,28 @@ const SubscriptionManagement: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Hinweis für Konfiguration */}
+      <div className="mt-6 p-3 glass rounded-xl border border-orange-500/20 bg-orange-500/5">
+        <div className="flex items-start space-x-2">
+          <Settings className="w-4 h-4 text-orange-400 mt-0.5" />
+          <div className="text-sm">
+            <p className="text-orange-300 font-medium">Administrator-Hinweis</p>
+            <p className="text-orange-200/70 text-xs">
+              Falls das Customer Portal nicht funktioniert, muss es erst im{' '}
+              <a 
+                href="https://dashboard.stripe.com/settings/billing/portal" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="underline hover:text-orange-200"
+              >
+                Stripe Dashboard
+              </a>
+              {' '}konfiguriert werden.
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
