@@ -48,7 +48,7 @@ export function useWomen() {
       return data as Woman[];
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes (renamed from cacheTime)
   });
 }
 
@@ -67,7 +67,7 @@ export function useWoman(id: string) {
     },
     enabled: !!id,
     staleTime: 5 * 60 * 1000,
-    cacheTime: 10 * 60 * 1000,
+    gcTime: 10 * 60 * 1000, // 10 minutes (renamed from cacheTime)
   });
 }
 
