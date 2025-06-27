@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import { Heart } from 'lucide-react';
 
 interface Profile {
@@ -24,7 +24,7 @@ interface ProfileCardProps {
   onClick: () => void;
 }
 
-const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onClick }) => {
+const ProfileCard: React.FC<ProfileCardProps> = memo(({ profile, onClick }) => {
   return (
     <div
       className="profile-glass rounded-2xl overflow-hidden cursor-pointer hover-lift group w-full transform transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20 animate-micro-bounce"
@@ -36,6 +36,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onClick }) => {
           src={profile.image}
           alt={profile.name}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity duration-300 group-hover:from-black/70"></div>
         
@@ -72,7 +73,7 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onClick }) => {
         <div className="flex flex-wrap gap-1">
           {profile.interests.slice(0, 3).map((interest, index) => (
             <span
-              key={index}
+              key={interest}
               className="px-2 py-1 glass rounded-full text-xs text-white/80 font-medium transition-all duration-300 hover:bg-white/10 hover:text-white/90 hover:scale-105 animate-micro-bounce"
               style={{ animationDelay: `${index * 100}ms` }}
             >
@@ -102,6 +103,8 @@ const ProfileCard: React.FC<ProfileCardProps> = ({ profile, onClick }) => {
       </div>
     </div>
   );
-};
+});
+
+ProfileCard.displayName = 'ProfileCard';
 
 export default ProfileCard;

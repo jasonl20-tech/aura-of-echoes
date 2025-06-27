@@ -1,6 +1,7 @@
 
 import { useState, useMemo } from 'react';
 import { Woman } from './useWomen';
+import { useDebounce } from './useDebounce';
 
 export interface WomenFilters {
   searchTerm: string;
@@ -38,31 +39,40 @@ const DEFAULT_FILTERS: WomenFilters = {
 
 export function useWomenFilters(women?: Woman[]) {
   const [filters, setFilters] = useState<WomenFilters>(DEFAULT_FILTERS);
+  
+  // Debounce search term for better performance
+  const debouncedSearchTerm = useDebounce(filters.searchTerm, 300);
+  
+  // Memoize the debounced filters object
+  const debouncedFilters = useMemo(() => ({
+    ...filters,
+    searchTerm: debouncedSearchTerm
+  }), [filters, debouncedSearchTerm]);
 
   const filteredWomen = useMemo(() => {
     if (!women) return [];
 
     return women.filter(woman => {
-      // Search term filter
-      if (filters.searchTerm && !woman.name.toLowerCase().includes(filters.searchTerm.toLowerCase())) {
+      // Search term filter - use debounced value
+      if (debouncedFilters.searchTerm && !woman.name.toLowerCase().includes(debouncedFilters.searchTerm.toLowerCase())) {
         return false;
       }
 
       // Age filter
-      if (woman.age < filters.minAge || woman.age > filters.maxAge) {
+      if (woman.age < debouncedFilters.minAge || woman.age > debouncedFilters.maxAge) {
         return false;
       }
 
       // Height filter
       if (woman.height) {
-        if (woman.height < filters.minHeight || woman.height > filters.maxHeight) {
+        if (woman.height < debouncedFilters.minHeight || woman.height > debouncedFilters.maxHeight) {
           return false;
         }
       }
 
       // Interests filter
-      if (filters.interests.length > 0 && woman.interests) {
-        const hasMatchingInterest = filters.interests.some(filterInterest =>
+      if (debouncedFilters.interests.length > 0 && woman.interests) {
+        const hasMatchingInterest = debouncedFilters.interests.some(filterInterest =>
           woman.interests?.some(womanInterest =>
             womanInterest.toLowerCase().includes(filterInterest.toLowerCase())
           )
@@ -71,38 +81,38 @@ export function useWomenFilters(women?: Woman[]) {
       }
 
       // Origins filter
-      if (filters.origins.length > 0 && woman.origin) {
-        if (!filters.origins.includes(woman.origin)) {
+      if (debouncedFilters.origins.length > 0 && woman.origin) {
+        if (!debouncedFilters.origins.includes(woman.origin)) {
           return false;
         }
       }
 
       // Single origin filter
-      if (filters.origin && woman.origin) {
-        if (woman.origin !== filters.origin) {
+      if (debouncedFilters.origin && woman.origin) {
+        if (woman.origin !== debouncedFilters.origin) {
           return false;
         }
       }
 
       // NSFW filter
-      if (filters.nsfw !== null && woman.nsfw !== filters.nsfw) {
+      if (debouncedFilters.nsfw !== null && woman.nsfw !== debouncedFilters.nsfw) {
         return false;
       }
 
       // Show NSFW filter
-      if (!filters.showNsfw && woman.nsfw) {
+      if (!debouncedFilters.showNsfw && woman.nsfw) {
         return false;
       }
 
       // Price filter - convert all prices to monthly for comparison
       const monthlyPrice = convertToMonthly(woman.price, woman.pricing_interval);
-      if (monthlyPrice < filters.priceRange.min || monthlyPrice > filters.priceRange.max) {
+      if (monthlyPrice < debouncedFilters.priceRange.min || monthlyPrice > debouncedFilters.priceRange.max) {
         return false;
       }
 
       return true;
     });
-  }, [women, filters]);
+  }, [women, debouncedFilters]);
 
   const updateFilter = <K extends keyof WomenFilters>(
     key: K,

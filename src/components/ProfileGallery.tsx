@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import ProfileCard from './ProfileCard';
 import ProfileDetailModal from './ProfileDetailModal';
 import WomenSearch from './WomenSearch';
@@ -18,6 +18,7 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
   const { filters, filteredWomen, updateFilter, resetFilters } = useWomenFilters(women);
   const { user } = useAuth();
 
+  // Memoize available origins calculation
   const availableOrigins = useMemo(() => {
     if (!women) return [];
     const origins = women
@@ -26,7 +27,8 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
     return [...new Set(origins)].sort();
   }, [women]);
 
-  const formatPrice = (price: number, interval: string) => {
+  // Memoize format price function
+  const formatPrice = useCallback((price: number, interval: string) => {
     const intervalMap = {
       daily: 'täglich',
       weekly: 'wöchentlich', 
@@ -34,7 +36,74 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
       yearly: 'jährlich'
     };
     return `€${price.toFixed(2)} ${intervalMap[interval as keyof typeof intervalMap] || 'monatlich'}`;
-  };
+  }, []);
+
+  // Memoize profile transformation - this is the most expensive operation
+  const profiles = useMemo(() => {
+    return filteredWomen.map(woman => {
+      // Parse images from JSONB or fallback to single image_url
+      let images = [];
+      if (woman.images) {
+        try {
+          const parsedImages = typeof woman.images === 'string' 
+            ? JSON.parse(woman.images) 
+            : woman.images;
+          if (Array.isArray(parsedImages)) {
+            images = parsedImages.map((img: any) => img.url || img);
+          }
+        } catch (e) {
+          console.warn('Error parsing images for woman:', woman.id, e);
+        }
+      }
+      
+      if (images.length === 0 && woman.image_url) {
+        images = [woman.image_url];
+      }
+
+      return {
+        id: parseInt(woman.id.slice(-8), 16),
+        name: woman.name,
+        age: woman.age,
+        interests: woman.interests || [],
+        image: images[0] || 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=400&h=600&fit=crop',
+        images: images,
+        description: woman.description || '',
+        personality: woman.personality || '',
+        price: parseFloat(woman.price.toString()),
+        womanId: woman.id,
+        height: woman.height,
+        origin: woman.origin,
+        nsfw: woman.nsfw,
+        pricing_interval: woman.pricing_interval,
+        formattedPrice: formatPrice(woman.price, woman.pricing_interval),
+        distance: 0 // Add missing distance property
+      };
+    });
+  }, [filteredWomen, formatPrice]);
+
+  // Memoize display profiles with optimized shuffling
+  const displayProfiles = useMemo(() => {
+    if (!isRandom) return profiles;
+    
+    // Use Fisher-Yates shuffle for better performance than sort()
+    const shuffled = [...profiles];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }, [profiles, isRandom]);
+
+  const handleProfileClick = useCallback((profile: any) => {
+    // If user is not logged in, require authentication first
+    if (!user) {
+      onAuthRequired?.();
+      return;
+    }
+    
+    // If user is logged in, show profile details
+    setSelectedProfile(profile);
+  }, [user, onAuthRequired]);
 
   if (isLoading) {
     return (
@@ -66,63 +135,6 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
       </div>
     );
   }
-
-  // Convert women data to profile format with multiple images support
-  const profiles = filteredWomen.map(woman => {
-    // Parse images from JSONB or fallback to single image_url
-    let images = [];
-    if (woman.images) {
-      try {
-        const parsedImages = typeof woman.images === 'string' 
-          ? JSON.parse(woman.images) 
-          : woman.images;
-        if (Array.isArray(parsedImages)) {
-          images = parsedImages.map((img: any) => img.url || img);
-        }
-      } catch (e) {
-        console.warn('Error parsing images for woman:', woman.id, e);
-      }
-    }
-    
-    if (images.length === 0 && woman.image_url) {
-      images = [woman.image_url];
-    }
-
-    return {
-      id: parseInt(woman.id.slice(-8), 16),
-      name: woman.name,
-      age: woman.age,
-      interests: woman.interests || [],
-      image: images[0] || 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=400&h=600&fit=crop',
-      images: images,
-      description: woman.description || '',
-      personality: woman.personality || '',
-      price: parseFloat(woman.price.toString()),
-      womanId: woman.id,
-      height: woman.height,
-      origin: woman.origin,
-      nsfw: woman.nsfw,
-      pricing_interval: woman.pricing_interval,
-      formattedPrice: formatPrice(woman.price, woman.pricing_interval),
-      distance: 0 // Add missing distance property
-    };
-  });
-
-  // Shuffle profiles if random mode
-  const displayProfiles = isRandom 
-    ? [...profiles].sort(() => Math.random() - 0.5)
-    : profiles;
-
-  const handleProfileClick = (profile: any) => {
-    // If user is not logged in, require authentication first
-    if (!user) {
-      onAuthRequired?.();
-      return;
-    }
-    
-    // If user is logged in, show profile details
-    setSelectedProfile(profile);
-  };
 
   return (
     <div className="space-y-6">

@@ -27,12 +27,28 @@ export function useWomen() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('women')
-        .select('*')
+        .select(`
+          id,
+          name,
+          age,
+          description,
+          personality,
+          image_url,
+          images,
+          price,
+          pricing_interval,
+          interests,
+          height,
+          origin,
+          nsfw
+        `)
         .order('name');
       
       if (error) throw error;
       return data as Woman[];
     },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 10 * 60 * 1000, // 10 minutes
   });
 }
 
@@ -50,6 +66,8 @@ export function useWoman(id: string) {
       return data as Woman;
     },
     enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+    cacheTime: 10 * 60 * 1000,
   });
 }
 
