@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Settings, MessageCircle, Users, Shuffle, Heart } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useMobileNavigation } from '../hooks/useMobileNavigation';
+import { useGlobalMessageNotifications } from '../hooks/useGlobalMessageNotifications';
 import ProfileGallery from '../components/ProfileGallery';
 import SwipeView from '../components/SwipeView';
 import ChatView from '../components/ChatView';
@@ -24,6 +24,9 @@ const Index = () => {
 
   // Initialize mobile navigation with exit confirmation
   useMobileNavigation();
+
+  // Initialize global message notifications
+  useGlobalMessageNotifications({ currentChatId: selectedChatId });
 
   // Determine active tab from URL
   const getActiveTabFromPath = () => {
