@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { Crown, Users, FileText, Calendar, Settings, BarChart3, UserCheck, UserPlus } from 'lucide-react';
 import { useIsAdmin } from '@/hooks/useAdminWomen';
 import { useAuth } from '@/hooks/useAuth';
 import UserManagement from './UserManagement';
 import UserVerificationManagement from './UserVerificationManagement';
+import WomenManagement from './WomenManagement';
 
 interface AdminDashboardProps {
   onBack: () => void;
@@ -114,7 +114,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
           </div>
         );
       case 'women-management':
-        return <UserManagement />;
+        return <WomenManagement />;
       case 'user-management':
         return <UserManagement />;
       case 'user-verification':
