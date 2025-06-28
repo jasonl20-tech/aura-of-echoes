@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Heart, MessageCircle, Gift, Crown, Zap } from 'lucide-react';
@@ -26,7 +27,7 @@ const ProfilePage = () => {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="glass-card p-6 sm:p-8 rounded-2xl animate-pulse">
-          <div className="text-white text-center text-sm sm:text-base">Profil wird geladen...</div>
+          <div className="text-white text-center text-sm sm:text-base">Loading profile...</div>
         </div>
       </div>
     );
@@ -37,13 +38,13 @@ const ProfilePage = () => {
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="glass-card p-6 sm:p-8 rounded-2xl">
           <div className="text-red-400 text-center text-sm sm:text-base">
-            Profil konnte nicht geladen werden
+            Profile could not be loaded
           </div>
           <button
             onClick={() => navigate('/')}
             className="mt-4 glass-button px-4 py-2 rounded-xl text-white hover:bg-purple-600/30 transition-all duration-300"
           >
-            Zurück zur Übersicht
+            Back to overview
           </button>
         </div>
       </div>
@@ -53,12 +54,12 @@ const ProfilePage = () => {
   // Format price
   const formatPrice = (price: number, interval: string) => {
     const intervalMap = {
-      daily: 'täglich',
-      weekly: 'wöchentlich', 
-      monthly: 'monatlich',
-      yearly: 'jährlich'
+      daily: 'daily',
+      weekly: 'weekly', 
+      monthly: 'monthly',
+      yearly: 'yearly'
     };
-    return `€${price.toFixed(2)} ${intervalMap[interval as keyof typeof intervalMap] || 'monatlich'}`;
+    return `€${price.toFixed(2)} ${intervalMap[interval as keyof typeof intervalMap] || 'monthly'}`;
   };
 
   // Parse images
@@ -108,13 +109,13 @@ const ProfilePage = () => {
         price: woman.price || 3.99
       });
       toast({
-        title: "Stripe Checkout geöffnet!",
-        description: `Komplettiere die Zahlung für ${woman.name} im neuen Tab.`,
+        title: "Stripe Checkout opened!",
+        description: `Complete payment for ${woman.name} in the new tab.`,
       });
     } catch (error: any) {
       toast({
-        title: "Fehler",
-        description: error.message || "Checkout konnte nicht geöffnet werden",
+        title: "Error",
+        description: error.message || "Checkout could not be opened",
         variant: "destructive",
       });
     }
@@ -128,8 +129,8 @@ const ProfilePage = () => {
 
     if (!accessStatus?.hasStripeSubscription) {
       toast({
-        title: "Nicht verfügbar",
-        description: "Die Abonnement-Verwaltung ist nur für Stripe-Abonnements verfügbar.",
+        title: "Not available",
+        description: "Subscription management is only available for Stripe subscriptions.",
         variant: "destructive",
       });
       return;
@@ -138,13 +139,13 @@ const ProfilePage = () => {
     try {
       await customerPortal.mutateAsync();
       toast({
-        title: "Kundenverwaltung geöffnet!",
-        description: "Verwalte deine Abonnements im neuen Tab.",
+        title: "Customer portal opened!",
+        description: "Manage your subscriptions in the new tab.",
       });
     } catch (error: any) {
       toast({
-        title: "Fehler",
-        description: error.message || "Kundenverwaltung konnte nicht geöffnet werden",
+        title: "Error",
+        description: error.message || "Customer portal could not be opened",
         variant: "destructive",
       });
     }
@@ -165,13 +166,13 @@ const ProfilePage = () => {
         price: woman.price || 3.99
       });
       toast({
-        title: "Upgrade zu Premium!",
-        description: `Upgrade auf Premium für ${woman.name} im neuen Tab.`,
+        title: "Upgrade to Premium!",
+        description: `Upgrade to Premium for ${woman.name} in the new tab.`,
       });
     } catch (error: any) {
       toast({
-        title: "Fehler",
-        description: error.message || "Upgrade konnte nicht geöffnet werden",
+        title: "Error",
+        description: error.message || "Upgrade could not be opened",
         variant: "destructive",
       });
     }
@@ -183,14 +184,14 @@ const ProfilePage = () => {
     try {
       await createChat.mutateAsync({ womanId: woman.id });
       toast({
-        title: "Chat gestartet!",
-        description: `Chat mit ${woman.name} wurde erstellt.`,
+        title: "Chat started!",
+        description: `Chat with ${woman.name} was created.`,
       });
       navigate('/', { state: { activeTab: 'chats' } });
     } catch (error: any) {
       toast({
-        title: "Fehler",
-        description: error.message || "Chat konnte nicht erstellt werden",
+        title: "Error",
+        description: error.message || "Chat could not be created",
         variant: "destructive",
       });
     }
@@ -254,13 +255,13 @@ const ProfilePage = () => {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {woman.height && (
                   <div className="glass rounded-xl p-4 text-center">
-                    <span className="text-white/60 text-sm block mb-1">Größe</span>
+                    <span className="text-white/60 text-sm block mb-1">Height</span>
                     <div className="text-white font-semibold text-lg">{woman.height} cm</div>
                   </div>
                 )}
                 {woman.origin && (
                   <div className="glass rounded-xl p-4 text-center">
-                    <span className="text-white/60 text-sm block mb-1">Herkunft</span>
+                    <span className="text-white/60 text-sm block mb-1">Origin</span>
                     <div className="text-white font-semibold">{woman.origin}</div>
                   </div>
                 )}
@@ -282,7 +283,7 @@ const ProfilePage = () => {
               {/* Interests */}
               {woman.interests && woman.interests.length > 0 && (
                 <div>
-                  <h3 className="text-white font-bold mb-4 text-xl">Interessen & Tags</h3>
+                  <h3 className="text-white font-bold mb-4 text-xl">Interests & Tags</h3>
                   <div className="flex flex-wrap gap-3">
                     {woman.interests.map((interest, index) => (
                       <span
@@ -299,7 +300,7 @@ const ProfilePage = () => {
               {/* Personality */}
               {woman.personality && (
                 <div>
-                  <h3 className="text-white font-bold mb-4 text-xl">Persönlichkeit</h3>
+                  <h3 className="text-white font-bold mb-4 text-xl">Personality</h3>
                   <div className="glass rounded-xl p-6">
                     <p className="text-white/85 text-base leading-relaxed">
                       {woman.personality}
@@ -311,7 +312,7 @@ const ProfilePage = () => {
               {/* Description */}
               {woman.description && (
                 <div>
-                  <h3 className="text-white font-bold mb-4 text-xl">Über mich</h3>
+                  <h3 className="text-white font-bold mb-4 text-xl">About me</h3>
                   <div className="glass rounded-xl p-6">
                     <p className="text-white/85 text-base leading-relaxed">
                       {woman.description}
@@ -326,11 +327,11 @@ const ProfilePage = () => {
                   <div className="space-y-4">
                     <div className="text-center glass rounded-xl p-6">
                       <p className="text-white/80 text-lg mb-4">
-                        Melde dich an, um mit {woman.name} zu chatten
+                        Sign in to chat with {woman.name}
                       </p>
                       <p className="text-3xl font-bold text-white mb-2">{formattedPrice}</p>
                       <p className="text-white/50 text-sm">
-                        Echte Stripe-Zahlung • Jederzeit kündbar
+                        Real Stripe payment • Cancel anytime
                       </p>
                     </div>
                     <Link
@@ -338,12 +339,12 @@ const ProfilePage = () => {
                       className="w-full glass-button py-4 rounded-xl text-white font-bold hover:bg-purple-600/30 transition-all duration-300 flex items-center justify-center space-x-2 text-lg border border-purple-400/30"
                     >
                       <Heart className="w-6 h-6" />
-                      <span>Anmelden & Abonnieren</span>
+                      <span>Sign in & Subscribe</span>
                     </Link>
                   </div>
                 ) : checkingSubscription ? (
                   <div className="glass-button w-full py-4 rounded-xl text-center text-white/70 text-lg animate-pulse">
-                    Zugang wird geprüft...
+                    Checking access...
                   </div>
                 ) : accessStatus?.hasAccess ? (
                   <div className="space-y-4">
@@ -351,17 +352,17 @@ const ProfilePage = () => {
                       {accessStatus.subscriptionType === 'free' ? (
                         <div className="flex items-center justify-center space-x-3 text-emerald-400">
                           <Gift className="w-6 h-6" />
-                          <span className="text-lg font-semibold">✓ Kostenlos freigeschaltet - Sie können chatten!</span>
+                          <span className="text-lg font-semibold">✓ Free access unlocked - You can chat!</span>
                         </div>
                       ) : accessStatus.subscriptionType === 'stripe' ? (
                         <div className="flex items-center justify-center space-x-3 text-emerald-400">
                           <Crown className="w-6 h-6" />
-                          <span className="text-lg font-semibold">✓ Premium Stripe-Abonnement aktiv!</span>
+                          <span className="text-lg font-semibold">✓ Premium Stripe subscription active!</span>
                         </div>
                       ) : (
                         <div className="flex items-center justify-center space-x-3 text-emerald-400">
                           <Zap className="w-6 h-6" />
-                          <span className="text-lg font-semibold">✓ Direktes Abonnement aktiv!</span>
+                          <span className="text-lg font-semibold">✓ Direct subscription active!</span>
                         </div>
                       )}
                     </div>
@@ -373,7 +374,7 @@ const ProfilePage = () => {
                       >
                         <MessageCircle className="w-6 h-6" />
                         <span>
-                          {createChat.isPending ? 'Chat wird erstellt...' : 'Chat starten'}
+                          {createChat.isPending ? 'Creating chat...' : 'Start chat'}
                         </span>
                       </button>
                       
@@ -385,7 +386,7 @@ const ProfilePage = () => {
                         >
                           <Crown className="w-5 h-5" />
                           <span>
-                            {customerPortal.isPending ? 'Portal wird geöffnet...' : 'Stripe-Abonnement verwalten'}
+                            {customerPortal.isPending ? 'Opening portal...' : 'Manage Stripe subscription'}
                           </span>
                         </button>
                       ) : accessStatus.subscriptionType === 'free' ? (
@@ -396,12 +397,12 @@ const ProfilePage = () => {
                         >
                           <Crown className="w-5 h-5" />
                           <span>
-                            {subscribeToWoman.isPending ? 'Upgrade wird geöffnet...' : 'Upgrade zu Premium'}
+                            {subscribeToWoman.isPending ? 'Opening upgrade...' : 'Upgrade to Premium'}
                           </span>
                         </button>
                       ) : (
                         <div className="text-center text-white/60">
-                          Direktes Abonnement - Kontakt Administrator für Änderungen
+                          Direct subscription - Contact administrator for changes
                         </div>
                       )}
                     </div>
@@ -410,11 +411,11 @@ const ProfilePage = () => {
                   <div className="space-y-4">
                     <div className="text-center glass rounded-xl p-6">
                       <p className="text-white/80 text-lg mb-4">
-                        Abonnieren Sie {woman.name} für
+                        Subscribe to {woman.name} for
                       </p>
                       <p className="text-3xl font-bold text-white mb-2">{formattedPrice}</p>
                       <p className="text-white/50 text-sm">
-                        Echte Stripe-Zahlung • Jederzeit kündbar
+                        Real Stripe payment • Cancel anytime
                       </p>
                     </div>
                     <button
@@ -424,7 +425,7 @@ const ProfilePage = () => {
                     >
                       <Heart className="w-6 h-6" />
                       <span>
-                        {subscribeToWoman.isPending ? 'Checkout wird geöffnet...' : 'Jetzt abonnieren (Stripe)'}
+                        {subscribeToWoman.isPending ? 'Opening checkout...' : 'Subscribe now (Stripe)'}
                       </span>
                     </button>
                   </div>

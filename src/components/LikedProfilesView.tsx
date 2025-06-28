@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Heart, X, MapPin, Ruler, Crown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -18,8 +19,8 @@ const LikedProfilesView: React.FC = () => {
   const handleUnlike = async (womanId: string, womanName: string) => {
     if (!user) {
       toast({
-        title: "Anmeldung erforderlich",
-        description: "Bitte melden Sie sich an",
+        title: "Login required",
+        description: "Please log in",
         variant: "destructive",
       });
       return;
@@ -28,13 +29,13 @@ const LikedProfilesView: React.FC = () => {
     try {
       await removeLike({ womanId });
       toast({
-        title: "Entfernt",
-        description: `${womanName} wurde aus deinen Likes entfernt`,
+        title: "Removed",
+        description: `${womanName} was removed from your likes`,
       });
     } catch (error) {
       toast({
-        title: "Fehler",
-        description: "Like konnte nicht entfernt werden",
+        title: "Error",
+        description: "Could not remove like",
         variant: "destructive",
       });
     }
@@ -47,8 +48,8 @@ const LikedProfilesView: React.FC = () => {
   const handleSubscribe = async (woman: any) => {
     if (!user) {
       toast({
-        title: "Anmeldung erforderlich",
-        description: "Bitte melden Sie sich an, um zu abonnieren",
+        title: "Login required",
+        description: "Please log in to subscribe",
         variant: "destructive",
       });
       return;
@@ -62,13 +63,13 @@ const LikedProfilesView: React.FC = () => {
       });
       
       toast({
-        title: "Abonnement gestartet",
-        description: `Du hast ${woman.name} erfolgreich abonniert!`,
+        title: "Subscription started",
+        description: `You have successfully subscribed to ${woman.name}!`,
       });
     } catch (error: any) {
       toast({
-        title: "Fehler",
-        description: error.message || "Abonnement konnte nicht erstellt werden",
+        title: "Error",
+        description: error.message || "Subscription could not be created",
         variant: "destructive",
       });
     }
@@ -76,12 +77,12 @@ const LikedProfilesView: React.FC = () => {
 
   const formatPrice = (price: number, interval: string) => {
     const intervalMap = {
-      daily: 'täglich',
-      weekly: 'wöchentlich', 
-      monthly: 'monatlich',
-      yearly: 'jährlich'
+      daily: 'daily',
+      weekly: 'weekly', 
+      monthly: 'monthly',
+      yearly: 'yearly'
     };
-    return `€${price.toFixed(2)} ${intervalMap[interval as keyof typeof intervalMap] || 'monatlich'}`;
+    return `€${price.toFixed(2)} ${intervalMap[interval as keyof typeof intervalMap] || 'monthly'}`;
   };
 
   const ProfileCard = ({ like }: { like: any }) => {
@@ -132,7 +133,7 @@ const LikedProfilesView: React.FC = () => {
           {/* Subscription badge */}
           {subscriptionData?.hasAccess && (
             <div className="absolute top-3 right-3 bg-gradient-to-r from-purple-600 to-purple-700 px-2 py-1 rounded-full backdrop-blur-sm border border-purple-400/50">
-              <span className="text-xs text-white font-semibold">Abonniert</span>
+              <span className="text-xs text-white font-semibold">Subscribed</span>
             </div>
           )}
 
@@ -185,7 +186,7 @@ const LikedProfilesView: React.FC = () => {
                 className="w-full glass-button px-3 py-2 rounded-xl text-white text-sm font-semibold flex items-center justify-center space-x-2 hover:bg-purple-600/30 transition-all duration-300"
               >
                 <Crown className="w-4 h-4" />
-                <span>Abonnieren für {formatPrice(woman.price, woman.pricing_interval)}</span>
+                <span>Subscribe for {formatPrice(woman.price, woman.pricing_interval)}</span>
               </button>
             )}
           </div>
@@ -200,20 +201,20 @@ const LikedProfilesView: React.FC = () => {
         <div className="text-center mb-8">
           <h2 className="relative text-4xl sm:text-5xl font-bold mb-4 tracking-tight">
             <span className="absolute inset-0 text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text blur-sm opacity-50">
-              Gelikte Profile
+              Liked Profiles
             </span>
             <span className="glass-text relative text-white/90 backdrop-blur-sm">
-              Gelikte Profile
+              Liked Profiles
             </span>
           </h2>
-          <p className="text-white/60 text-sm">Melde dich an, um deine gelikten Profile zu sehen</p>
+          <p className="text-white/60 text-sm">Sign in to see your liked profiles</p>
         </div>
 
         <div className="text-center py-16">
           <Heart className="w-16 h-16 text-white/20 mx-auto mb-4" />
-          <h3 className="text-xl text-white/70 mb-2">Anmeldung erforderlich</h3>
+          <h3 className="text-xl text-white/70 mb-2">Login required</h3>
           <p className="text-white/50 text-sm max-w-sm mx-auto leading-relaxed">
-            Melde dich an, um Profile zu liken und sie hier zu sammeln.
+            Sign in to like profiles and collect them here.
           </p>
         </div>
       </div>
@@ -226,17 +227,17 @@ const LikedProfilesView: React.FC = () => {
         <div className="text-center mb-8">
           <h2 className="relative text-4xl sm:text-5xl font-bold mb-4 tracking-tight">
             <span className="absolute inset-0 text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text blur-sm opacity-50">
-              Gelikte Profile
+              Liked Profiles
             </span>
             <span className="glass-text relative text-white/90 backdrop-blur-sm">
-              Gelikte Profile
+              Liked Profiles
             </span>
           </h2>
         </div>
 
         <div className="text-center py-16">
           <div className="animate-spin w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p className="text-white/70">Lade deine gelikten Profile...</p>
+          <p className="text-white/70">Loading your liked profiles...</p>
         </div>
       </div>
     );
@@ -248,16 +249,16 @@ const LikedProfilesView: React.FC = () => {
         <div className="text-center mb-8">
           <h2 className="relative text-4xl sm:text-5xl font-bold mb-4 tracking-tight">
             <span className="absolute inset-0 text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text blur-sm opacity-50">
-              Gelikte Profile
+              Liked Profiles
             </span>
             <span className="glass-text relative text-white/90 backdrop-blur-sm">
-              Gelikte Profile
+              Liked Profiles
             </span>
           </h2>
           <p className="text-white/60 text-sm">
             {likes.length > 0 
-              ? `Du hast ${likes.length} Profile${likes.length !== 1 ? '' : ''} geliked`
-              : 'Hier siehst du alle Profile, die du geliked hast'
+              ? `You have liked ${likes.length} profile${likes.length !== 1 ? 's' : ''}`
+              : 'Here you can see all profiles you have liked'
             }
           </p>
         </div>
@@ -265,9 +266,9 @@ const LikedProfilesView: React.FC = () => {
         {likes.length === 0 ? (
           <div className="text-center py-16">
             <Heart className="w-16 h-16 text-white/20 mx-auto mb-4" />
-            <h3 className="text-xl text-white/70 mb-2">Noch keine Likes</h3>
+            <h3 className="text-xl text-white/70 mb-2">No likes yet</h3>
             <p className="text-white/50 text-sm max-w-sm mx-auto leading-relaxed">
-              Gehe zu den Profilen oder verwende den Zufall-Tab, um Profile zu liken und sie hier zu sammeln.
+              Go to profiles or use the random tab to like profiles and collect them here.
             </p>
           </div>
         ) : (

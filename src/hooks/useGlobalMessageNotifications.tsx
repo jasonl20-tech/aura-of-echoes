@@ -51,15 +51,15 @@ export const useGlobalMessageNotifications = ({ currentChatId }: UseGlobalMessag
           }
 
           // Get woman name for notification
-          const womanName = userChat.woman?.name || 'Unbekannt';
+          const womanName = userChat.woman?.name || 'Unknown';
           
           console.log('🔔 Showing global notification for message from:', womanName);
           
           // Show notification
           showNotification(
-            `Neue Nachricht von ${womanName}`,
+            `New message from ${womanName}`,
             {
-              body: message.message_type === 'audio' ? '🎤 Audio-Nachricht' : message.content,
+              body: message.message_type === 'audio' ? '🎤 Audio message' : message.content,
               tag: `global-chat-${messageChatId}`,
               requireInteraction: true,
               icon: userChat.woman?.image_url || '/favicon.ico',

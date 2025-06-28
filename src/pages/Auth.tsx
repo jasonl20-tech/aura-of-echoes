@@ -53,7 +53,7 @@ const Auth = () => {
         
         // Since email verification is disabled, user should be logged in immediately
         if (data.user) {
-          setSuccess('Registrierung erfolgreich! Du wirst weitergeleitet...');
+          setSuccess('Registration successful! You will be redirected...');
           setTimeout(() => {
             navigate('/');
           }, 1500);
@@ -64,13 +64,13 @@ const Auth = () => {
       
       // Handle specific error messages
       if (error.message.includes('Invalid login credentials')) {
-        setError('Ungültige Anmeldedaten. Bitte überprüfe E-Mail und Passwort.');
+        setError('Invalid login credentials. Please check email and password.');
       } else if (error.message.includes('User already registered')) {
-        setError('Diese E-Mail-Adresse ist bereits registriert. Versuche dich anzumelden.');
+        setError('This email address is already registered. Try signing in.');
       } else if (error.message.includes('Password should be at least')) {
-        setError('Das Passwort muss mindestens 6 Zeichen lang sein.');
+        setError('Password must be at least 6 characters long.');
       } else {
-        setError(error.message || 'Ein Fehler ist aufgetreten.');
+        setError(error.message || 'An error occurred.');
       }
     } finally {
       setLoading(false);
@@ -82,10 +82,10 @@ const Auth = () => {
       <div className="glass-card w-full max-w-md p-8 space-y-6">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-white text-glow mb-2">
-            {isLogin ? 'Willkommen zurück' : 'Konto erstellen'}
+            {isLogin ? 'Welcome back' : 'Create account'}
           </h1>
           <p className="text-white/70">
-            {isLogin ? 'Melden Sie sich an, um fortzufahren' : 'Erstellen Sie Ihr Konto'}
+            {isLogin ? 'Sign in to continue' : 'Create your account'}
           </p>
         </div>
 
@@ -94,7 +94,7 @@ const Auth = () => {
             <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/60" />
             <input
               type="email"
-              placeholder="E-Mail Adresse"
+              placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full pl-12 pr-4 py-3 glass rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -106,7 +106,7 @@ const Auth = () => {
             <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/60" />
             <input
               type={showPassword ? 'text' : 'password'}
-              placeholder="Passwort"
+              placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full pl-12 pr-12 py-3 glass rounded-xl text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -139,7 +139,7 @@ const Auth = () => {
             disabled={loading}
             className="w-full glass-button py-3 rounded-xl text-white font-semibold hover:bg-purple-600/30 transition-all duration-300 disabled:opacity-50"
           >
-            {loading ? 'Wird verarbeitet...' : (isLogin ? 'Anmelden' : 'Registrieren')}
+            {loading ? 'Processing...' : (isLogin ? 'Sign in' : 'Register')}
           </button>
         </form>
 
@@ -148,7 +148,7 @@ const Auth = () => {
             onClick={() => setIsLogin(!isLogin)}
             className="text-white/70 hover:text-white transition-colors"
           >
-            {isLogin ? 'Noch kein Konto? Registrieren' : 'Bereits ein Konto? Anmelden'}
+            {isLogin ? 'No account yet? Register' : 'Already have an account? Sign in'}
           </button>
         </div>
       </div>

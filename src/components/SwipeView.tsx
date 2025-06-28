@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { Heart, X, RotateCcw } from 'lucide-react';
 import SwipeCard from './SwipeCard';
@@ -59,12 +60,12 @@ const SwipeView: React.FC = () => {
 
     const formatPrice = (price: number, interval: string) => {
       const intervalMap = {
-        daily: 'täglich',
-        weekly: 'wöchentlich', 
-        monthly: 'monatlich',
-        yearly: 'jährlich'
+        daily: 'daily',
+        weekly: 'weekly', 
+        monthly: 'monthly',
+        yearly: 'yearly'
       };
-      return `€${price.toFixed(2)} ${intervalMap[interval as keyof typeof intervalMap] || 'monatlich'}`;
+      return `€${price.toFixed(2)} ${intervalMap[interval as keyof typeof intervalMap] || 'monthly'}`;
     };
 
     return {
@@ -94,8 +95,8 @@ const SwipeView: React.FC = () => {
     setSwipedProfiles(prev => [...prev, profile]);
     setCurrentIndex(prev => prev + 1);
     toast({
-      title: "Übersprungen",
-      description: `${profile.name} wurde übersprungen`,
+      title: "Skipped",
+      description: `${profile.name} was skipped`,
     });
   }, []);
 
@@ -108,20 +109,20 @@ const SwipeView: React.FC = () => {
       try {
         await addLike({ womanId: profile.womanId });
         toast({
-          title: "Gefällt mir!",
-          description: `${profile.name} wurde geliked und gespeichert`,
+          title: "Liked!",
+          description: `${profile.name} was liked and saved`,
         });
       } catch (error) {
         console.error('Error saving like:', error);
         toast({
-          title: "Gefällt mir!",
-          description: `${profile.name} wurde geliked`,
+          title: "Liked!",
+          description: `${profile.name} was liked`,
         });
       }
     } else {
       toast({
-        title: "Gefällt mir!",
-        description: `${profile.name} wurde geliked`,
+        title: "Liked!",
+        description: `${profile.name} was liked`,
       });
     }
   }, [user, addLike]);
@@ -129,8 +130,8 @@ const SwipeView: React.FC = () => {
   const handleSubscribe = useCallback(async (profile: Profile) => {
     if (!user) {
       toast({
-        title: "Anmeldung erforderlich",
-        description: "Bitte melden Sie sich an, um zu abonnieren",
+        title: "Login required",
+        description: "Please log in to subscribe",
         variant: "destructive",
       });
       return;
@@ -144,13 +145,13 @@ const SwipeView: React.FC = () => {
       });
       
       toast({
-        title: "Abonnement gestartet",
-        description: `Du hast ${profile.name} erfolgreich abonniert!`,
+        title: "Subscription started",
+        description: `You have successfully subscribed to ${profile.name}!`,
       });
     } catch (error: any) {
       toast({
-        title: "Fehler",
-        description: error.message || "Abonnement konnte nicht erstellt werden",
+        title: "Error",
+        description: error.message || "Subscription could not be created",
         variant: "destructive",
       });
     }
@@ -180,7 +181,7 @@ const SwipeView: React.FC = () => {
       <div className="flex items-center justify-center h-screen">
         <div className="text-white text-center">
           <div className="animate-spin w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p>Profile werden geladen...</p>
+          <p>Loading profiles...</p>
         </div>
       </div>
     );
@@ -190,7 +191,7 @@ const SwipeView: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-red-400 text-center">
-          <p>Fehler beim Laden der Profile</p>
+          <p>Error loading profiles</p>
         </div>
       </div>
     );
@@ -200,8 +201,8 @@ const SwipeView: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-center text-white">
-          <h2 className="text-3xl font-bold mb-4">Keine weiteren Profile!</h2>
-          <p className="text-white/70 mb-6">Du hast alle verfügbaren Profile durchgeschaut.</p>
+          <h2 className="text-3xl font-bold mb-4">No more profiles!</h2>
+          <p className="text-white/70 mb-6">You've viewed all available profiles.</p>
           <button
             onClick={() => {
               setCurrentIndex(0);
@@ -209,7 +210,7 @@ const SwipeView: React.FC = () => {
             }}
             className="glass-button px-6 py-3 rounded-xl text-purple-400 hover:bg-purple-600/20 transition-all duration-300"
           >
-            Neu starten
+            Start over
           </button>
         </div>
       </div>

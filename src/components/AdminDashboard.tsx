@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Crown, Users, FileText, Calendar, Settings, BarChart3, UserCheck, UserPlus } from 'lucide-react';
 import { useIsAdmin } from '@/hooks/useAdminWomen';
@@ -20,7 +21,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-white text-center">
           <div className="animate-spin w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p>Admin-Dashboard wird geladen...</p>
+          <p>Loading admin dashboard...</p>
         </div>
       </div>
     );
@@ -31,13 +32,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4">🚫</div>
-          <h1 className="text-2xl font-bold text-white mb-2">Zugriff verweigert</h1>
-          <p className="text-white/70 mb-4">Sie haben keine Berechtigung für das Admin-Dashboard.</p>
+          <h1 className="text-2xl font-bold text-white mb-2">Access denied</h1>
+          <p className="text-white/70 mb-4">You don't have permission to access the admin dashboard.</p>
           <button
             onClick={onBack}
             className="glass-button px-6 py-3 rounded-xl text-white font-semibold hover:bg-purple-600/30 transition-all duration-300"
           >
-            Zurück
+            Back
           </button>
         </div>
       </div>
@@ -45,11 +46,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
   }
 
   const tabs = [
-    { id: 'overview', label: 'Übersicht', icon: BarChart3 },
-    { id: 'women-management', label: 'Frauen verwalten', icon: UserPlus },
+    { id: 'overview', label: 'Overview', icon: BarChart3 },
+    { id: 'women-management', label: 'Manage Women', icon: UserPlus },
     { id: 'user-management', label: 'User Management', icon: Users },
-    { id: 'user-verification', label: 'Benutzer-Verifizierung', icon: UserCheck },
-    { id: 'settings', label: 'Einstellungen', icon: Settings }
+    { id: 'user-verification', label: 'User Verification', icon: UserCheck },
+    { id: 'settings', label: 'Settings', icon: Settings }
   ];
 
   const renderContent = () => {
@@ -59,7 +60,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
           <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-3xl font-bold text-white text-glow mb-2">Admin Dashboard</h2>
-              <p className="text-white/70">Willkommen im Admin-Bereich</p>
+              <p className="text-white/70">Welcome to the admin area</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -69,8 +70,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                     <UserPlus className="w-6 h-6 text-purple-400" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-white">Frauen verwalten</h3>
-                    <p className="text-white/70 text-sm">Profile erstellen und bearbeiten</p>
+                    <h3 className="text-lg font-semibold text-white">Manage Women</h3>
+                    <p className="text-white/70 text-sm">Create and edit profiles</p>
                   </div>
                 </div>
               </div>
@@ -81,8 +82,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                     <Users className="w-6 h-6 text-blue-400" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-white">Benutzer</h3>
-                    <p className="text-white/70 text-sm">Verwaltung und Freischaltungen</p>
+                    <h3 className="text-lg font-semibold text-white">Users</h3>
+                    <p className="text-white/70 text-sm">Management and unlocks</p>
                   </div>
                 </div>
               </div>
@@ -93,8 +94,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                     <UserCheck className="w-6 h-6 text-green-400" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-white">Verifizierungen</h3>
-                    <p className="text-white/70 text-sm">Benutzer-Identitätsprüfung</p>
+                    <h3 className="text-lg font-semibold text-white">Verifications</h3>
+                    <p className="text-white/70 text-sm">User identity verification</p>
                   </div>
                 </div>
               </div>
@@ -105,8 +106,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
                     <FileText className="w-6 h-6 text-purple-400" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-white">Profilanträge</h3>
-                    <p className="text-white/70 text-sm">Neue Profile prüfen</p>
+                    <h3 className="text-lg font-semibold text-white">Profile requests</h3>
+                    <p className="text-white/70 text-sm">Review new profiles</p>
                   </div>
                 </div>
               </div>
@@ -122,9 +123,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
       case 'settings':
         return (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-white text-glow">Admin-Einstellungen</h2>
+            <h2 className="text-2xl font-bold text-white text-glow">Admin Settings</h2>
             <div className="glass-card rounded-2xl p-6">
-              <p className="text-white/70">Admin-Einstellungen werden hier angezeigt.</p>
+              <p className="text-white/70">Admin settings will be displayed here.</p>
             </div>
           </div>
         );

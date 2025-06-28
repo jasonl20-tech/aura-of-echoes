@@ -135,7 +135,7 @@ const Index = () => {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="glass-card p-6 sm:p-8 rounded-2xl animate-pulse">
-          <div className="text-white text-center text-sm sm:text-base">Wird geladen...</div>
+          <div className="text-white text-center text-sm sm:text-base">Loading...</div>
         </div>
       </div>
     );
@@ -182,7 +182,7 @@ const Index = () => {
               }`}
             >
               <Users className="w-5 h-5" />
-              <span className="text-[10px] font-medium tracking-tight leading-none">Profile</span>
+              <span className="text-[10px] font-medium tracking-tight leading-none">Profiles</span>
             </button>
 
             <button
@@ -194,7 +194,7 @@ const Index = () => {
               }`}
             >
               <Heart className="w-5 h-5" />
-              <span className="text-[10px] font-medium tracking-tight leading-none">Geliked</span>
+              <span className="text-[10px] font-medium tracking-tight leading-none">Liked</span>
             </button>
             
             <button
@@ -219,7 +219,7 @@ const Index = () => {
               }`}
             >
               <Shuffle className="w-5 h-5" />
-              <span className="text-[10px] font-medium tracking-tight leading-none">Zufall</span>
+              <span className="text-[10px] font-medium tracking-tight leading-none">Random</span>
             </button>
             
             <button
@@ -245,7 +245,7 @@ const Index = () => {
             onClick={() => navigate('/settings')}
             className="glass-button px-4 sm:px-6 py-2 sm:py-3 rounded-xl text-white font-semibold hover:bg-purple-600/30 transition-all duration-300 text-sm sm:text-base hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-purple-500/20 animate-micro-bounce"
           >
-            ← Zurück zu Einstellungen
+            ← Back to Settings
           </button>
         </div>
       )}
