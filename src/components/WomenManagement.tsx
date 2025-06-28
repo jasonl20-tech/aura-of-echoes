@@ -99,10 +99,21 @@ const WomenManagement: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name.trim() || !formData.webhook_url.trim()) {
+    // For new women, both name and webhook_url are required
+    // For editing existing women, only name is required
+    if (!formData.name.trim()) {
       toast({
         title: "Error",
-        description: "Name and Webhook URL are required.",
+        description: "Name is required.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!editingWoman && !formData.webhook_url.trim()) {
+      toast({
+        title: "Error",
+        description: "Webhook URL is required for new women.",
         variant: "destructive"
       });
       return;
@@ -186,8 +197,8 @@ const WomenManagement: React.FC = () => {
 
       {/* Form Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="glass-card rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
+          <div className="glass-card rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto relative z-[10000]">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-white">
                 {editingWoman ? 'Edit Woman' : 'Create New Woman'}
@@ -275,15 +286,20 @@ const WomenManagement: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-white mb-2">
-                  Webhook URL *
+                  Webhook URL {!editingWoman && '*'}
                 </label>
                 <input
                   type="url"
                   value={formData.webhook_url}
                   onChange={(e) => setFormData({ ...formData, webhook_url: e.target.value })}
                   className="w-full glass rounded-lg px-3 py-2 text-white placeholder-white/60 border border-purple-400/30 focus:border-purple-400 outline-none"
-                  required
+                  required={!editingWoman}
                 />
+                {editingWoman && (
+                  <p className="text-xs text-white/50 mt-1">
+                    Leave empty to keep existing webhook URL
+                  </p>
+                )}
               </div>
 
               <div>
