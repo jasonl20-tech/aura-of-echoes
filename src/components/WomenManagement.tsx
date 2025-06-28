@@ -26,6 +26,7 @@ interface WomanFormData {
   origin: string;
   nsfw: boolean;
   exclusive: boolean;
+  exclusive_label: string;
 }
 
 const WomenManagement: React.FC = () => {
@@ -51,7 +52,8 @@ const WomenManagement: React.FC = () => {
     height: null,
     origin: '',
     nsfw: false,
-    exclusive: false
+    exclusive: false,
+    exclusive_label: 'EXCLUSIVE'
   });
 
   const resetForm = () => {
@@ -69,7 +71,8 @@ const WomenManagement: React.FC = () => {
       height: null,
       origin: '',
       nsfw: false,
-      exclusive: false
+      exclusive: false,
+      exclusive_label: 'EXCLUSIVE'
     });
     setEditingWoman(null);
     setShowForm(false);
@@ -91,7 +94,8 @@ const WomenManagement: React.FC = () => {
       height: woman.height || null,
       origin: woman.origin || '',
       nsfw: woman.nsfw || false,
-      exclusive: woman.exclusive || false
+      exclusive: woman.exclusive || false,
+      exclusive_label: woman.exclusive_label || 'EXCLUSIVE'
     });
     setShowForm(true);
   };
@@ -374,32 +378,49 @@ const WomenManagement: React.FC = () => {
                   />
                 </div>
 
-                <div className="space-y-3 pt-6">
-                  <div className="flex items-center space-x-3">
-                    <input
-                      type="checkbox"
-                      id="nsfw"
-                      checked={formData.nsfw}
-                      onChange={(e) => setFormData({ ...formData, nsfw: e.target.checked })}
-                      className="w-4 h-4 text-purple-600 bg-transparent border-purple-400/30 rounded focus:ring-purple-500"
-                    />
-                    <label htmlFor="nsfw" className="text-sm font-medium text-white">
-                      NSFW Content
-                    </label>
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium text-white mb-2">
+                    Exclusive Label
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.exclusive_label}
+                    onChange={(e) => setFormData({ ...formData, exclusive_label: e.target.value })}
+                    className="w-full glass rounded-lg px-3 py-2 text-white placeholder-white/60 border border-purple-400/30 focus:border-purple-400 outline-none"
+                    placeholder="EXCLUSIVE"
+                    disabled={!formData.exclusive}
+                  />
+                  <p className="text-xs text-white/50 mt-1">
+                    Text that appears next to the crown for exclusive profiles
+                  </p>
+                </div>
+              </div>
 
-                  <div className="flex items-center space-x-3">
-                    <input
-                      type="checkbox"
-                      id="exclusive"
-                      checked={formData.exclusive}
-                      onChange={(e) => setFormData({ ...formData, exclusive: e.target.checked })}
-                      className="w-4 h-4 text-purple-600 bg-transparent border-purple-400/30 rounded focus:ring-purple-500"
-                    />
-                    <label htmlFor="exclusive" className="text-sm font-medium text-white">
-                      Exclusive
-                    </label>
-                  </div>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    id="nsfw"
+                    checked={formData.nsfw}
+                    onChange={(e) => setFormData({ ...formData, nsfw: e.target.checked })}
+                    className="w-4 h-4 text-purple-600 bg-transparent border-purple-400/30 rounded focus:ring-purple-500"
+                  />
+                  <label htmlFor="nsfw" className="text-sm font-medium text-white">
+                    NSFW Content
+                  </label>
+                </div>
+
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    id="exclusive"
+                    checked={formData.exclusive}
+                    onChange={(e) => setFormData({ ...formData, exclusive: e.target.checked })}
+                    className="w-4 h-4 text-purple-600 bg-transparent border-purple-400/30 rounded focus:ring-purple-500"
+                  />
+                  <label htmlFor="exclusive" className="text-sm font-medium text-white">
+                    Exclusive
+                  </label>
                 </div>
               </div>
 
@@ -445,7 +466,7 @@ const WomenManagement: React.FC = () => {
                       <h3 className="text-lg font-semibold text-white">{woman.name}</h3>
                       {woman.exclusive && (
                         <span className="px-2 py-1 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black text-xs font-bold rounded">
-                          EXCLUSIVE
+                          {woman.exclusive_label || 'EXCLUSIVE'}
                         </span>
                       )}
                     </div>
