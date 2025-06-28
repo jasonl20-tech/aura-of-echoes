@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { MessageCircle, Clock } from 'lucide-react';
 import { useChats } from '../hooks/useChats';
@@ -145,7 +146,14 @@ const ChatsList: React.FC<ChatsListProps> = ({ onChatSelect }) => {
   return (
     <>
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold text-white text-glow mb-6">Deine Chats</h2>
+        <h2 className="relative text-4xl sm:text-5xl font-bold mb-6 tracking-tight text-center">
+          <span className="absolute inset-0 text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text blur-sm opacity-50">
+            Deine Chats
+          </span>
+          <span className="glass-text relative text-white/90 backdrop-blur-sm">
+            Deine Chats
+          </span>
+        </h2>
         
         <div className="space-y-3">
           {chats.map((chat) => {

@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Settings, Shield, Globe, Trash2, User, LogOut, Crown, Bell, Volume2 } from 'lucide-react';
+import { Settings, Shield, Globe, Trash2, User, LogOut, Crown, Bell, Volume2, Mail } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useNotifications } from '../hooks/useNotifications';
 import { useSettings } from '../hooks/useSettings';
@@ -268,6 +269,28 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onAuthRequired, onNavigateT
               <option value="de" className="bg-gray-800">Deutsch</option>
               <option value="en" className="bg-gray-800">English</option>
             </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Support Section */}
+      <div className="glass-card rounded-2xl p-6">
+        <div className="flex items-center space-x-3 mb-4">
+          <Mail className="w-5 h-5 text-purple-400" />
+          <h2 className="text-xl font-semibold text-white">Support</h2>
+        </div>
+        
+        <div className="p-4 glass rounded-xl">
+          <div className="text-center">
+            <p className="text-white font-medium mb-2">Benötigen Sie Hilfe?</p>
+            <p className="text-white/70 text-sm mb-4">Kontaktieren Sie unser Support-Team</p>
+            <a 
+              href="mailto:support@mostchats.com"
+              className="inline-flex items-center space-x-2 text-purple-400 hover:text-purple-300 transition-colors font-medium"
+            >
+              <Mail className="w-4 h-4" />
+              <span>support@mostchats.com</span>
+            </a>
           </div>
         </div>
       </div>
