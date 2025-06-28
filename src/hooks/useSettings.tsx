@@ -41,8 +41,8 @@ export function useSettings() {
     localStorage.setItem('userSettings', JSON.stringify(updatedSettings));
     
     toast({
-      title: "Einstellungen gespeichert",
-      description: "Ihre Einstellungen wurden erfolgreich aktualisiert.",
+      title: "Settings saved",
+      description: "Your settings have been successfully updated.",
     });
   };
 
@@ -50,15 +50,15 @@ export function useSettings() {
   const deleteAllChatData = async () => {
     if (!user) {
       toast({
-        title: "Fehler",
-        description: "Sie müssen angemeldet sein, um diese Aktion durchzuführen.",
+        title: "Error",
+        description: "You must be signed in to perform this action.",
         variant: "destructive",
       });
       return;
     }
 
     const confirmDelete = window.confirm(
-      "Sind Sie sicher, dass Sie alle Ihre Chat-Daten löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden."
+      "Are you sure you want to delete all your chat data? This action cannot be undone."
     );
 
     if (!confirmDelete) return;
@@ -94,14 +94,14 @@ export function useSettings() {
       }
 
       toast({
-        title: "Chat-Daten gelöscht",
-        description: "Alle Ihre Chat-Daten wurden erfolgreich gelöscht.",
+        title: "Chat data deleted",
+        description: "All your chat data has been successfully deleted.",
       });
     } catch (error: any) {
       console.error('Error deleting chat data:', error);
       toast({
-        title: "Fehler",
-        description: "Fehler beim Löschen der Chat-Daten: " + error.message,
+        title: "Error",
+        description: "Error deleting chat data: " + error.message,
         variant: "destructive",
       });
     } finally {
@@ -113,27 +113,27 @@ export function useSettings() {
   const deleteAccount = async () => {
     if (!user) {
       toast({
-        title: "Fehler",
-        description: "Sie müssen angemeldet sein, um diese Aktion durchzuführen.",
+        title: "Error",
+        description: "You must be signed in to perform this action.",
         variant: "destructive",
       });
       return;
     }
 
     const confirmDelete = window.confirm(
-      "Sind Sie WIRKLICH sicher, dass Sie Ihr Konto löschen möchten?\n\nDiese Aktion:\n- Löscht alle Ihre Daten unwiderruflich\n- Beendet alle aktiven Abonnements\n- Kann NICHT rückgängig gemacht werden\n\nGeben Sie 'LÖSCHEN' ein, um zu bestätigen:"
+      "Are you REALLY sure you want to delete your account?\n\nThis action:\n- Permanently deletes all your data\n- Cancels all active subscriptions\n- CANNOT be undone\n\nType 'DELETE' to confirm:"
     );
 
     if (!confirmDelete) return;
 
     const confirmation = window.prompt(
-      "Bitte geben Sie 'LÖSCHEN' ein, um die Kontolöschung zu bestätigen:"
+      "Please type 'DELETE' to confirm account deletion:"
     );
 
-    if (confirmation !== 'LÖSCHEN') {
+    if (confirmation !== 'DELETE') {
       toast({
-        title: "Abgebrochen",
-        description: "Kontolöschung wurde abgebrochen.",
+        title: "Cancelled",
+        description: "Account deletion was cancelled.",
       });
       return;
     }
@@ -176,14 +176,14 @@ export function useSettings() {
       }
 
       toast({
-        title: "Konto gelöscht",
-        description: "Ihr Konto wurde erfolgreich gelöscht.",
+        title: "Account deleted",
+        description: "Your account has been successfully deleted.",
       });
     } catch (error: any) {
       console.error('Error deleting account:', error);
       toast({
-        title: "Fehler",
-        description: "Fehler beim Löschen des Kontos: " + error.message,
+        title: "Error",
+        description: "Error deleting account: " + error.message,
         variant: "destructive",
       });
     } finally {

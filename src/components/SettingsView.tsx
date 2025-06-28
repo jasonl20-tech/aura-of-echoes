@@ -42,13 +42,13 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onAuthRequired, onNavigateT
       if (error) throw error;
       
       toast({
-        title: "Erfolgreich abgemeldet",
-        description: "Sie wurden erfolgreich abgemeldet.",
+        title: "Successfully signed out",
+        description: "You have been successfully signed out.",
       });
     } catch (error: any) {
       toast({
-        title: "Fehler",
-        description: "Fehler beim Abmelden: " + error.message,
+        title: "Error",
+        description: "Error signing out: " + error.message,
         variant: "destructive",
       });
     } finally {
@@ -60,13 +60,13 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onAuthRequired, onNavigateT
     const permission = await requestPermission();
     if (permission === 'granted') {
       toast({
-        title: "Benachrichtigungen aktiviert",
-        description: "Sie erhalten jetzt Browser-Benachrichtigungen.",
+        title: "Notifications enabled",
+        description: "You will now receive browser notifications.",
       });
     } else {
       toast({
-        title: "Benachrichtigungen verweigert",
-        description: "Benachrichtigungen wurden nicht aktiviert.",
+        title: "Notifications denied",
+        description: "Notifications were not activated.",
         variant: "destructive",
       });
     }
@@ -77,7 +77,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onAuthRequired, onNavigateT
       <div className="flex items-center justify-center h-64">
         <div className="text-white text-center">
           <div className="animate-spin w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p>Einstellungen werden geladen...</p>
+          <p>Loading settings...</p>
         </div>
       </div>
     );
@@ -86,22 +86,22 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onAuthRequired, onNavigateT
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-white text-glow mb-2">Einstellungen</h1>
-        <p className="text-white/70">Verwalten Sie Ihre Präferenzen und Ihr Konto</p>
+        <h1 className="text-3xl font-bold text-white text-glow mb-2">Settings</h1>
+        <p className="text-white/70">Manage your preferences and account</p>
       </div>
 
       {/* Account Section */}
       <div className="glass-card rounded-2xl p-6">
         <div className="flex items-center space-x-3 mb-4">
           <User className="w-5 h-5 text-purple-400" />
-          <h2 className="text-xl font-semibold text-white">Konto</h2>
+          <h2 className="text-xl font-semibold text-white">Account</h2>
         </div>
         
         {user ? (
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 glass rounded-xl">
               <div>
-                <p className="text-white font-medium">Angemeldet als</p>
+                <p className="text-white font-medium">Signed in as</p>
                 <p className="text-white/70 text-sm">{user.email}</p>
               </div>
               <button
@@ -110,7 +110,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onAuthRequired, onNavigateT
                 className="mt-2 sm:mt-0 w-full sm:w-auto glass-button px-4 py-2 rounded-lg text-white/70 hover:text-white hover:bg-red-600/30 transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-50"
               >
                 <LogOut className="w-4 h-4" />
-                <span>{signingOut ? 'Wird abgemeldet...' : 'Abmelden'}</span>
+                <span>{signingOut ? 'Signing out...' : 'Sign out'}</span>
               </button>
             </div>
 
@@ -122,14 +122,14 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onAuthRequired, onNavigateT
                     <Crown className="w-5 h-5 text-yellow-400" />
                     <div>
                       <p className="text-white font-medium">Administrator</p>
-                      <p className="text-white/70 text-sm">Zugang zum Admin-Dashboard</p>
+                      <p className="text-white/70 text-sm">Access to admin dashboard</p>
                     </div>
                   </div>
                   <button
                     onClick={onNavigateToAdmin}
                     className="mt-2 sm:mt-0 w-full sm:w-auto glass-button px-4 py-2 rounded-lg text-yellow-400 hover:bg-yellow-600/20 transition-all duration-300"
                   >
-                    Admin-Dashboard öffnen
+                    Open Admin Dashboard
                   </button>
                 </div>
               </div>
@@ -137,12 +137,12 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onAuthRequired, onNavigateT
           </div>
         ) : (
           <div className="text-center p-4 glass rounded-xl">
-            <p className="text-white/70 mb-4">Sie sind nicht angemeldet</p>
+            <p className="text-white/70 mb-4">You are not signed in</p>
             <button
               onClick={onAuthRequired}
               className="glass-button px-6 py-2 rounded-xl text-white font-semibold hover:bg-purple-600/30 transition-all duration-300"
             >
-              Jetzt anmelden
+              Sign in now
             </button>
           </div>
         )}
@@ -163,14 +163,14 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onAuthRequired, onNavigateT
       <div className="glass-card rounded-2xl p-6">
         <div className="flex items-center space-x-3 mb-4">
           <Bell className="w-5 h-5 text-purple-400" />
-          <h2 className="text-xl font-semibold text-white">Benachrichtigungen</h2>
+          <h2 className="text-xl font-semibold text-white">Notifications</h2>
         </div>
         
         <div className="space-y-4">
           <div className="flex items-center justify-between p-4 glass rounded-xl">
             <div>
-              <p className="text-white font-medium">Desktop-Benachrichtigungen</p>
-              <p className="text-white/70 text-sm">Browser-Benachrichtigungen für neue Nachrichten</p>
+              <p className="text-white font-medium">Desktop notifications</p>
+              <p className="text-white/70 text-sm">Browser notifications for new messages</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -190,8 +190,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onAuthRequired, onNavigateT
 
           <div className="flex items-center justify-between p-4 glass rounded-xl">
             <div>
-              <p className="text-white font-medium">Push-Benachrichtigungen für Nachrichten</p>
-              <p className="text-white/70 text-sm">Benachrichtigungen wenn Sie nicht in der App sind</p>
+              <p className="text-white font-medium">Push notifications for messages</p>
+              <p className="text-white/70 text-sm">Notifications when you're not in the app</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -210,14 +210,14 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onAuthRequired, onNavigateT
       <div className="glass-card rounded-2xl p-6">
         <div className="flex items-center space-x-3 mb-4">
           <Shield className="w-5 h-5 text-purple-400" />
-          <h2 className="text-xl font-semibold text-white">Datenschutz</h2>
+          <h2 className="text-xl font-semibold text-white">Privacy</h2>
         </div>
         
         <div className="space-y-4">
           <div className="flex items-center justify-between p-4 glass rounded-xl">
             <div>
-              <p className="text-white font-medium">Chat-Verlauf speichern</p>
-              <p className="text-white/70 text-sm">Ihre Nachrichten lokal für bessere Erfahrung speichern</p>
+              <p className="text-white font-medium">Save chat history</p>
+              <p className="text-white/70 text-sm">Store your messages locally for better experience</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -232,8 +232,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onAuthRequired, onNavigateT
 
           <div className="flex items-center justify-between p-4 glass rounded-xl">
             <div>
-              <p className="text-white font-medium">Daten für Verbesserungen nutzen</p>
-              <p className="text-white/70 text-sm">Anonyme Nutzungsdaten zur Produktverbesserung teilen</p>
+              <p className="text-white font-medium">Use data for improvements</p>
+              <p className="text-white/70 text-sm">Share anonymous usage data to improve the product</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -252,21 +252,21 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onAuthRequired, onNavigateT
       <div className="glass-card rounded-2xl p-6">
         <div className="flex items-center space-x-3 mb-4">
           <Globe className="w-5 h-5 text-purple-400" />
-          <h2 className="text-xl font-semibold text-white">Sprache</h2>
+          <h2 className="text-xl font-semibold text-white">Language</h2>
         </div>
         
         <div className="p-4 glass rounded-xl">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-white font-medium">Interface-Sprache</p>
-              <p className="text-white/70 text-sm">Wählen Sie Ihre bevorzugte Sprache</p>
+              <p className="text-white font-medium">Interface language</p>
+              <p className="text-white/70 text-sm">Choose your preferred language</p>
             </div>
             <select
               value={userSettings.language}
               onChange={(e) => saveSettings({ language: e.target.value as 'de' | 'en' })}
               className="glass rounded-lg px-3 py-2 text-white bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
-              <option value="de" className="bg-gray-800">Deutsch</option>
+              <option value="de" className="bg-gray-800">German</option>
               <option value="en" className="bg-gray-800">English</option>
             </select>
           </div>
@@ -282,8 +282,8 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onAuthRequired, onNavigateT
         
         <div className="p-4 glass rounded-xl">
           <div className="text-center">
-            <p className="text-white font-medium mb-2">Benötigen Sie Hilfe?</p>
-            <p className="text-white/70 text-sm mb-4">Kontaktieren Sie unser Support-Team</p>
+            <p className="text-white font-medium mb-2">Need help?</p>
+            <p className="text-white/70 text-sm mb-4">Contact our support team</p>
             <a 
               href="mailto:support@mostchats.com"
               className="inline-flex items-center space-x-2 text-purple-400 hover:text-purple-300 transition-colors font-medium"
@@ -300,22 +300,22 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onAuthRequired, onNavigateT
         <div className="glass-card rounded-2xl p-6 border border-red-500/20">
           <div className="flex items-center space-x-3 mb-4">
             <Trash2 className="w-5 h-5 text-red-400" />
-            <h2 className="text-xl font-semibold text-white">Gefährlicher Bereich</h2>
+            <h2 className="text-xl font-semibold text-white">Danger Zone</h2>
           </div>
           
           <div className="space-y-4">
             <div className="p-4 glass rounded-xl border border-red-500/20">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-white font-medium">Alle Chat-Daten löschen</p>
-                  <p className="text-white/70 text-sm">Löscht unwiderruflich alle Ihre Nachrichten und Chats</p>
+                  <p className="text-white font-medium">Delete all chat data</p>
+                  <p className="text-white/70 text-sm">Permanently deletes all your messages and chats</p>
                 </div>
                 <button
                   onClick={deleteAllChatData}
                   disabled={settingsLoading}
                   className="mt-2 sm:mt-0 w-full sm:w-auto glass-button px-4 py-2 rounded-lg text-red-400 hover:bg-red-600/20 transition-all duration-300 disabled:opacity-50"
                 >
-                  {settingsLoading ? 'Wird gelöscht...' : 'Chat-Daten löschen'}
+                  {settingsLoading ? 'Deleting...' : 'Delete chat data'}
                 </button>
               </div>
             </div>
@@ -323,15 +323,15 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onAuthRequired, onNavigateT
             <div className="p-4 glass rounded-xl border border-red-500/30">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-white font-medium">Konto löschen</p>
-                  <p className="text-white/70 text-sm">Löscht unwiderruflich Ihr gesamtes Konto und alle Daten</p>
+                  <p className="text-white font-medium">Delete account</p>
+                  <p className="text-white/70 text-sm">Permanently deletes your entire account and all data</p>
                 </div>
                 <button
                   onClick={deleteAccount}
                   disabled={settingsLoading}
                   className="mt-2 sm:mt-0 w-full sm:w-auto glass-button px-4 py-2 rounded-lg text-red-400 hover:bg-red-600/30 transition-all duration-300 disabled:opacity-50 font-semibold"
                 >
-                  {settingsLoading ? 'Wird gelöscht...' : 'Konto löschen'}
+                  {settingsLoading ? 'Deleting...' : 'Delete account'}
                 </button>
               </div>
             </div>
