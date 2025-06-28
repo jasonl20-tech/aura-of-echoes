@@ -18,6 +18,7 @@ export interface Woman {
   origin: string | null;
   nsfw: boolean | null;
   exclusive: boolean;
+  exclusive_label: string;
   created_at: string;
   updated_at: string;
 }
@@ -42,7 +43,8 @@ export function useWomen() {
           height,
           origin,
           nsfw,
-          exclusive
+          exclusive,
+          exclusive_label
         `)
         .order('exclusive', { ascending: false })
         .order('name');
