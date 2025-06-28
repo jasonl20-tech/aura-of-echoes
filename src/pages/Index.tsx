@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Settings, MessageCircle, Users, Shuffle } from 'lucide-react';
@@ -61,6 +60,10 @@ const Index = () => {
     setActiveTab('admin');
   };
 
+  const handleBackFromAdmin = () => {
+    setActiveTab('settings');
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'profiles':
@@ -85,7 +88,7 @@ const Index = () => {
       case 'random':
         return <ProfileGallery isRandom onAuthRequired={() => setShowAuthModal(true)} />;
       case 'admin':
-        return <AdminDashboard />;
+        return <AdminDashboard onBack={handleBackFromAdmin} />;
       default:
         return <ProfileGallery onAuthRequired={() => setShowAuthModal(true)} />;
     }

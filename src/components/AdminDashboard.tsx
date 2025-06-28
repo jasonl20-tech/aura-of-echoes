@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Crown, Users, FileText, Calendar, Settings, BarChart3, UserCheck } from 'lucide-react';
+import { Crown, Users, FileText, Calendar, Settings, BarChart3, UserCheck, UserPlus } from 'lucide-react';
 import { useIsAdmin } from '@/hooks/useAdminWomen';
 import { useAuth } from '@/hooks/useAuth';
 import UserManagement from './UserManagement';
@@ -46,6 +46,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
 
   const tabs = [
     { id: 'overview', label: 'Übersicht', icon: BarChart3 },
+    { id: 'women-management', label: 'Frauen verwalten', icon: UserPlus },
     { id: 'user-management', label: 'User Management', icon: Users },
     { id: 'user-verification', label: 'Benutzer-Verifizierung', icon: UserCheck },
     { id: 'settings', label: 'Einstellungen', icon: Settings }
@@ -62,6 +63,18 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="glass-card rounded-2xl p-6">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-purple-600/20 rounded-full flex items-center justify-center">
+                    <UserPlus className="w-6 h-6 text-purple-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">Frauen verwalten</h3>
+                    <p className="text-white/70 text-sm">Profile erstellen und bearbeiten</p>
+                  </div>
+                </div>
+              </div>
+
               <div className="glass-card rounded-2xl p-6">
                 <div className="flex items-center space-x-4">
                   <div className="w-12 h-12 bg-blue-600/20 rounded-full flex items-center justify-center">
@@ -100,6 +113,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
             </div>
           </div>
         );
+      case 'women-management':
+        return <UserManagement />;
       case 'user-management':
         return <UserManagement />;
       case 'user-verification':
