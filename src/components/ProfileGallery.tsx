@@ -133,12 +133,12 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
     );
   }
 
-  // Swipe view
+  // Render SwipeView when viewMode is 'swipe'
   if (viewMode === 'swipe') {
     return <SwipeView />;
   }
 
-  // Grid view - only render when viewMode is 'grid'
+  // Render Grid view when viewMode is 'grid'
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
