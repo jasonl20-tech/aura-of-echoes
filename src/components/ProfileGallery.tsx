@@ -133,9 +133,12 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-white text-glow mb-6">
-          Find Your next Lovee~
+        <h1 className="text-6xl font-black text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text mb-2 tracking-tight">
+          MostChats
         </h1>
+        <h2 className="text-2xl font-bold text-white text-glow mb-6">
+          Find Your next Lovee~
+        </h2>
       </div>
 
       <WomenSearch

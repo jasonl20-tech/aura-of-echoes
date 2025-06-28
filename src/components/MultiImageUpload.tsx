@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { X, Plus, Upload } from 'lucide-react';
 
@@ -18,11 +19,13 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
   maxImages = 5
 }) => {
   const [dragActive, setDragActive] = useState(false);
+  const [inputValue, setInputValue] = useState('');
 
   const handleImageAdd = (newUrl: string) => {
-    if (images.length < maxImages) {
-      const newImages = [...images, { url: newUrl, alt: '' }];
+    if (newUrl.trim() && images.length < maxImages) {
+      const newImages = [...images, { url: newUrl.trim(), alt: '' }];
       onChange(newImages);
+      setInputValue('');
     }
   };
 
@@ -43,6 +46,17 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
     // Handle file drop logic here - for now just URL input
   };
 
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleImageAdd(inputValue);
+    }
+  };
+
+  const handleAddClick = () => {
+    handleImageAdd(inputValue);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -59,9 +73,14 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
               src={image.url}
               alt={image.alt || `Bild ${index + 1}`}
               className="w-full h-32 object-cover"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = 'https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=400&h=600&fit=crop';
+              }}
             />
             <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
               <button
+                type="button"
                 onClick={() => handleImageRemove(index)}
                 className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors"
               >
@@ -103,26 +122,16 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
           <input
             type="url"
             placeholder="Bild-URL eingeben..."
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyPress={handleKeyPress}
             className="flex-1 glass rounded-lg px-3 py-2 text-white placeholder-white/60 border border-purple-400/30 focus:border-purple-400 outline-none"
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                const target = e.target as HTMLInputElement;
-                if (target.value.trim()) {
-                  handleImageAdd(target.value.trim());
-                  target.value = '';
-                }
-              }
-            }}
           />
           <button
-            onClick={() => {
-              const input = document.querySelector('input[type="url"]') as HTMLInputElement;
-              if (input?.value.trim()) {
-                handleImageAdd(input.value.trim());
-                input.value = '';
-              }
-            }}
-            className="glass px-4 py-2 rounded-lg text-purple-400 hover:bg-purple-400/20 transition-colors"
+            type="button"
+            onClick={handleAddClick}
+            disabled={!inputValue.trim()}
+            className="glass px-4 py-2 rounded-lg text-purple-400 hover:bg-purple-400/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="w-5 h-5" />
           </button>
