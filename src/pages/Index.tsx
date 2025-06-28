@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { Settings, MessageCircle, Users, Shuffle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import ProfileGallery from '../components/ProfileGallery';
+import SwipeView from '../components/SwipeView';
 import ChatView from '../components/ChatView';
 import ChatsList from '../components/ChatsList';
 import SettingsView from '../components/SettingsView';
@@ -86,7 +87,7 @@ const Index = () => {
       case 'settings':
         return <SettingsView onAuthRequired={() => setShowAuthModal(true)} onNavigateToAdmin={handleNavigateToAdmin} />;
       case 'random':
-        return <ProfileGallery isRandom onAuthRequired={() => setShowAuthModal(true)} />;
+        return <SwipeView />;
       case 'admin':
         return <AdminDashboard onBack={handleBackFromAdmin} />;
       default:
