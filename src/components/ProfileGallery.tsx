@@ -1,7 +1,8 @@
-
 import React, { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Grid, Layers } from 'lucide-react';
 import ProfileCard from './ProfileCard';
+import SwipeView from './SwipeView';
 import WomenSearch from './WomenSearch';
 import { useWomen } from '../hooks/useWomen';
 import { useWomenFilters } from '../hooks/useWomenFilters';
@@ -17,6 +18,7 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
   const { data: women, isLoading, error } = useWomen();
   const { filters, filteredWomen, updateFilter, resetFilters } = useWomenFilters(women);
   const { user } = useAuth();
+  const [viewMode, setViewMode<'grid' | 'swipe'>('grid');
 
   // Memoize available origins calculation
   const availableOrigins = useMemo(() => {
@@ -130,6 +132,12 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
     );
   }
 
+  // Swipe view
+  if (viewMode === 'swipe') {
+    return <SwipeView />;
+  }
+
+  // Grid view
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
@@ -141,6 +149,34 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
             MostChats
           </span>
         </h1>
+        
+        {/* View Mode Toggle */}
+        <div className="flex justify-center mt-6">
+          <div className="glass-button rounded-2xl p-1 flex">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`px-4 py-2 rounded-xl flex items-center space-x-2 transition-all duration-300 ${
+                viewMode === 'grid' 
+                  ? 'bg-purple-600/30 text-white' 
+                  : 'text-white/70 hover:text-white hover:bg-purple-600/10'
+              }`}
+            >
+              <Grid className="w-4 h-4" />
+              <span>Gitter</span>
+            </button>
+            <button
+              onClick={() => setViewMode('swipe')}
+              className={`px-4 py-2 rounded-xl flex items-center space-x-2 transition-all duration-300 ${
+                viewMode === 'swipe' 
+                  ? 'bg-purple-600/30 text-white' 
+                  : 'text-white/70 hover:text-white hover:bg-purple-600/10'
+              }`}
+            >
+              <Layers className="w-4 h-4" />
+              <span>Swipen</span>
+            </button>
+          </div>
+        </div>
       </div>
 
       <WomenSearch
