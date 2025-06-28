@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ProfileCard from './ProfileCard';
@@ -16,7 +15,6 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
   const { data: women, isLoading, error } = useWomen();
   const { filters, filteredWomen, updateFilter, resetFilters } = useWomenFilters(women);
 
-  // Memoize available origins calculation
   const availableOrigins = useMemo(() => {
     if (!women) return [];
     const origins = women
@@ -25,7 +23,6 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
     return [...new Set(origins)].sort();
   }, [women]);
 
-  // Memoize format price function
   const formatPrice = useCallback((price: number, interval: string) => {
     const intervalMap = {
       daily: 'täglich',
@@ -36,10 +33,8 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
     return `€${price.toFixed(2)} ${intervalMap[interval as keyof typeof intervalMap] || 'monatlich'}`;
   }, []);
 
-  // Memoize profile transformation
   const profiles = useMemo(() => {
     return filteredWomen.map(woman => {
-      // Parse images from JSONB or fallback to single image_url
       let images = [];
       if (woman.images) {
         try {
@@ -79,11 +74,9 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
     });
   }, [filteredWomen, formatPrice]);
 
-  // Memoize display profiles with optimized shuffling for random mode
   const displayProfiles = useMemo(() => {
     if (!isRandom) return profiles;
     
-    // Use Fisher-Yates shuffle for better performance than sort()
     const shuffled = [...profiles];
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -93,7 +86,6 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
   }, [profiles, isRandom]);
 
   const handleProfileClick = useCallback((profile: any) => {
-    // Navigate to profile page using the woman ID
     navigate(`/profile/${profile.womanId}`);
   }, [navigate]);
 
@@ -130,9 +122,9 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
 
   return (
     <div className="space-y-6">
-      <div className="text-center mb-8">
-        <h1 className="relative text-7xl font-black mb-6 tracking-tight">
-          <span className="absolute inset-0 text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text blur-sm opacity-60">
+      <div className="text-center mb-6">
+        <h1 className="relative text-4xl sm:text-5xl font-bold mb-4 tracking-tight">
+          <span className="absolute inset-0 text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text blur-sm opacity-50">
             MostChats
           </span>
           <span className="glass-text relative text-white/90 backdrop-blur-sm">

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Settings, MessageCircle, Users, Shuffle } from 'lucide-react';
+import { Settings, MessageCircle, Users, Shuffle, Heart } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import ProfileGallery from '../components/ProfileGallery';
 import SwipeView from '../components/SwipeView';
@@ -8,6 +8,7 @@ import ChatView from '../components/ChatView';
 import ChatsList from '../components/ChatsList';
 import SettingsView from '../components/SettingsView';
 import AdminDashboard from '../components/AdminDashboard';
+import LikedProfilesView from '../components/LikedProfilesView';
 import AuthModal from '../components/AuthModal';
 
 const Index = () => {
@@ -69,6 +70,8 @@ const Index = () => {
     switch (activeTab) {
       case 'profiles':
         return <ProfileGallery onAuthRequired={() => setShowAuthModal(true)} />;
+      case 'liked':
+        return <LikedProfilesView />;
       case 'chats':
         if (!user) {
           return <ProfileGallery onAuthRequired={() => setShowAuthModal(true)} />;
@@ -125,64 +128,77 @@ const Index = () => {
       {/* Bottom Navigation - verstecken wenn im Chat oder Admin */}
       {!isInChat && activeTab !== 'admin' && (
         <nav className="fixed bottom-0 left-0 right-0 nav-glass z-50 safe-area-bottom animate-slide-up">
-          <div className="flex justify-around max-w-md mx-auto px-2 py-2 sm:py-3 relative">
+          <div className="flex justify-around max-w-md mx-auto px-1 py-2 sm:py-3 relative">
             {/* Enhanced moving cloud indicator */}
             <div 
               className={`absolute top-1.5 bottom-1.5 nav-cloud transition-all duration-500 ease-out animate-glow-pulse ${
-                activeTab === 'profiles' ? 'left-1.5 w-[calc(25%-12px)]' :
-                activeTab === 'chats' ? 'left-[calc(25%-4px)] w-[calc(25%-12px)]' :
-                activeTab === 'random' ? 'left-[calc(50%-4px)] w-[calc(25%-12px)]' :
-                activeTab === 'settings' ? 'left-[calc(75%-4px)] w-[calc(25%-12px)]' : ''
+                activeTab === 'profiles' ? 'left-1 w-[calc(20%-8px)]' :
+                activeTab === 'liked' ? 'left-[calc(20%-2px)] w-[calc(20%-8px)]' :
+                activeTab === 'chats' ? 'left-[calc(40%-2px)] w-[calc(20%-8px)]' :
+                activeTab === 'random' ? 'left-[calc(60%-2px)] w-[calc(20%-8px)]' :
+                activeTab === 'settings' ? 'left-[calc(80%-2px)] w-[calc(20%-8px)]' : ''
               }`}
             />
             
             <button
               onClick={() => setActiveTab('profiles')}
-              className={`flex flex-col items-center space-y-1 p-2 sm:p-3 rounded-xl transition-all duration-300 relative z-10 hover:scale-110 active:scale-95 animate-micro-bounce ${
+              className={`flex flex-col items-center space-y-1 p-1.5 sm:p-2 rounded-xl transition-all duration-300 relative z-10 hover:scale-110 active:scale-95 animate-micro-bounce ${
                 activeTab === 'profiles'
                   ? 'text-white drop-shadow-lg'
                   : 'text-white/60 hover:text-white/90'
               }`}
             >
               <Users className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="text-[10px] sm:text-xs font-medium">Profile</span>
+              <span className="text-[9px] sm:text-xs font-medium">Profile</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('liked')}
+              className={`flex flex-col items-center space-y-1 p-1.5 sm:p-2 rounded-xl transition-all duration-300 relative z-10 hover:scale-110 active:scale-95 animate-micro-bounce ${
+                activeTab === 'liked'
+                  ? 'text-white drop-shadow-lg'
+                  : 'text-white/60 hover:text-white/90'
+              }`}
+            >
+              <Heart className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="text-[9px] sm:text-xs font-medium">Geliked</span>
             </button>
             
             <button
               onClick={() => handleTabChange('chats')}
-              className={`flex flex-col items-center space-y-1 p-2 sm:p-3 rounded-xl transition-all duration-300 relative z-10 hover:scale-110 active:scale-95 ${
+              className={`flex flex-col items-center space-y-1 p-1.5 sm:p-2 rounded-xl transition-all duration-300 relative z-10 hover:scale-110 active:scale-95 ${
                 activeTab === 'chats'
                   ? 'text-white drop-shadow-lg'
                   : 'text-white/60 hover:text-white/90'
               }`}
             >
               <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="text-[10px] sm:text-xs font-medium">Chats</span>
+              <span className="text-[9px] sm:text-xs font-medium">Chats</span>
               {!user && <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-400 rounded-full animate-pulse-soft"></div>}
             </button>
             
             <button
               onClick={() => setActiveTab('random')}
-              className={`flex flex-col items-center space-y-1 p-2 sm:p-3 rounded-xl transition-all duration-300 relative z-10 hover:scale-110 active:scale-95 ${
+              className={`flex flex-col items-center space-y-1 p-1.5 sm:p-2 rounded-xl transition-all duration-300 relative z-10 hover:scale-110 active:scale-95 ${
                 activeTab === 'random'
                   ? 'text-white drop-shadow-lg'
                   : 'text-white/60 hover:text-white/90'
               }`}
             >
               <Shuffle className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="text-[10px] sm:text-xs font-medium">Zufall</span>
+              <span className="text-[9px] sm:text-xs font-medium">Zufall</span>
             </button>
             
             <button
               onClick={() => handleTabChange('settings')}
-              className={`flex flex-col items-center space-y-1 p-2 sm:p-3 rounded-xl transition-all duration-300 relative z-10 hover:scale-110 active:scale-95 ${
+              className={`flex flex-col items-center space-y-1 p-1.5 sm:p-2 rounded-xl transition-all duration-300 relative z-10 hover:scale-110 active:scale-95 ${
                 activeTab === 'settings'
                   ? 'text-white drop-shadow-lg'
                   : 'text-white/60 hover:text-white/90'
               }`}
             >
               <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="text-[10px] sm:text-xs font-medium">Settings</span>
+              <span className="text-[9px] sm:text-xs font-medium">Settings</span>
               {!user && <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-400 rounded-full animate-pulse-soft"></div>}
             </button>
           </div>
