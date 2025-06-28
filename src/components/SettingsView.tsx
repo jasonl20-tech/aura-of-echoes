@@ -1,13 +1,15 @@
-
 import React, { useState } from 'react';
 import { Settings, Shield, Globe, Trash2, User, LogOut, Crown, Bell, Volume2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useNotifications } from '../hooks/useNotifications';
 import { useSettings } from '../hooks/useSettings';
 import { useIsAdmin } from '../hooks/useAdminWomen';
+import { useVerification } from '../hooks/useVerification';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import SubscriptionManagement from './SubscriptionManagement';
+import VerificationSection from './VerificationSection';
+import ProfileApplicationForm from './ProfileApplicationForm';
 
 interface SettingsViewProps {
   onAuthRequired?: () => void;
@@ -17,6 +19,7 @@ interface SettingsViewProps {
 const SettingsView: React.FC<SettingsViewProps> = ({ onAuthRequired, onNavigateToAdmin }) => {
   const { user, loading: authLoading } = useAuth();
   const { data: isAdmin } = useIsAdmin();
+  const { verificationStatus } = useVerification();
   const { 
     settings: notificationSettings, 
     updateSettings: updateNotificationSettings,
@@ -143,6 +146,14 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onAuthRequired, onNavigateT
           </div>
         )}
       </div>
+
+      {/* Verification Section - Only for authenticated users */}
+      {user && <VerificationSection />}
+
+      {/* Profile Application Form - Only for verified users */}
+      {user && verificationStatus?.verification_status === 'verified' && (
+        <ProfileApplicationForm />
+      )}
 
       {/* Subscription Management Section */}
       {user && <SubscriptionManagement />}

@@ -117,24 +117,105 @@ export type Database = {
           },
         ]
       }
+      profile_applications: {
+        Row: {
+          age: number
+          created_at: string | null
+          description: string | null
+          height: number | null
+          id: string
+          image_url: string | null
+          images: Json | null
+          interests: string[] | null
+          name: string
+          nsfw: boolean | null
+          origin: string | null
+          personality: string | null
+          price: number | null
+          pricing_interval: string | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          user_id: string
+        }
+        Insert: {
+          age: number
+          created_at?: string | null
+          description?: string | null
+          height?: number | null
+          id?: string
+          image_url?: string | null
+          images?: Json | null
+          interests?: string[] | null
+          name: string
+          nsfw?: boolean | null
+          origin?: string | null
+          personality?: string | null
+          price?: number | null
+          pricing_interval?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          user_id: string
+        }
+        Update: {
+          age?: number
+          created_at?: string | null
+          description?: string | null
+          height?: number | null
+          id?: string
+          image_url?: string | null
+          images?: Json | null
+          interests?: string[] | null
+          name?: string
+          nsfw?: boolean | null
+          origin?: string | null
+          personality?: string | null
+          price?: number | null
+          pricing_interval?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
           email: string
           id: string
+          id_document_url: string | null
           updated_at: string | null
+          verification_requested_at: string | null
+          verification_status: string | null
+          verified_at: string | null
+          verified_by: string | null
         }
         Insert: {
           created_at?: string | null
           email: string
           id: string
+          id_document_url?: string | null
           updated_at?: string | null
+          verification_requested_at?: string | null
+          verification_status?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Update: {
           created_at?: string | null
           email?: string
           id?: string
+          id_document_url?: string | null
           updated_at?: string | null
+          verification_requested_at?: string | null
+          verification_status?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Relationships: []
       }
