@@ -260,6 +260,35 @@ export type Database = {
           },
         ]
       }
+      user_likes: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string
+          woman_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id: string
+          woman_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string
+          woman_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_likes_woman_id_fkey"
+            columns: ["woman_id"]
+            isOneToOne: false
+            referencedRelation: "women"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string | null

@@ -1,10 +1,10 @@
-
 import React, { useState, useCallback } from 'react';
 import { Heart, X, RotateCcw } from 'lucide-react';
 import SwipeCard from './SwipeCard';
 import { useWomen } from '../hooks/useWomen';
 import { useWomenFilters } from '../hooks/useWomenFilters';
 import { useSubscribeToWoman } from '../hooks/useSubscriptions';
+import { useLikes } from '../hooks/useLikes';
 import { useAuth } from '../hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 
@@ -32,6 +32,7 @@ const SwipeView: React.FC = () => {
   const { filteredWomen } = useWomenFilters(women);
   const { user } = useAuth();
   const subscribeToWoman = useSubscribeToWoman();
+  const { addLike } = useLikes();
   
   const [currentIndex, setCurrentIndex] = useState(0);
   const [swipedProfiles, setSwipedProfiles] = useState<Profile[]>([]);
@@ -98,14 +99,32 @@ const SwipeView: React.FC = () => {
     });
   }, []);
 
-  const handleSwipeRight = useCallback((profile: Profile) => {
+  const handleSwipeRight = useCallback(async (profile: Profile) => {
     setSwipedProfiles(prev => [...prev, profile]);
     setCurrentIndex(prev => prev + 1);
-    toast({
-      title: "Gefällt mir!",
-      description: `${profile.name} wurde geliked`,
-    });
-  }, []);
+    
+    // Save like to database if user is authenticated
+    if (user) {
+      try {
+        await addLike({ womanId: profile.womanId });
+        toast({
+          title: "Gefällt mir!",
+          description: `${profile.name} wurde geliked und gespeichert`,
+        });
+      } catch (error) {
+        console.error('Error saving like:', error);
+        toast({
+          title: "Gefällt mir!",
+          description: `${profile.name} wurde geliked`,
+        });
+      }
+    } else {
+      toast({
+        title: "Gefällt mir!",
+        description: `${profile.name} wurde geliked`,
+      });
+    }
+  }, [user, addLike]);
 
   const handleSubscribe = useCallback(async (profile: Profile) => {
     if (!user) {
