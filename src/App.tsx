@@ -20,6 +20,13 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/profiles" element={<Index />} />
+            <Route path="/liked" element={<Index />} />
+            <Route path="/chats" element={<Index />} />
+            <Route path="/chats/:chatId" element={<Index />} />
+            <Route path="/random" element={<Index />} />
+            <Route path="/settings" element={<Index />} />
+            <Route path="/admin" element={<Index />} />
             <Route path="/profile/:id" element={<ProfilePage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

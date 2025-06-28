@@ -1,7 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Settings, MessageCircle, Users, Shuffle, Heart } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { useMobileNavigation } from '../hooks/useMobileNavigation';
 import ProfileGallery from '../components/ProfileGallery';
 import SwipeView from '../components/SwipeView';
 import ChatView from '../components/ChatView';
@@ -13,19 +15,47 @@ import AuthModal from '../components/AuthModal';
 
 const Index = () => {
   const location = useLocation();
-  const [activeTab, setActiveTab] = useState('profiles');
+  const navigate = useNavigate();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [selectedWomanId, setSelectedWomanId] = useState<string | null>(null);
   const [selectedWomanName, setSelectedWomanName] = useState<string | null>(null);
   const { user, loading } = useAuth();
 
-  // Handle navigation from profile page
+  // Initialize mobile navigation with exit confirmation
+  useMobileNavigation();
+
+  // Determine active tab from URL
+  const getActiveTabFromPath = () => {
+    const path = location.pathname;
+    if (path === '/' || path === '/profiles') return 'profiles';
+    if (path === '/liked') return 'liked';
+    if (path === '/chats') return 'chats';
+    if (path.startsWith('/chats/')) return 'chats';
+    if (path === '/random') return 'random';
+    if (path === '/settings') return 'settings';
+    if (path === '/admin') return 'admin';
+    return 'profiles';
+  };
+
+  const activeTab = getActiveTabFromPath();
+
+  // Handle chat route parameters
   useEffect(() => {
-    if (location.state?.activeTab) {
-      setActiveTab(location.state.activeTab);
+    if (location.pathname.startsWith('/chats/')) {
+      const chatId = location.pathname.split('/chats/')[1];
+      const state = location.state as any;
+      if (chatId && state?.womanId && state?.womanName) {
+        setSelectedChatId(chatId);
+        setSelectedWomanId(state.womanId);
+        setSelectedWomanName(state.womanName);
+      }
+    } else {
+      setSelectedChatId(null);
+      setSelectedWomanId(null);
+      setSelectedWomanName(null);
     }
-  }, [location.state]);
+  }, [location.pathname, location.state]);
 
   const isInChat = selectedChatId && selectedWomanName && activeTab === 'chats';
 
@@ -36,34 +66,34 @@ const Index = () => {
       return;
     }
     
-    // Reset chat selection when switching tabs
-    if (tab !== 'chats') {
-      setSelectedChatId(null);
-      setSelectedWomanId(null);
-      setSelectedWomanName(null);
-    }
+    // Navigate to the appropriate route
+    const routes = {
+      profiles: '/profiles',
+      liked: '/liked',
+      chats: '/chats',
+      random: '/random',
+      settings: '/settings'
+    };
     
-    setActiveTab(tab);
+    navigate(routes[tab as keyof typeof routes] || '/profiles');
   };
 
   const handleChatSelect = (chatId: string, womanId: string, womanName: string) => {
-    setSelectedChatId(chatId);
-    setSelectedWomanId(womanId);
-    setSelectedWomanName(womanName);
+    navigate(`/chats/${chatId}`, {
+      state: { womanId, womanName }
+    });
   };
 
   const handleBackToChats = () => {
-    setSelectedChatId(null);
-    setSelectedWomanId(null);
-    setSelectedWomanName(null);
+    navigate('/chats');
   };
 
   const handleNavigateToAdmin = () => {
-    setActiveTab('admin');
+    navigate('/admin');
   };
 
   const handleBackFromAdmin = () => {
-    setActiveTab('settings');
+    navigate('/settings');
   };
 
   const renderContent = () => {
@@ -141,7 +171,7 @@ const Index = () => {
             />
             
             <button
-              onClick={() => setActiveTab('profiles')}
+              onClick={() => handleTabChange('profiles')}
               className={`flex flex-col items-center space-y-1 p-1.5 sm:p-2 rounded-xl transition-all duration-300 relative z-10 hover:scale-110 active:scale-95 animate-micro-bounce ${
                 activeTab === 'profiles'
                   ? 'text-white drop-shadow-lg'
@@ -153,7 +183,7 @@ const Index = () => {
             </button>
 
             <button
-              onClick={() => setActiveTab('liked')}
+              onClick={() => handleTabChange('liked')}
               className={`flex flex-col items-center space-y-1 p-1.5 sm:p-2 rounded-xl transition-all duration-300 relative z-10 hover:scale-110 active:scale-95 animate-micro-bounce ${
                 activeTab === 'liked'
                   ? 'text-white drop-shadow-lg'
@@ -178,7 +208,7 @@ const Index = () => {
             </button>
             
             <button
-              onClick={() => setActiveTab('random')}
+              onClick={() => handleTabChange('random')}
               className={`flex flex-col items-center space-y-1 p-1.5 sm:p-2 rounded-xl transition-all duration-300 relative z-10 hover:scale-110 active:scale-95 ${
                 activeTab === 'random'
                   ? 'text-white drop-shadow-lg'
@@ -209,7 +239,7 @@ const Index = () => {
       {activeTab === 'admin' && (
         <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 px-4 animate-fade-in">
           <button
-            onClick={() => setActiveTab('settings')}
+            onClick={() => navigate('/settings')}
             className="glass-button px-4 sm:px-6 py-2 sm:py-3 rounded-xl text-white font-semibold hover:bg-purple-600/30 transition-all duration-300 text-sm sm:text-base hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-purple-500/20 animate-micro-bounce"
           >
             ← Zurück zu Einstellungen
