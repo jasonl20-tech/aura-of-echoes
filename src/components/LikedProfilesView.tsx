@@ -3,17 +3,20 @@ import React from 'react';
 import { Heart } from 'lucide-react';
 
 const LikedProfilesView: React.FC = () => {
-  // Placeholder für gelikte Profile - kann später mit echten Daten erweitert werden
+  // Placeholder für geliked Profile - kann später mit echten Daten erweitert werden
   const likedProfiles: any[] = [];
 
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
-        <div className="flex items-center justify-center space-x-2 mb-4">
-          <Heart className="w-6 h-6 text-red-400" />
-          <h2 className="text-2xl font-bold text-white">Gelikte Profile</h2>
-          <Heart className="w-6 h-6 text-red-400" />
-        </div>
+        <h2 className="relative text-4xl sm:text-5xl font-bold mb-4 tracking-tight">
+          <span className="absolute inset-0 text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text blur-sm opacity-50">
+            Gelikte Profile
+          </span>
+          <span className="glass-text relative text-white/90 backdrop-blur-sm">
+            Gelikte Profile
+          </span>
+        </h2>
         <p className="text-white/60 text-sm">Hier siehst du alle Profile, die du geliked hast</p>
       </div>
 
