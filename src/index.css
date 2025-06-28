@@ -86,33 +86,44 @@
   }
   
   .nav-glass {
-    @apply backdrop-blur-2xl bg-black/80 border-t border-white/10;
+    @apply backdrop-blur-2xl bg-black/85 border-t border-white/15;
     box-shadow: 
-      inset 0 1px 0 0 rgba(255, 255, 255, 0.06),
-      0 -8px 32px rgba(0, 0, 0, 0.6);
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
+      0 -8px 32px rgba(0, 0, 0, 0.7),
+      0 0 20px rgba(139, 92, 246, 0.1);
   }
 
-  /* New navigation cloud effect */
+  /* Enhanced navigation cloud effect with perfect centering */
   .nav-cloud {
-    @apply backdrop-blur-xl bg-gradient-to-r from-purple-500/20 via-blue-500/25 to-pink-500/20 border border-white/20;
+    @apply backdrop-blur-xl bg-gradient-to-r from-purple-500/25 via-blue-500/30 to-pink-500/25 border border-white/25;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    height: calc(100% - 12px);
+    border-radius: 18px;
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 
-      inset 0 1px 0 0 rgba(255, 255, 255, 0.15),
-      0 4px 20px rgba(139, 92, 246, 0.3),
-      0 2px 12px rgba(59, 130, 246, 0.2),
-      0 0 40px rgba(236, 72, 153, 0.1);
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 16px;
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
+      0 6px 24px rgba(139, 92, 246, 0.4),
+      0 3px 16px rgba(59, 130, 246, 0.3),
+      0 0 50px rgba(236, 72, 153, 0.15);
   }
 
   .nav-cloud::before {
     content: '';
     position: absolute;
-    inset: -1px;
-    background: linear-gradient(45deg, rgba(139, 92, 246, 0.4), rgba(59, 130, 246, 0.4), rgba(236, 72, 153, 0.4));
-    border-radius: 16px;
+    inset: -2px;
+    background: linear-gradient(45deg, 
+      rgba(139, 92, 246, 0.5), 
+      rgba(59, 130, 246, 0.5), 
+      rgba(236, 72, 153, 0.5),
+      rgba(139, 92, 246, 0.5)
+    );
+    border-radius: 20px;
     z-index: -1;
-    filter: blur(2px);
-    opacity: 0.7;
+    filter: blur(3px);
+    opacity: 0.8;
+    animation: shimmer 3s ease-in-out infinite;
   }
 
   /* Glass text effect */
@@ -280,6 +291,25 @@
         0 0 30px rgba(139, 92, 246, 0.5),
         0 0 60px rgba(59, 130, 246, 0.3),
         0 0 90px rgba(236, 72, 153, 0.2);
+    }
+  }
+
+  @keyframes shimmer {
+    0%, 100% {
+      background: linear-gradient(45deg, 
+        rgba(139, 92, 246, 0.4), 
+        rgba(59, 130, 246, 0.4), 
+        rgba(236, 72, 153, 0.4),
+        rgba(139, 92, 246, 0.4)
+      );
+    }
+    50% {
+      background: linear-gradient(45deg, 
+        rgba(236, 72, 153, 0.5), 
+        rgba(139, 92, 246, 0.5), 
+        rgba(59, 130, 246, 0.5),
+        rgba(236, 72, 153, 0.5)
+      );
     }
   }
 }
