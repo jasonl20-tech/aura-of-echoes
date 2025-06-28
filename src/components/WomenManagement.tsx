@@ -403,14 +403,14 @@ const WomenManagement: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex justify-end space-x-3 pt-4">
+              <div className="flex justify-between items-center space-x-3 pt-4">
                 <Button
                   type="button"
                   onClick={resetForm}
                   variant="outline"
                   className="border-white/30 text-white hover:bg-white/10"
                 >
-                  Cancel
+                  Back to Settings
                 </Button>
                 <Button
                   type="submit"
