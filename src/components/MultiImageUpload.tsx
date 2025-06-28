@@ -1,6 +1,8 @@
 
 import React, { useState } from 'react';
-import { X, Plus, Upload } from 'lucide-react';
+import { X, Plus, Upload, Image as ImageIcon } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface ImageData {
   url: string;
@@ -20,6 +22,94 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
 }) => {
   const [dragActive, setDragActive] = useState(false);
   const [inputValue, setInputValue] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const { toast } = useToast();
+
+  const uploadFile = async (file: File): Promise<string | null> => {
+    try {
+      setUploading(true);
+      
+      // Create unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      
+      const { data, error } = await supabase.storage
+        .from('women-images')
+        .upload(fileName, file);
+
+      if (error) {
+        console.error('Upload error:', error);
+        toast({
+          title: "Upload-Fehler",
+          description: error.message,
+          variant: "destructive"
+        });
+        return null;
+      }
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('women-images')
+        .getPublicUrl(data.path);
+
+      return publicUrl;
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast({
+        title: "Upload-Fehler",
+        description: "Datei konnte nicht hochgeladen werden",
+        variant: "destructive"
+      });
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleFileUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    
+    const file = files[0];
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Ungültiger Dateityp",
+        description: "Bitte wählen Sie eine Bilddatei aus",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Datei zu groß",
+        description: "Bitte wählen Sie eine Datei unter 5MB",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (images.length >= maxImages) {
+      toast({
+        title: "Maximum erreicht",
+        description: `Sie können maximal ${maxImages} Bilder hochladen`,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const url = await uploadFile(file);
+    if (url) {
+      const newImages = [...images, { url, alt: '' }];
+      onChange(newImages);
+      toast({
+        title: "Erfolgreich hochgeladen",
+        description: "Bild wurde erfolgreich hochgeladen"
+      });
+    }
+  };
 
   const handleImageAdd = (newUrl: string) => {
     if (newUrl.trim() && images.length < maxImages) {
@@ -40,10 +130,10 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
     onChange(newImages);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setDragActive(false);
-    // Handle file drop logic here - for now just URL input
+    await handleFileUpload(e.dataTransfer.files);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -97,44 +187,76 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
           </div>
         ))}
 
-        {/* Add New Image */}
+        {/* File Upload Area */}
         {images.length < maxImages && (
-          <div
-            className={`border-2 border-dashed border-purple-400/50 rounded-lg h-32 flex flex-col items-center justify-center cursor-pointer hover:border-purple-400 transition-colors ${
-              dragActive ? 'border-purple-400 bg-purple-400/10' : ''
-            }`}
-            onDrop={handleDrop}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setDragActive(true);
-            }}
-            onDragLeave={() => setDragActive(false)}
-          >
-            <Upload className="w-6 h-6 text-purple-400 mb-2" />
-            <span className="text-sm text-purple-400">Bild hinzufügen</span>
+          <div className="space-y-2">
+            <div
+              className={`border-2 border-dashed border-purple-400/50 rounded-lg h-32 flex flex-col items-center justify-center cursor-pointer hover:border-purple-400 transition-colors relative ${
+                dragActive ? 'border-purple-400 bg-purple-400/10' : ''
+              }`}
+              onDrop={handleDrop}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragActive(true);
+              }}
+              onDragLeave={() => setDragActive(false)}
+              onClick={() => document.getElementById('file-input')?.click()}
+            >
+              {uploading ? (
+                <div className="flex flex-col items-center">
+                  <div className="animate-spin w-6 h-6 border-2 border-purple-400 border-t-transparent rounded-full mb-2"></div>
+                  <span className="text-sm text-purple-400">Wird hochgeladen...</span>
+                </div>
+              ) : (
+                <>
+                  <Upload className="w-6 h-6 text-purple-400 mb-2" />
+                  <span className="text-sm text-purple-400 text-center">
+                    Datei hier ablegen oder klicken
+                  </span>
+                  <span className="text-xs text-purple-400/70 mt-1">
+                    JPG, PNG, GIF (max. 5MB)
+                  </span>
+                </>
+              )}
+              <input
+                id="file-input"
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleFileUpload(e.target.files)}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                disabled={uploading}
+              />
+            </div>
           </div>
         )}
       </div>
 
       {/* URL Input for adding new images */}
       {images.length < maxImages && (
-        <div className="flex space-x-2">
-          <input
-            type="url"
-            placeholder="Bild-URL eingeben..."
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={handleKeyPress}
-            className="flex-1 glass rounded-lg px-3 py-2 text-white placeholder-white/60 border border-purple-400/30 focus:border-purple-400 outline-none"
-          />
-          <button
-            type="button"
-            onClick={handleAddClick}
-            disabled={!inputValue.trim()}
-            className="glass px-4 py-2 rounded-lg text-purple-400 hover:bg-purple-400/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Plus className="w-5 h-5" />
-          </button>
+        <div className="space-y-2">
+          <div className="flex items-center space-x-2 text-white/60 text-sm">
+            <div className="flex-1 h-px bg-white/20"></div>
+            <span>oder URL eingeben</span>
+            <div className="flex-1 h-px bg-white/20"></div>
+          </div>
+          <div className="flex space-x-2">
+            <input
+              type="url"
+              placeholder="Bild-URL eingeben..."
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyPress={handleKeyPress}
+              className="flex-1 glass rounded-lg px-3 py-2 text-white placeholder-white/60 border border-purple-400/30 focus:border-purple-400 outline-none"
+            />
+            <button
+              type="button"
+              onClick={handleAddClick}
+              disabled={!inputValue.trim()}
+              className="glass px-4 py-2 rounded-lg text-purple-400 hover:bg-purple-400/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Plus className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       )}
     </div>

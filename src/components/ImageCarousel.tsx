@@ -6,9 +6,15 @@ interface ImageCarouselProps {
   images: string[];
   alt: string;
   className?: string;
+  onImageClick?: (index: number) => void;
 }
 
-const ImageCarousel: React.FC<ImageCarouselProps> = ({ images, alt, className = "" }) => {
+const ImageCarousel: React.FC<ImageCarouselProps> = ({ 
+  images, 
+  alt, 
+  className = "",
+  onImageClick
+}) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   if (!images || images.length === 0) {
@@ -34,12 +40,20 @@ const ImageCarousel: React.FC<ImageCarouselProps> = ({ images, alt, className = 
     setCurrentIndex(index);
   };
 
+  const handleImageClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onImageClick) {
+      onImageClick(currentIndex);
+    }
+  };
+
   return (
     <div className={`relative group ${className}`}>
       <img
         src={images[currentIndex]}
         alt={`${alt} - Bild ${currentIndex + 1}`}
-        className="w-full h-full object-cover transition-opacity duration-300"
+        className="w-full h-full object-cover transition-opacity duration-300 cursor-pointer"
+        onClick={handleImageClick}
       />
       
       {images.length > 1 && (
