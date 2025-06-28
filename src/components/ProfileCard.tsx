@@ -19,6 +19,7 @@ interface Profile {
   origin?: string;
   nsfw?: boolean;
   exclusive?: boolean;
+  exclusive_label?: string;
   isSubscribed?: boolean;
 }
 
@@ -69,7 +70,7 @@ const ProfileCard: React.FC<ProfileCardProps> = memo(({ profile, onClick }) => {
             <div className="absolute top-3 left-3 bg-gradient-to-r from-yellow-400 to-yellow-600 px-2 py-1 rounded backdrop-blur-sm border border-yellow-300/50 animate-fade-in shadow-lg">
               <div className="flex items-center space-x-1">
                 <Crown className="w-3 h-3 text-black" />
-                <span className="text-xs text-black font-bold">EXCLUSIVE</span>
+                <span className="text-xs text-black font-bold">{profile.exclusive_label || 'EXCLUSIVE'}</span>
               </div>
             </div>
           )}
@@ -142,7 +143,7 @@ const ProfileCard: React.FC<ProfileCardProps> = memo(({ profile, onClick }) => {
               ) : (
                 <Heart className="w-3 h-3 transition-colors duration-300 group-hover:text-red-400 animate-pulse-soft" />
               )}
-              <span>{profile.exclusive ? 'Exclusive' : 'Premium'}</span>
+              <span>{profile.exclusive ? (profile.exclusive_label || 'Exclusive') : 'Premium'}</span>
             </div>
           </div>
 

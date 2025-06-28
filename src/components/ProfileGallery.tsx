@@ -69,6 +69,7 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
         origin: woman.origin,
         nsfw: woman.nsfw,
         exclusive: woman.exclusive,
+        exclusive_label: woman.exclusive_label,
         pricing_interval: woman.pricing_interval,
         formattedPrice: formatPrice(woman.price, woman.pricing_interval),
         distance: 0
