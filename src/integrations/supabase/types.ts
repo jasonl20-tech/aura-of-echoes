@@ -316,6 +316,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           exclusive: boolean
+          exclusive_label: string
           height: number | null
           id: string
           image_url: string | null
@@ -335,6 +336,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           exclusive?: boolean
+          exclusive_label?: string
           height?: number | null
           id?: string
           image_url?: string | null
@@ -354,6 +356,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           exclusive?: boolean
+          exclusive_label?: string
           height?: number | null
           id?: string
           image_url?: string | null
