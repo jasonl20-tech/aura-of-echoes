@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Grid, Layers } from 'lucide-react';
@@ -14,12 +13,14 @@ interface ProfileGalleryProps {
   onAuthRequired?: () => void;
 }
 
+type ViewMode = 'grid' | 'swipe';
+
 const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAuthRequired }) => {
   const navigate = useNavigate();
   const { data: women, isLoading, error } = useWomen();
   const { filters, filteredWomen, updateFilter, resetFilters } = useWomenFilters(women);
   const { user } = useAuth();
-  const [viewMode, setViewMode] = useState<'grid' | 'swipe'>('grid');
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
 
   // Memoize available origins calculation
   const availableOrigins = useMemo(() => {
@@ -133,83 +134,88 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
     );
   }
 
-  // Render SwipeView when viewMode is 'swipe'
-  if (viewMode === 'swipe') {
-    return <SwipeView />;
-  }
+  // Use explicit conditional rendering with proper type checking
+  const renderContent = () => {
+    switch (viewMode) {
+      case 'swipe':
+        return <SwipeView />;
+      case 'grid':
+      default:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-8">
+              <h1 className="relative text-7xl font-black mb-6 tracking-tight">
+                <span className="absolute inset-0 text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text blur-sm opacity-60">
+                  MostChats
+                </span>
+                <span className="glass-text relative text-white/90 backdrop-blur-sm">
+                  MostChats
+                </span>
+              </h1>
+              
+              {/* View Mode Toggle */}
+              <div className="flex justify-center mt-6">
+                <div className="glass-button rounded-2xl p-1 flex">
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    className={`px-4 py-2 rounded-xl flex items-center space-x-2 transition-all duration-300 ${
+                      viewMode === 'grid' 
+                        ? 'bg-purple-600/30 text-white' 
+                        : 'text-white/70 hover:text-white hover:bg-purple-600/10'
+                    }`}
+                  >
+                    <Grid className="w-4 h-4" />
+                    <span>Gitter</span>
+                  </button>
+                  <button
+                    onClick={() => setViewMode('swipe')}
+                    className={`px-4 py-2 rounded-xl flex items-center space-x-2 transition-all duration-300 ${
+                      viewMode === 'swipe' 
+                        ? 'bg-purple-600/30 text-white' 
+                        : 'text-white/70 hover:text-white hover:bg-purple-600/10'
+                    }`}
+                  >
+                    <Layers className="w-4 h-4" />
+                    <span>Swipen</span>
+                  </button>
+                </div>
+              </div>
+            </div>
 
-  // Render Grid view when viewMode is 'grid'
-  return (
-    <div className="space-y-6">
-      <div className="text-center mb-8">
-        <h1 className="relative text-7xl font-black mb-6 tracking-tight">
-          <span className="absolute inset-0 text-transparent bg-gradient-to-r from-purple-400 via-pink-400 to-purple-600 bg-clip-text blur-sm opacity-60">
-            MostChats
-          </span>
-          <span className="glass-text relative text-white/90 backdrop-blur-sm">
-            MostChats
-          </span>
-        </h1>
-        
-        {/* View Mode Toggle */}
-        <div className="flex justify-center mt-6">
-          <div className="glass-button rounded-2xl p-1 flex">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`px-4 py-2 rounded-xl flex items-center space-x-2 transition-all duration-300 ${
-                viewMode === 'grid' 
-                  ? 'bg-purple-600/30 text-white' 
-                  : 'text-white/70 hover:text-white hover:bg-purple-600/10'
-              }`}
-            >
-              <Grid className="w-4 h-4" />
-              <span>Gitter</span>
-            </button>
-            <button
-              onClick={() => setViewMode('swipe')}
-              className={`px-4 py-2 rounded-xl flex items-center space-x-2 transition-all duration-300 ${
-                viewMode === 'swipe' 
-                  ? 'bg-purple-600/30 text-white' 
-                  : 'text-white/70 hover:text-white hover:bg-purple-600/10'
-              }`}
-            >
-              <Layers className="w-4 h-4" />
-              <span>Swipen</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <WomenSearch
-        filters={filters}
-        onFilterChange={updateFilter}
-        onResetFilters={resetFilters}
-        availableOrigins={availableOrigins}
-      />
-
-      {displayProfiles.length === 0 ? (
-        <div className="text-center text-white/70 py-8">
-          <p>Keine Profile entsprechen den Filterkriterien</p>
-          <button
-            onClick={resetFilters}
-            className="mt-4 glass-button px-4 py-2 rounded-xl text-purple-400 hover:bg-purple-600/20 transition-all duration-300"
-          >
-            Filter zurücksetzen
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 gap-4 max-w-4xl mx-auto">
-          {displayProfiles.map((profile) => (
-            <ProfileCard
-              key={profile.id}
-              profile={profile}
-              onClick={() => handleProfileClick(profile)}
+            <WomenSearch
+              filters={filters}
+              onFilterChange={updateFilter}
+              onResetFilters={resetFilters}
+              availableOrigins={availableOrigins}
             />
-          ))}
-        </div>
-      )}
-    </div>
-  );
+
+            {displayProfiles.length === 0 ? (
+              <div className="text-center text-white/70 py-8">
+                <p>Keine Profile entsprechen den Filterkriterien</p>
+                <button
+                  onClick={resetFilters}
+                  className="mt-4 glass-button px-4 py-2 rounded-xl text-purple-400 hover:bg-purple-600/20 transition-all duration-300"
+                >
+                  Filter zurücksetzen
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-4 max-w-4xl mx-auto">
+                {displayProfiles.map((profile) => (
+                  <ProfileCard
+                    key={profile.id}
+                    profile={profile}
+                    onClick={() => handleProfileClick(profile)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        );
+    }
+  };
+
+  return renderContent();
 };
 
 export default ProfileGallery;
