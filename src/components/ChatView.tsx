@@ -26,6 +26,7 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [isRealtimeConnected, setIsRealtimeConnected] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const audioRef = useRef<{ play: () => Promise<void> } | null>(null);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -404,29 +405,37 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
   }, [messages, scrollToBottom]);
 
   const handleSendMessage = useCallback(async () => {
-    if (!chatId || !newMessage.trim() || sendMessage.isPending || !womanId) return;
+    if (!chatId || !newMessage.trim() || isSending || !womanId) return;
 
     console.log('📤 Sending text message to chatId:', chatId, 'womanId:', womanId);
+    
+    // Immediately set sending state and clear input
+    setIsSending(true);
+    const messageToSend = newMessage;
+    setNewMessage('');
 
     try {
       await sendMessage.mutateAsync({
         chatId,
-        content: newMessage,
+        content: messageToSend,
         womanId,
       });
       
-      setNewMessage('');
-      
     } catch (error) {
       console.error('❌ Failed to send message:', error);
+      // Restore message on error
+      setNewMessage(messageToSend);
+    } finally {
+      setIsSending(false);
     }
-  }, [chatId, newMessage, sendMessage, womanId]);
+  }, [chatId, newMessage, isSending, sendMessage, womanId]);
 
   const handleSendAudio = useCallback(async (audioBlob: Blob) => {
-    if (!chatId || sendMessage.isPending || !womanId) return;
+    if (!chatId || isSending || !womanId) return;
 
     console.log('🎤 Sending audio message to chatId:', chatId, 'womanId:', womanId, 'audioBlob size:', audioBlob.size);
 
+    setIsSending(true);
     try {
       await sendMessage.mutateAsync({
         chatId,
@@ -436,11 +445,14 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
       
     } catch (error) {
       console.error('❌ Failed to send audio message:', error);
+    } finally {
+      setIsSending(false);
     }
-  }, [chatId, sendMessage, womanId]);
+  }, [chatId, isSending, sendMessage, womanId]);
 
   const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
       handleSendMessage();
     }
   }, [handleSendMessage]);
@@ -628,21 +640,26 @@ const ChatView: React.FC<ChatViewProps> = ({ chatId, womanId, womanName, onBack 
               onChange={(e) => setNewMessage(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Nachricht schreiben..."
-              className="w-full bg-white/10 border border-white/20 rounded-full px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              disabled={isSending}
+              className="w-full bg-white/10 border border-white/20 rounded-full px-4 py-3 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50"
             />
           </div>
           
           <AudioRecorder 
             onSendAudio={handleSendAudio}
-            disabled={sendMessage.isPending}
+            disabled={isSending}
           />
           
           <button
             onClick={handleSendMessage}
-            disabled={sendMessage.isPending || !newMessage.trim()}
+            disabled={isSending || !newMessage.trim()}
             className="bg-gradient-to-r from-purple-600 to-pink-600 p-3 rounded-full hover:from-purple-700 hover:to-pink-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Send className="w-5 h-5 text-white" />
+            {isSending ? (
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <Send className="w-5 h-5 text-white" />
+            )}
           </button>
         </div>
       </div>

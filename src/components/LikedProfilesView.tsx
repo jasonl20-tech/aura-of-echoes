@@ -1,6 +1,6 @@
-
 import React, { useState } from 'react';
 import { Heart, X, MapPin, Ruler, Crown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useLikes } from '../hooks/useLikes';
 import { useAuth } from '../hooks/useAuth';
 import { useSubscribeToWoman } from '../hooks/useSubscriptions';
@@ -12,6 +12,7 @@ const LikedProfilesView: React.FC = () => {
   const { user } = useAuth();
   const { likes, isLoading, removeLike } = useLikes();
   const subscribeToWoman = useSubscribeToWoman();
+  const navigate = useNavigate();
   const [selectedProfile, setSelectedProfile] = useState<any>(null);
 
   const handleUnlike = async (womanId: string, womanName: string) => {
@@ -37,6 +38,10 @@ const LikedProfilesView: React.FC = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleProfileClick = (woman: any) => {
+    navigate(`/profile/${woman.id}`);
   };
 
   const handleSubscribe = async (woman: any) => {
@@ -111,7 +116,7 @@ const LikedProfilesView: React.FC = () => {
             src={mainImage}
             alt={woman.name}
             className="w-full h-full object-cover cursor-pointer"
-            onClick={() => setSelectedProfile(woman)}
+            onClick={() => handleProfileClick(woman)}
           />
           
           {/* Gradient overlay */}
@@ -146,7 +151,7 @@ const LikedProfilesView: React.FC = () => {
           <div className="absolute bottom-0 left-0 right-0 p-4">
             <h3 
               className="text-white font-bold text-lg mb-1 cursor-pointer hover:text-purple-300 transition-colors"
-              onClick={() => setSelectedProfile(woman)}
+              onClick={() => handleProfileClick(woman)}
             >
               {woman.name}, {woman.age}
             </h3>
