@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Grid, Layers } from 'lucide-react';
@@ -137,7 +138,7 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
     return <SwipeView />;
   }
 
-  // Grid view
+  // Grid view - only render when viewMode is 'grid'
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
