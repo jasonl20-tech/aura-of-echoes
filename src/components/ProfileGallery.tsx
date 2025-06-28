@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ProfileCard from './ProfileCard';
@@ -25,12 +26,12 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
 
   const formatPrice = useCallback((price: number, interval: string) => {
     const intervalMap = {
-      daily: 'täglich',
-      weekly: 'wöchentlich', 
-      monthly: 'monatlich',
-      yearly: 'jährlich'
+      daily: 'daily',
+      weekly: 'weekly', 
+      monthly: 'monthly',
+      yearly: 'yearly'
     };
-    return `€${price.toFixed(2)} ${intervalMap[interval as keyof typeof intervalMap] || 'monatlich'}`;
+    return `€${price.toFixed(2)} ${intervalMap[interval as keyof typeof intervalMap] || 'monthly'}`;
   }, []);
 
   const profiles = useMemo(() => {
@@ -67,6 +68,7 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
         height: woman.height,
         origin: woman.origin,
         nsfw: woman.nsfw,
+        exclusive: woman.exclusive,
         pricing_interval: woman.pricing_interval,
         formattedPrice: formatPrice(woman.price, woman.pricing_interval),
         distance: 0
@@ -75,14 +77,21 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
   }, [filteredWomen, formatPrice]);
 
   const displayProfiles = useMemo(() => {
-    if (!isRandom) return profiles;
-    
-    const shuffled = [...profiles];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    if (isRandom) {
+      const shuffled = [...profiles];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled;
     }
-    return shuffled;
+    
+    // Sort profiles: exclusive first, then by name
+    return [...profiles].sort((a, b) => {
+      if (a.exclusive && !b.exclusive) return -1;
+      if (!a.exclusive && b.exclusive) return 1;
+      return a.name.localeCompare(b.name);
+    });
   }, [profiles, isRandom]);
 
   const handleProfileClick = useCallback((profile: any) => {
@@ -94,7 +103,7 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
       <div className="flex items-center justify-center h-64">
         <div className="text-white text-center">
           <div className="animate-spin w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p>Profile werden geladen...</p>
+          <p>Loading profiles...</p>
         </div>
       </div>
     );
@@ -104,7 +113,7 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-red-400 text-center">
-          <p>Fehler beim Laden der Profile</p>
+          <p>Error loading profiles</p>
         </div>
       </div>
     );
@@ -114,7 +123,7 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-white/70 text-center">
-          <p>Keine Profile verfügbar</p>
+          <p>No profiles available</p>
         </div>
       </div>
     );
@@ -142,12 +151,12 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
 
       {displayProfiles.length === 0 ? (
         <div className="text-center text-white/70 py-8">
-          <p>Keine Profile entsprechen den Filterkriterien</p>
+          <p>No profiles match the filter criteria</p>
           <button
             onClick={resetFilters}
             className="mt-4 glass-button px-4 py-2 rounded-xl text-purple-400 hover:bg-purple-600/20 transition-all duration-300"
           >
-            Filter zurücksetzen
+            Reset filters
           </button>
         </div>
       ) : (

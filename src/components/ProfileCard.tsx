@@ -1,6 +1,6 @@
 
 import React, { memo, useState } from 'react';
-import { Heart } from 'lucide-react';
+import { Heart, Crown } from 'lucide-react';
 import ImageModal from './ImageModal';
 
 interface Profile {
@@ -18,6 +18,7 @@ interface Profile {
   height?: number;
   origin?: string;
   nsfw?: boolean;
+  exclusive?: boolean;
   isSubscribed?: boolean;
 }
 
@@ -47,7 +48,9 @@ const ProfileCard: React.FC<ProfileCardProps> = memo(({ profile, onClick }) => {
   return (
     <>
       <div
-        className="profile-glass rounded-2xl overflow-hidden cursor-pointer hover-lift group w-full transform transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20 animate-micro-bounce"
+        className={`profile-glass rounded-2xl overflow-hidden cursor-pointer hover-lift group w-full transform transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20 animate-micro-bounce ${
+          profile.exclusive ? 'ring-2 ring-yellow-400/60 shadow-yellow-400/20' : ''
+        }`}
         onClick={onClick}
       >
         {/* Image with overlay */}
@@ -61,8 +64,18 @@ const ProfileCard: React.FC<ProfileCardProps> = memo(({ profile, onClick }) => {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity duration-300 group-hover:from-black/70"></div>
           
-          {/* NSFW badge - only show if nsfw is true */}
-          {profile.nsfw && (
+          {/* Exclusive badge - priority display */}
+          {profile.exclusive && (
+            <div className="absolute top-3 left-3 bg-gradient-to-r from-yellow-400 to-yellow-600 px-2 py-1 rounded backdrop-blur-sm border border-yellow-300/50 animate-fade-in shadow-lg">
+              <div className="flex items-center space-x-1">
+                <Crown className="w-3 h-3 text-black" />
+                <span className="text-xs text-black font-bold">EXCLUSIVE</span>
+              </div>
+            </div>
+          )}
+
+          {/* NSFW badge - only show if nsfw is true and not exclusive */}
+          {profile.nsfw && !profile.exclusive && (
             <div className="absolute top-3 left-3 bg-red-500/90 px-2 py-1 rounded backdrop-blur-sm border border-red-400/50 animate-fade-in">
               <span className="text-xs text-white font-semibold">NSFW</span>
             </div>
@@ -71,22 +84,27 @@ const ProfileCard: React.FC<ProfileCardProps> = memo(({ profile, onClick }) => {
           {/* Subscription badge */}
           {profile.isSubscribed && (
             <div className="absolute top-3 right-3 bg-gradient-to-r from-purple-600 to-purple-700 px-2 py-1 rounded-lg backdrop-blur-sm border border-purple-400/50 animate-fade-in animate-pulse-soft">
-              <span className="text-xs text-white font-semibold">Abonniert</span>
+              <span className="text-xs text-white font-semibold">Subscribed</span>
             </div>
           )}
 
           {/* Image count indicator */}
           {profile.images.length > 1 && (
             <div className="absolute top-3 left-1/2 transform -translate-x-1/2 bg-black/60 px-2 py-1 rounded backdrop-blur-sm">
-              <span className="text-xs text-white font-medium">{profile.images.length} Bilder</span>
+              <span className="text-xs text-white font-medium">{profile.images.length} Images</span>
             </div>
           )}
 
           {/* Profile info overlay */}
           <div className="absolute bottom-3 left-3 right-3 transform transition-transform duration-300 group-hover:translate-y-[-2px]">
-            <h3 className="text-white font-bold text-lg text-sharp">
-              {profile.name}, {profile.age}
-            </h3>
+            <div className="flex items-center space-x-2">
+              <h3 className="text-white font-bold text-lg text-sharp">
+                {profile.name}, {profile.age}
+              </h3>
+              {profile.exclusive && (
+                <Crown className="w-4 h-4 text-yellow-400" />
+              )}
+            </div>
             {profile.origin && (
               <div className="text-white/80 mt-1 transition-colors duration-300 group-hover:text-white/90">
                 <span className="text-sm">{profile.origin}</span>
@@ -119,8 +137,12 @@ const ProfileCard: React.FC<ProfileCardProps> = memo(({ profile, onClick }) => {
           <div className="flex justify-between items-center text-xs text-white/60 transition-colors duration-300 group-hover:text-white/80">
             {profile.height && <span>{profile.height}cm</span>}
             <div className="flex items-center space-x-1">
-              <Heart className="w-3 h-3 transition-colors duration-300 group-hover:text-red-400 animate-pulse-soft" />
-              <span>Premium</span>
+              {profile.exclusive ? (
+                <Crown className="w-3 h-3 transition-colors duration-300 group-hover:text-yellow-400 animate-pulse-soft" />
+              ) : (
+                <Heart className="w-3 h-3 transition-colors duration-300 group-hover:text-red-400 animate-pulse-soft" />
+              )}
+              <span>{profile.exclusive ? 'Exclusive' : 'Premium'}</span>
             </div>
           </div>
 

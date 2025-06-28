@@ -22,6 +22,7 @@ interface CreateWomanData {
   height: number | null;
   origin: string;
   nsfw: boolean;
+  exclusive: boolean;
 }
 
 interface UpdateWomanData extends Partial<CreateWomanData> {

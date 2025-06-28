@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, Edit, Trash2, Save, X, Eye } from 'lucide-react';
 import { useWomen } from '@/hooks/useWomen';
@@ -26,6 +25,7 @@ interface WomanFormData {
   height: number | null;
   origin: string;
   nsfw: boolean;
+  exclusive: boolean;
 }
 
 const WomenManagement: React.FC = () => {
@@ -50,7 +50,8 @@ const WomenManagement: React.FC = () => {
     pricing_interval: 'monthly',
     height: null,
     origin: '',
-    nsfw: false
+    nsfw: false,
+    exclusive: false
   });
 
   const resetForm = () => {
@@ -67,7 +68,8 @@ const WomenManagement: React.FC = () => {
       pricing_interval: 'monthly',
       height: null,
       origin: '',
-      nsfw: false
+      nsfw: false,
+      exclusive: false
     });
     setEditingWoman(null);
     setShowForm(false);
@@ -88,7 +90,8 @@ const WomenManagement: React.FC = () => {
       pricing_interval: woman.pricing_interval || 'monthly',
       height: woman.height || null,
       origin: woman.origin || '',
-      nsfw: woman.nsfw || false
+      nsfw: woman.nsfw || false,
+      exclusive: woman.exclusive || false
     });
     setShowForm(true);
   };
@@ -98,8 +101,8 @@ const WomenManagement: React.FC = () => {
     
     if (!formData.name.trim() || !formData.webhook_url.trim()) {
       toast({
-        title: "Fehler",
-        description: "Name und Webhook-URL sind erforderlich.",
+        title: "Error",
+        description: "Name and Webhook URL are required.",
         variant: "destructive"
       });
       return;
@@ -112,14 +115,14 @@ const WomenManagement: React.FC = () => {
           ...formData
         });
         toast({
-          title: "Erfolg",
-          description: "Frau wurde erfolgreich aktualisiert."
+          title: "Success",
+          description: "Woman successfully updated."
         });
       } else {
         await createWoman.mutateAsync(formData);
         toast({
-          title: "Erfolg",
-          description: "Neue Frau wurde erfolgreich erstellt."
+          title: "Success",
+          description: "New woman successfully created."
         });
       }
       
@@ -127,29 +130,29 @@ const WomenManagement: React.FC = () => {
       refetch();
     } catch (error) {
       toast({
-        title: "Fehler",
-        description: "Es ist ein Fehler aufgetreten.",
+        title: "Error",
+        description: "An error occurred.",
         variant: "destructive"
       });
     }
   };
 
   const handleDelete = async (womanId: string, womanName: string) => {
-    if (!confirm(`Sind Sie sicher, dass Sie ${womanName} löschen möchten?`)) {
+    if (!confirm(`Are you sure you want to delete ${womanName}?`)) {
       return;
     }
 
     try {
       await deleteWoman.mutateAsync(womanId);
       toast({
-        title: "Erfolg",
-        description: `${womanName} wurde erfolgreich gelöscht.`
+        title: "Success",
+        description: `${womanName} successfully deleted.`
       });
       refetch();
     } catch (error) {
       toast({
-        title: "Fehler",
-        description: "Fehler beim Löschen.",
+        title: "Error",
+        description: "Error deleting.",
         variant: "destructive"
       });
     }
@@ -171,13 +174,13 @@ const WomenManagement: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-white text-glow">Frauen verwalten</h2>
+        <h2 className="text-2xl font-bold text-white text-glow">Manage Women</h2>
         <Button
           onClick={() => setShowForm(true)}
           className="bg-purple-600 hover:bg-purple-700 text-white"
         >
           <Plus className="w-4 h-4 mr-2" />
-          Neue Frau hinzufügen
+          Add New Woman
         </Button>
       </div>
 
@@ -187,7 +190,7 @@ const WomenManagement: React.FC = () => {
           <div className="glass-card rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-white">
-                {editingWoman ? 'Frau bearbeiten' : 'Neue Frau erstellen'}
+                {editingWoman ? 'Edit Woman' : 'Create New Woman'}
               </h3>
               <button
                 onClick={resetForm}
@@ -214,7 +217,7 @@ const WomenManagement: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-white mb-2">
-                    Alter *
+                    Age *
                   </label>
                   <input
                     type="number"
@@ -230,7 +233,7 @@ const WomenManagement: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-white mb-2">
-                  Beschreibung
+                  Description
                 </label>
                 <textarea
                   value={formData.description}
@@ -242,7 +245,7 @@ const WomenManagement: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-white mb-2">
-                  Persönlichkeit
+                  Personality
                 </label>
                 <textarea
                   value={formData.personality}
@@ -254,7 +257,7 @@ const WomenManagement: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-white mb-2">
-                  Hauptbild URL
+                  Main Image URL
                 </label>
                 <input
                   type="url"
@@ -285,21 +288,21 @@ const WomenManagement: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-white mb-2">
-                  Interessen (komma-getrennt)
+                  Interests (comma-separated)
                 </label>
                 <input
                   type="text"
                   value={formData.interests.join(', ')}
                   onChange={(e) => handleInterestsChange(e.target.value)}
                   className="w-full glass rounded-lg px-3 py-2 text-white placeholder-white/60 border border-purple-400/30 focus:border-purple-400 outline-none"
-                  placeholder="Reisen, Kochen, Sport, Musik"
+                  placeholder="Travel, Cooking, Sports, Music"
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-white mb-2">
-                    Preis (€)
+                    Price (€)
                   </label>
                   <input
                     type="number"
@@ -313,23 +316,23 @@ const WomenManagement: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-white mb-2">
-                    Abrechnungsintervall
+                    Billing Interval
                   </label>
                   <select
                     value={formData.pricing_interval}
                     onChange={(e) => setFormData({ ...formData, pricing_interval: e.target.value as any })}
                     className="w-full glass rounded-lg px-3 py-2 text-white bg-black/30 border border-purple-400/30 focus:border-purple-400 outline-none"
                   >
-                    <option value="daily">Täglich</option>
-                    <option value="weekly">Wöchentlich</option>
-                    <option value="monthly">Monatlich</option>
-                    <option value="yearly">Jährlich</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-white mb-2">
-                    Größe (cm)
+                    Height (cm)
                   </label>
                   <input
                     type="number"
@@ -345,7 +348,7 @@ const WomenManagement: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-white mb-2">
-                    Herkunft
+                    Origin
                   </label>
                   <input
                     type="text"
@@ -355,17 +358,32 @@ const WomenManagement: React.FC = () => {
                   />
                 </div>
 
-                <div className="flex items-center space-x-3 pt-6">
-                  <input
-                    type="checkbox"
-                    id="nsfw"
-                    checked={formData.nsfw}
-                    onChange={(e) => setFormData({ ...formData, nsfw: e.target.checked })}
-                    className="w-4 h-4 text-purple-600 bg-transparent border-purple-400/30 rounded focus:ring-purple-500"
-                  />
-                  <label htmlFor="nsfw" className="text-sm font-medium text-white">
-                    NSFW Inhalt
-                  </label>
+                <div className="space-y-3 pt-6">
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      id="nsfw"
+                      checked={formData.nsfw}
+                      onChange={(e) => setFormData({ ...formData, nsfw: e.target.checked })}
+                      className="w-4 h-4 text-purple-600 bg-transparent border-purple-400/30 rounded focus:ring-purple-500"
+                    />
+                    <label htmlFor="nsfw" className="text-sm font-medium text-white">
+                      NSFW Content
+                    </label>
+                  </div>
+
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      id="exclusive"
+                      checked={formData.exclusive}
+                      onChange={(e) => setFormData({ ...formData, exclusive: e.target.checked })}
+                      className="w-4 h-4 text-purple-600 bg-transparent border-purple-400/30 rounded focus:ring-purple-500"
+                    />
+                    <label htmlFor="exclusive" className="text-sm font-medium text-white">
+                      Exclusive
+                    </label>
+                  </div>
                 </div>
               </div>
 
@@ -376,7 +394,7 @@ const WomenManagement: React.FC = () => {
                   variant="outline"
                   className="border-white/30 text-white hover:bg-white/10"
                 >
-                  Abbrechen
+                  Cancel
                 </Button>
                 <Button
                   type="submit"
@@ -384,7 +402,7 @@ const WomenManagement: React.FC = () => {
                   className="bg-purple-600 hover:bg-purple-700 text-white"
                 >
                   <Save className="w-4 h-4 mr-2" />
-                  {editingWoman ? 'Aktualisieren' : 'Erstellen'}
+                  {editingWoman ? 'Update' : 'Create'}
                 </Button>
               </div>
             </form>
@@ -396,7 +414,7 @@ const WomenManagement: React.FC = () => {
       <div className="space-y-4">
         {women && women.length > 0 ? (
           women.map((woman) => (
-            <div key={woman.id} className="glass-card rounded-2xl p-6">
+            <div key={woman.id} className={`glass-card rounded-2xl p-6 ${woman.exclusive ? 'ring-2 ring-yellow-400/50' : ''}`}>
               <div className="flex items-start justify-between">
                 <div className="flex space-x-4">
                   {woman.image_url && (
@@ -407,9 +425,16 @@ const WomenManagement: React.FC = () => {
                     />
                   )}
                   <div>
-                    <h3 className="text-lg font-semibold text-white">{woman.name}</h3>
+                    <div className="flex items-center space-x-2">
+                      <h3 className="text-lg font-semibold text-white">{woman.name}</h3>
+                      {woman.exclusive && (
+                        <span className="px-2 py-1 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black text-xs font-bold rounded">
+                          EXCLUSIVE
+                        </span>
+                      )}
+                    </div>
                     <p className="text-white/70 text-sm">
-                      {woman.age} Jahre • {woman.origin || 'Unbekannte Herkunft'}
+                      {woman.age} years • {woman.origin || 'Unknown origin'}
                     </p>
                     <p className="text-white/60 text-sm mt-1 line-clamp-2">
                       {woman.description}
@@ -444,7 +469,7 @@ const WomenManagement: React.FC = () => {
           ))
         ) : (
           <div className="glass-card rounded-2xl p-8 text-center">
-            <p className="text-white/60">Keine Frauen gefunden. Erstellen Sie eine neue.</p>
+            <p className="text-white/60">No women found. Create a new one.</p>
           </div>
         )}
       </div>
