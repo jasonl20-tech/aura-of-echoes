@@ -99,7 +99,7 @@ const SwipeCard: React.FC<SwipeCardProps> = ({
       
       setDragOffset({ x: 0, y: 0 });
       document.removeEventListener('touchmove', handleTouchMove);
-      document.removeEventListene'touchend', handleTouchEnd);
+      document.removeEventListener('touchend', handleTouchEnd);
     };
 
     document.addEventListener('touchmove', handleTouchMove);

@@ -18,7 +18,7 @@ const ProfileGallery: React.FC<ProfileGalleryProps> = ({ isRandom = false, onAut
   const { data: women, isLoading, error } = useWomen();
   const { filters, filteredWomen, updateFilter, resetFilters } = useWomenFilters(women);
   const { user } = useAuth();
-  const [viewMode, setViewMode<'grid' | 'swipe'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'swipe'>('grid');
 
   // Memoize available origins calculation
   const availableOrigins = useMemo(() => {
