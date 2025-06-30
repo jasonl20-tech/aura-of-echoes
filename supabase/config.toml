@@ -6,3 +6,6 @@ verify_jwt = false
 
 [functions.set-typing-status]
 verify_jwt = false
+
+[functions.create-woman-profile]
+verify_jwt = false
