@@ -1,11 +1,13 @@
 
 import React, { useState } from 'react';
-import { Crown, Users, FileText, Calendar, Settings, BarChart3, UserCheck, UserPlus } from 'lucide-react';
+import { Crown, Users, FileText, Calendar, Settings, BarChart3, UserCheck, UserPlus, Key, Book } from 'lucide-react';
 import { useIsAdmin } from '@/hooks/useAdminWomen';
 import { useAuth } from '@/hooks/useAuth';
 import UserManagement from './UserManagement';
 import UserVerificationManagement from './UserVerificationManagement';
 import WomenManagement from './WomenManagement';
+import ApiKeysManagement from './ApiKeysManagement';
+import ApiDocumentation from './ApiDocumentation';
 
 interface AdminDashboardProps {
   onBack: () => void;
@@ -50,6 +52,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
     { id: 'women-management', label: 'Manage Women', icon: UserPlus },
     { id: 'user-management', label: 'User Management', icon: Users },
     { id: 'user-verification', label: 'User Verification', icon: UserCheck },
+    { id: 'api-keys', label: 'API Keys', icon: Key },
+    { id: 'documentation', label: 'API Documentation', icon: Book },
     { id: 'settings', label: 'Settings', icon: Settings }
   ];
 
@@ -102,6 +106,30 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
 
               <div className="glass-card rounded-2xl p-6">
                 <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-yellow-600/20 rounded-full flex items-center justify-center">
+                    <Key className="w-6 h-6 text-yellow-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">API Keys</h3>
+                    <p className="text-white/70 text-sm">Manage integration keys</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="glass-card rounded-2xl p-6">
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-indigo-600/20 rounded-full flex items-center justify-center">
+                    <Book className="w-6 h-6 text-indigo-400" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">Documentation</h3>
+                    <p className="text-white/70 text-sm">API integration guide</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="glass-card rounded-2xl p-6">
+                <div className="flex items-center space-x-4">
                   <div className="w-12 h-12 bg-purple-600/20 rounded-full flex items-center justify-center">
                     <FileText className="w-6 h-6 text-purple-400" />
                   </div>
@@ -120,6 +148,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
         return <UserManagement />;
       case 'user-verification':
         return <UserVerificationManagement />;
+      case 'api-keys':
+        return <ApiKeysManagement />;
+      case 'documentation':
+        return <ApiDocumentation />;
       case 'settings':
         return (
           <div className="space-y-6">
